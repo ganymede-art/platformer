@@ -28,6 +28,8 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public PlayerStateAttackController state_attack;
     [System.NonSerialized] public PlayerStateDamageController state_damage;
 
+    [System.NonSerialized] public int state_update_count = 0;
+
     // input variables.
 
     [System.NonSerialized] public Vector3 input_directional = Vector3.zero;
@@ -266,6 +268,7 @@ public class PlayerMovementController : MonoBehaviour
 
             // update the player state.
 
+            state_update_count++;
             player_state_controllers[player_state].CheckState(this);
 
             // do state specific actions.
@@ -457,7 +460,8 @@ public class PlayerMovementController : MonoBehaviour
         if (player_state == PlayerState.player_jump
             || player_state == PlayerState.player_slide
             || player_state == PlayerState.player_dive
-            || player_state == PlayerState.player_damage)
+            || player_state == PlayerState.player_damage
+            || player_state == PlayerState.player_water_dive)
         {
             rigid_body.drag = DRAG_AIR;
             player_sphere_collider.material.dynamicFriction = 0f;
@@ -498,10 +502,12 @@ public class PlayerMovementController : MonoBehaviour
     {
         player_animator.SetInteger("anim_game_state", (int)master.game_state);
         player_animator.SetInteger("anim_player_state", (int)player_state);
+        player_animator.SetInteger("anim_player_state_update_count", state_update_count);
         player_animator.SetBool("anim_is_grounded", is_spherecast_grounded);
         player_animator.SetBool("anim_is_moving", rigid_body.velocity.magnitude > 0.2f);
         player_animator.SetFloat("anim_horizontal_speed", is_input_directional ? rigid_body.velocity.magnitude : 0.0f);
         player_animator.SetFloat("anim_vertical_speed", rigid_body.velocity.y);
+        player_animator.SetFloat("anim_speed_water_dive", Mathf.Clamp(rigid_body.velocity.magnitude,0.25f,1.0f));
         player_animator.SetBool("anim_is_input_right", input_directional.x > 0.5);
         player_animator.SetBool("anim_is_input_left", input_directional.x < -0.5);
     }
@@ -560,6 +566,8 @@ public class PlayerMovementController : MonoBehaviour
         player_state = new_state;
 
         player_state_controllers[player_state].BeginState(this);
+
+        state_update_count = 0;
     }
 
     private void HandleDamageObject(GameObject damage_object)
@@ -705,6 +713,7 @@ public class PlayerMovementController : MonoBehaviour
         GUI.color = Color.black;
         GUI.Label(new Rect(64, Screen.height - 600, 600, 600),
             "player_state: " + player_state
+            + "update count: " + state_update_count
             + "\npos " + rigid_body.position.x.ToString("0.00")
             + "|" + rigid_body.position.y.ToString("0.00")
             + "|" + rigid_body.position.z.ToString("0.00")

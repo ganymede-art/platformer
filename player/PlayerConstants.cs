@@ -87,6 +87,11 @@ namespace Assets.script
         public const float DIVE_MIN_INPUT_DIRECTIONAL_MAGNITUDE = 1.0f;        // minimum input magnitude to influence dive direction.
         public const int UPDATE_COUNT_DIVE_RECOVERY_MIN = 30;                  // minimum update count to recover from dive.
 
+        // water dive constants.
+
+        public const int UPDATE_COUNT_WATER_DIVE_REENTRY_MIN = 10;
+        public const int UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN = 30;                  // minimum update count to recover from dive.
+
         // water constants.
 
         public static readonly Vector3 WATER_PARTIAL_SUBMERGED_OFFSET = new Vector3(0, 0, 0);
@@ -95,5 +100,6 @@ namespace Assets.script
         // animation constants.
 
         public const float ANIMATION_TURNING_SPEED_MULTIPLIER = 0.5f;
+        public const float ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER = 0.1f;
     }
 }
