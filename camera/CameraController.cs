@@ -6,19 +6,21 @@ using Assets.script;
 public class CameraController : MonoBehaviour
 {
     const float Y_MIN = -20;
-    const float Y_MAX =  60;
+    const float Y_MAX = 60;
 
     const float X_SPEED = 1f;
     const float Y_SPEED = 1f;
     const float ZOOM_SPEED = 1f;
 
-    const float AUTO_X_SPEED = 0.25f;
+    const float AUTO_ROTATION_DIFFERENCE_MIN = 30f;
+    const float AUTO_X_SPEED = 0.1f;
+    const float AUTO_X_SPEED_MANUAL = 0.5f;
 
     const float CAMERA_CLIPPING_RADIUS = 0.05f;
 
     const float MAX_DISTANCE_MIN = 1.0f;
     const float MAX_DISTANCE_MAX = 5.0f;
-    
+
     public Transform target;
     public float target_distance;
     private GameObject target_direction_object;
@@ -27,9 +29,14 @@ public class CameraController : MonoBehaviour
 
     private float x = 0.0f;
     private float y = 0.0f;
-    
-    private bool is_auto_rotation = true;
+
+    private bool is_auto_rotation = false;
+    private bool is_manual_auto_rotation = false;
+
     private float auto_x = 0.0f;
+    private float auto_x_speed = 0.0f;
+
+    private float auto_rotation_difference = 0.0f;
     private Quaternion auto_rotation_start = Quaternion.identity;
     private Quaternion auto_rotation_end = Quaternion.identity;
 
@@ -90,12 +97,12 @@ public class CameraController : MonoBehaviour
             {
                 UpdateCameraFixed();
             }
-            else if(camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
+            else if (camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
             {
                 UpdateCameraFixedTracking();
             }
         }
-        else if(master.game_state == GameState.Cutscene)
+        else if (master.game_state == GameState.Cutscene)
         {
             if (camera_mode == GameConstants.CameraMode.camera_default)
             {
@@ -124,15 +131,26 @@ public class CameraController : MonoBehaviour
 
         // if in auto rotation, gradually turn to be behind the target.
 
-        is_auto_rotation = master.input_controller.is_input_extra_positive;
-        if (is_auto_rotation)
+        is_manual_auto_rotation = master.input_controller.is_input_extra_positive;
+        if (is_auto_rotation || is_manual_auto_rotation)
         {
             auto_x = target_direction_object.transform.rotation.eulerAngles.y;
 
             auto_rotation_start = Quaternion.Euler(y, auto_x, 0);
             auto_rotation_end = Quaternion.Euler(y, x, 0.0f);
 
-            auto_rotation_end = Quaternion.RotateTowards(auto_rotation_end, auto_rotation_start, AUTO_X_SPEED);
+            auto_rotation_difference = Quaternion.Angle(auto_rotation_start, auto_rotation_end);
+
+            if (is_manual_auto_rotation)
+                auto_x_speed = (auto_rotation_difference > AUTO_ROTATION_DIFFERENCE_MIN)
+                    ? AUTO_X_SPEED_MANUAL
+                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, auto_rotation_difference) * AUTO_X_SPEED_MANUAL;
+            else
+                auto_x_speed = (auto_rotation_difference > AUTO_ROTATION_DIFFERENCE_MIN) 
+                    ? AUTO_X_SPEED 
+                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, auto_rotation_difference) * AUTO_X_SPEED;
+
+            auto_rotation_end = Quaternion.RotateTowards(auto_rotation_end, auto_rotation_start, auto_x_speed);
 
             x = auto_rotation_end.eulerAngles.y;     // auto yaw.
             //y = auto_rotation_end.eulerAngles.x;   // do not auto pitch.
@@ -149,8 +167,6 @@ public class CameraController : MonoBehaviour
         // Limit how low or high y can go.
 
         y = Mathf.Clamp(y, Y_MIN, Y_MAX);
-
-        Debug.Log(x.ToString() + "|" + y.ToString());
     }
 
     private void UpdateCameraFixed()
@@ -231,7 +247,7 @@ public class CameraController : MonoBehaviour
 
         // Apply the position and rotation to the camera.
 
-        if(fixed_transition < 1.0f)
+        if (fixed_transition < 1.0f)
         {
             // Get the transition speed.
 
@@ -258,7 +274,7 @@ public class CameraController : MonoBehaviour
     {
         this.camera_mode = new_camera_mode;
 
-        if(camera_mode == GameConstants.CameraMode.camera_default)
+        if (camera_mode == GameConstants.CameraMode.camera_default)
         {
             // reset the transition.
 
@@ -266,7 +282,7 @@ public class CameraController : MonoBehaviour
             fixed_start_rotation = this.transform.rotation;
             fixed_transition = 0.0f;
         }
-        else if(camera_mode == GameConstants.CameraMode.camera_fixed)
+        else if (camera_mode == GameConstants.CameraMode.camera_fixed)
         {
             // set the transition.
 
@@ -276,7 +292,7 @@ public class CameraController : MonoBehaviour
 
             this.fixed_transform = new_data.fixed_transform;
         }
-        else if(camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
+        else if (camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
         {
             // set the transition.
 
@@ -297,6 +313,16 @@ public class CameraController : MonoBehaviour
         fixed_start_position = this.transform.position;
         fixed_start_rotation = this.transform.rotation;
         fixed_transition = 0.0f;
+    }
+
+    public void SetAutoRotation()
+    {
+        is_auto_rotation = true;
+    }
+
+    public void UnsetAutoRotation()
+    {
+        is_auto_rotation = false;
     }
 }
 
