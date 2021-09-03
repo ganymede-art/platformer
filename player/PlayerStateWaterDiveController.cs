@@ -18,6 +18,8 @@ namespace Assets.script
         float input_horizontal = 0f;
         float input_vertical = 0f;
 
+        float turning_vertical = 0f;
+
         public void BeginState(PlayerMovementController mc)
         {
             update_count_water_dive = 0;
@@ -129,12 +131,15 @@ namespace Assets.script
             input_vertical = mc.input_directional.z;
 
             float horizontal_turning_rate = input_horizontal * 0.075f;
-            float vertical_turning_rate = input_vertical * 0.5f;
+            float vertical_turning_rate = input_vertical * 0.05f;
+
+            turning_vertical += vertical_turning_rate;
+            turning_vertical = Mathf.Clamp(turning_vertical, -2, 2);
 
             mc.dive_direction
                 = mc.player_direction.transform.forward
                 + mc.player_direction.transform.right * horizontal_turning_rate
-                + mc.player_direction.transform.up * vertical_turning_rate;
+                + mc.player_direction.transform.up * turning_vertical;
 
             if (!mc.master.input_controller.Is_Input_Positive)
                 return;
