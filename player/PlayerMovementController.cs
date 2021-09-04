@@ -678,6 +678,16 @@ public class PlayerMovementController : MonoBehaviour
         if (master.game_state != GameState.Game)
             return null;
 
+        if(player_state == PlayerState.player_water_dive)
+        {
+            footstep_manager.is_grounded = true;
+            footstep_manager.ground_type = ground_type;
+            footstep_manager.velocity = rigid_body.velocity.magnitude;
+            footstep_manager.is_in_water = true;
+            footstep_manager.is_submerged = true;
+            return footstep_manager;
+        }
+
         footstep_manager.is_grounded = is_spherecast_grounded;
         footstep_manager.ground_type = ground_type;
         footstep_manager.velocity = rigid_body.velocity.magnitude;
@@ -713,7 +723,7 @@ public class PlayerMovementController : MonoBehaviour
         GUI.color = Color.black;
         GUI.Label(new Rect(64, Screen.height - 600, 600, 600),
             "player_state: " + player_state
-            + "update count: " + state_update_count
+            + "\nupdate count: " + state_update_count
             + "\npos " + rigid_body.position.x.ToString("0.00")
             + "|" + rigid_body.position.y.ToString("0.00")
             + "|" + rigid_body.position.z.ToString("0.00")

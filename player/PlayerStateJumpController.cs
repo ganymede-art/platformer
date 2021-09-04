@@ -98,6 +98,17 @@ namespace Assets.script
 
         public void UpdateStateAnimator(PlayerMovementController mc)
         {
+            // update player facing direction.
+
+            mc.facing_direction = Quaternion.Euler(0, mc.camera_object.transform.rotation.eulerAngles.y, 0) * mc.input_directional;
+
+            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_render.transform.forward, mc.facing_direction, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+
+            // Move our position a step closer to the target.
+            mc.player_direction.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+
+            if (update_count_jump == 0)
+                mc.player_render.transform.rotation = Quaternion.LookRotation(mc.facing_direction);
         }
 
         public void UpdateStateJump(PlayerMovementController mc)

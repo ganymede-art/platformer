@@ -39,6 +39,12 @@ namespace Assets.script
 
             mc.dive_direction = mc.player_render.transform.forward.normalized;
 
+            // zero out pitch, unless previous
+            // state was also water dive.
+
+            if (mc.player_state_previous != PlayerState.player_water_dive)
+                turning_vertical = 0.0f;
+
             // zero out vertical velocity and add diving force.
 
             mc.rigid_body.velocity = new Vector3
