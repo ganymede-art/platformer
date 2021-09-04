@@ -45,4 +45,9 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
         return fixed_transition >= 1.0f;
     }
+
+    public bool GetIsProcessComplete()
+    {
+        return FinishEvent();
+    }
 }

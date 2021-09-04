@@ -11,7 +11,8 @@ namespace Assets.script.Event
     {
         // audio constants.
 
-        readonly int[] VOX_INDEXES = {4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73};
+        readonly int[] VOX_INDICES_1 = {4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76};
+        readonly int[] VOX_INDICES_2 = {3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70};
 
         // core variables.
 
@@ -27,6 +28,10 @@ namespace Assets.script.Event
         char output_next_char = char.MinValue;
         int output_text_index = 0;
 
+        public bool is_question = false;
+        private bool is_question_answered_positive = false;
+        public GameObject next_event_source_answered_negative = null;
+
         // audio variables.
 
         AudioSource audio_source;
@@ -34,6 +39,7 @@ namespace Assets.script.Event
         AudioClip vox_clip = null;
         AudioClip[] vox_clip_array = null;
         int vox_clip_array_index = 0;
+        int[] play_vox_on_index_array = new int[20];
 
         // rng.
 
@@ -49,11 +55,17 @@ namespace Assets.script.Event
 
         public GameObject GetNextEventSource()
         {
+            if (is_question && !is_question_answered_positive)
+                return next_event_source_answered_negative;
+
             return next_event_source;
         }
 
         public string GetEventType()
         {
+            if (is_question)
+                return GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION;
+
             return GameConstants.EVENT_TYPE_MESSAGE_BOX;
         }
 
@@ -61,7 +73,11 @@ namespace Assets.script.Event
         {
             output_text = string.Empty;
             output_text_index = 0;
-            master.user_interface_controller.SetMessageBox(message_icon);
+            master.user_interface_controller.ui_controller_message_box.SetMessageBox(message_icon);
+
+            play_vox_on_index_array = (sys_random.Next(0, 1) == 0)
+                ? VOX_INDICES_1
+                : VOX_INDICES_2;
         }
 
         public void ProcessEvent()
@@ -90,7 +106,7 @@ namespace Assets.script.Event
                     output_text += output_next_char;
                 }
 
-                if (VOX_INDEXES.Contains(output_text_index))
+                if (play_vox_on_index_array.Contains(output_text_index))
                 {
                     // play vox for every nth letter.
                     PlayVox(message_audio_vox, message_text, output_text_index);
@@ -101,7 +117,7 @@ namespace Assets.script.Event
             }
 
             master.cutscene_controller.message_box_text = output_text;
-            master.user_interface_controller.UpdateMessageBox(output_text);
+            master.user_interface_controller.ui_controller_message_box.UpdateMessageBox(output_text);
         }
 
         public bool FinishEvent()
@@ -109,14 +125,49 @@ namespace Assets.script.Event
             // if the button is pressed, and
             // reached the end of the message.
 
-            if (!master.input_controller.Was_Input_Positive 
-                && master.input_controller.Is_Input_Positive
-                && output_text_index == message_text.Length)
+            if (is_question)
             {
-                master.user_interface_controller.UnsetMessageBox();
-                return true;
+                if (!master.input_controller.Was_Input_Positive
+                    && master.input_controller.Is_Input_Positive
+                    && output_text_index == message_text.Length)
+                {
+                    audio_source.clip = master.audio_controller.a_message_box_positive;
+                    audio_source.pitch = 1.0f;
+                    audio_source.Play();
+
+                    master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+                    is_question_answered_positive = true;
+                    return true;
+                }
+
+                if (!master.input_controller.Was_Input_Negative
+                    && master.input_controller.Is_Input_Negative
+                    && output_text_index == message_text.Length)
+                {
+                    audio_source.clip = master.audio_controller.a_message_box_negative;
+                    audio_source.pitch = 1.0f;
+                    audio_source.Play();
+
+                    master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+                    is_question_answered_positive = false;
+                    return true;
+                }
             }
-                
+            else
+            {
+                if (!master.input_controller.Was_Input_Positive
+                    && master.input_controller.Is_Input_Positive
+                    && output_text_index == message_text.Length)
+                {
+                    audio_source.clip = master.audio_controller.a_message_box_continue;
+                    audio_source.pitch = 1.0f;
+                    audio_source.Play();
+
+                    master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+                    is_question_answered_positive = true;
+                    return true;
+                }
+            }
 
             return false;
         }
@@ -150,6 +201,9 @@ namespace Assets.script.Event
             return null;
         }
 
-        
+        public bool GetIsProcessComplete()
+        {
+            return (output_text_index == message_text.Length);
+        }
     }
 }

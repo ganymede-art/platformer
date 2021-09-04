@@ -49,5 +49,10 @@ namespace Assets.script
         {
             return true;
         }
+
+        public bool GetIsProcessComplete()
+        {
+            return FinishEvent();
+        }
     }
 }

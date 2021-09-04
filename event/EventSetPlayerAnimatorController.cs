@@ -41,4 +41,9 @@ public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
     {
         return true;
     }
+
+    public bool GetIsProcessComplete()
+    {
+        return FinishEvent();
+    }
 }

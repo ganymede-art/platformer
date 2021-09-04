@@ -40,4 +40,9 @@ public class EventDelayController : MonoBehaviour, IEventController
     {
         return (Time.time - start_time) >= delay_seconds;
     }
+
+    public bool GetIsProcessComplete()
+    {
+        return FinishEvent();
+    }
 }

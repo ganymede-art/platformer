@@ -13,6 +13,7 @@ namespace Assets.script
         string GetEventType();
         void StartEvent();
         void ProcessEvent();
+        bool GetIsProcessComplete();
         bool FinishEvent();
     }
 }
