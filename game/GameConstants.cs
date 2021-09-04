@@ -25,8 +25,10 @@ namespace Assets.script
         public const int LAYER_MASK_ONLY_PLAYER = 1 << 8;
         public const int LAYER_MASK_ALL_BUT_PLAYER = ~(1 << 8);
 
+        public const string EVENT_TYPE_NULL = "null";
         public const string EVENT_TYPE_DELAY = "delay";
         public const string EVENT_TYPE_MESSAGE_BOX = "message_box";
+        public const string EVENT_TYPE_MESSAGE_BOX_QUESTION = "message_box_question";
         public const string EVENT_TYPE_SET_CAMERA = "set_camera";
         public const string EVENT_TYPE_SET_PLAYER_ANIMATOR = "set_player_animator";
         public const string EVENT_TYPE_SET_ACTOR_ANIMATOR = "set_actor_animator";

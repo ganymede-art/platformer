@@ -9,11 +9,12 @@ public class GameCutsceneController : MonoBehaviour
     const float EVENT_STEP_INTERVAL_DEFAULT = 0.04f;
     const float EVENT_STEP_INTERVAL_FAST = 0.02f;
 
-    public GameMasterController master;
-    public GameUserInterfaceController ui;
+    private GameMasterController master;
+    private GameUserInterfaceController ui;
 
-    public GameObject event_source;
-    public IEventController current_event;
+    [System.NonSerialized] public GameObject event_source;
+    [System.NonSerialized] public IEventController current_event;
+    [System.NonSerialized] public IEventController previous_event;
 
     float current_event_time = 0f;
 
@@ -26,6 +27,23 @@ public class GameCutsceneController : MonoBehaviour
     // text variables.
 
     public string message_box_text = string.Empty;
+
+    // properties.
+
+    public string Previous_Event_Type
+    {
+        get => (previous_event == null) ? GameConstants.EVENT_TYPE_NULL : previous_event.GetEventType();
+    }
+
+    public string Current_Event_Type
+    {
+        get => (current_event == null) ? GameConstants.EVENT_TYPE_NULL : current_event.GetEventType();
+    }
+
+    public bool Is_Current_Event_Process_Complete
+    {
+        get => (current_event == null) ? false : current_event.GetIsProcessComplete();
+    }
 
     void Start()
     {
@@ -109,6 +127,8 @@ public class GameCutsceneController : MonoBehaviour
     public void StartCutscene(GameObject event_source)
     {
         master.ChangeState(GameState.Cutscene);
+
+        this.previous_event = current_event;
 
         this.event_source = event_source;
         this.current_event = event_source.GetComponent<IEventController>();
