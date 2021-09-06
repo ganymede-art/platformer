@@ -20,6 +20,7 @@ namespace Assets.script
         public const string MAIN_COLLIDER_GAME_OBJECT_NAME = "main_collider";
         public const string PLAYER_RENDER_GAME_OBJECT_NAME = "player_render";
         public const string PLAYER_DIRECTION_GAME_OBJECT_NAME = "player_direction";
+        public const string PLAYER_ATTACK_FORWARD_OBJECT_NAME = "attack_forward_trigger";
 
         // physical constants.
 

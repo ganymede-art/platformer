@@ -24,7 +24,7 @@ namespace Assets.script
             if (mc.input_directional.magnitude >= DIVE_MIN_INPUT_DIRECTIONAL_MAGNITUDE)
                 mc.dive_direction = Quaternion.Euler(0, mc.camera_object.transform.eulerAngles.y, 0) * mc.input_directional.normalized;
             else
-                mc.dive_direction = mc.player_render.transform.forward.normalized;
+                mc.dive_direction = mc.player_renderer_object.transform.forward.normalized;
 
             // zero out vertical velocity and add diving force.
 
@@ -33,6 +33,10 @@ namespace Assets.script
 
             mc.rigid_body.AddForce(Vector3.up * JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
             mc.rigid_body.AddForce(mc.dive_direction * (JUMP_FORCE_MULTIPLIER * 2), ForceMode.VelocityChange);
+
+            // enable the attack forward trigger.
+
+            mc.player_attack_forward_collider.enabled = true;
         }
 
         public void CheckState(PlayerMovementController mc)
@@ -48,7 +52,9 @@ namespace Assets.script
 
         public void FinishState(PlayerMovementController mc)
         {
-            
+            // disable the attack forward trigger.
+
+            mc.player_attack_forward_collider.enabled = false;
         }
 
         public void UpdateState(PlayerMovementController mc)
@@ -62,10 +68,10 @@ namespace Assets.script
             mc.facing_direction.y = 0;
             mc.facing_direction.z = mc.dive_direction.z;
 
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_render.transform.forward, mc.facing_direction, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move our position a step closer to the target.
-            mc.player_render.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
         }
 
         public void UpdateStateSpeed(PlayerMovementController mc)

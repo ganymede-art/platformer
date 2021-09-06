@@ -18,7 +18,8 @@ namespace Assets.script
             player_dive,
             player_attack,
             player_damage,
-            player_water_dive
+            player_water_dive,
+            player_repel
         }
     }
 }

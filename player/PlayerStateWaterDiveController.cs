@@ -37,7 +37,7 @@ namespace Assets.script
             mc.audio_source.clip = mc.master.audio_controller.a_player_water_jump;
             mc.audio_source.Play();
 
-            mc.dive_direction = mc.player_render.transform.forward.normalized;
+            mc.dive_direction = mc.player_renderer_object.transform.forward.normalized;
 
             // zero out pitch, unless previous
             // state was also water dive.
@@ -52,6 +52,10 @@ namespace Assets.script
 
             mc.rigid_body.AddForce(-Physics.gravity, ForceMode.Acceleration);
             mc.rigid_body.AddForce(mc.dive_direction * (JUMP_FORCE_MULTIPLIER * 2), ForceMode.VelocityChange);
+
+            // enable the attack forward trigger.
+
+            mc.player_attack_forward_collider.enabled = true;
         }
 
         public void CheckState(PlayerMovementController mc)
@@ -104,6 +108,10 @@ namespace Assets.script
             // set physics.
 
             mc.is_under_gravity = true;
+
+            // disable the attack forward trigger.
+
+            mc.player_attack_forward_collider.enabled = false;
         }
 
         public void UpdateState(PlayerMovementController mc)
@@ -117,17 +125,17 @@ namespace Assets.script
             // update the internal direction transform.
 
             mc.facing_direction = new Vector3(mc.dive_direction.x, 0, mc.dive_direction.z);
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_direction.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_direction_object.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move direction transform a step closer to the target.
-            mc.player_direction.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.player_direction_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
 
             // tilt the renderer to the swimming direction.
 
             mc.facing_direction = mc.dive_direction;
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_render.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER, 0.0f);
+            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER, 0.0f);
 
-            mc.player_render.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
 
         }
 
@@ -143,9 +151,9 @@ namespace Assets.script
             turning_vertical = Mathf.Clamp(turning_vertical, -2, 2);
 
             mc.dive_direction
-                = mc.player_direction.transform.forward
-                + mc.player_direction.transform.right * horizontal_turning_rate
-                + mc.player_direction.transform.up * turning_vertical;
+                = mc.player_direction_object.transform.forward
+                + mc.player_direction_object.transform.right * horizontal_turning_rate
+                + mc.player_direction_object.transform.up * turning_vertical;
 
             if (!mc.master.input_controller.Is_Input_Positive)
                 return;

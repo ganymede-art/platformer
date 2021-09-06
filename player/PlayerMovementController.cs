@@ -27,6 +27,7 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public PlayerStateWaterDiveController state_water_dive;
     [System.NonSerialized] public PlayerStateAttackController state_attack;
     [System.NonSerialized] public PlayerStateDamageController state_damage;
+    [System.NonSerialized] public PlayerStateRepelController state_repel;
 
     [System.NonSerialized] public int state_update_count = 0;
 
@@ -55,9 +56,11 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public SphereCollider player_sphere_collider;
     [System.NonSerialized] public Animator player_animator;
     [System.NonSerialized] public GameObject camera_object;
-    [System.NonSerialized] public GameObject player_render;
+    [System.NonSerialized] public GameObject player_renderer_object;
     [System.NonSerialized] public Renderer player_renderer;
-    [System.NonSerialized] public GameObject player_direction;
+    [System.NonSerialized] public GameObject player_direction_object;
+    [System.NonSerialized] public GameObject player_attack_forward_object;
+    [System.NonSerialized] public Collider player_attack_forward_collider;
 
     // physical variables.
 
@@ -114,6 +117,11 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public GameObject damage_source = null;
     [System.NonSerialized] public AttributeDamageTypeData damage_type = null;
 
+    // repel variables.
+
+    [System.NonSerialized] public GameObject repel_source = null;
+    [System.NonSerialized] public AttributeRepelTypeData repel_type = null;
+
     // moving object variables.
 
     List<GameObject> moving_object_collision_list = new List<GameObject>();
@@ -163,6 +171,7 @@ public class PlayerMovementController : MonoBehaviour
         state_water_dive = new PlayerStateWaterDiveController();
         state_attack = new PlayerStateAttackController();
         state_damage = new PlayerStateDamageController();
+        state_repel = new PlayerStateRepelController();
 
         player_state_controllers = new Dictionary<PlayerState, IPlayerStateController>();
 
@@ -175,6 +184,7 @@ public class PlayerMovementController : MonoBehaviour
         player_state_controllers.Add(PlayerState.player_water_dive, state_water_dive);
         player_state_controllers.Add(PlayerState.player_attack, state_attack);
         player_state_controllers.Add(PlayerState.player_damage, state_damage);
+        player_state_controllers.Add(PlayerState.player_repel, state_repel);
 
         // initialise componenets.
 
@@ -183,9 +193,13 @@ public class PlayerMovementController : MonoBehaviour
             (MAIN_COLLIDER_GAME_OBJECT_NAME).GetComponent<SphereCollider>();
         player_animator = this.GetComponent<Animator>();
         camera_object = GameObject.FindGameObjectWithTag(GameConstants.TAG_MAIN_CAMERA);
-        player_render = GameObject.Find(PLAYER_RENDER_GAME_OBJECT_NAME);
+        player_renderer_object = GameObject.Find(PLAYER_RENDER_GAME_OBJECT_NAME);
         player_renderer = this.GetComponentInChildren<SkinnedMeshRenderer>();
-        player_direction = GameObject.Find(PLAYER_DIRECTION_GAME_OBJECT_NAME);
+        player_direction_object = GameObject.Find(PLAYER_DIRECTION_GAME_OBJECT_NAME);
+
+        player_attack_forward_object = GameObject.Find(PLAYER_ATTACK_FORWARD_OBJECT_NAME);
+        player_attack_forward_collider = player_attack_forward_object.GetComponent<Collider>();
+        player_attack_forward_collider.enabled = false;
 
         // add listeners.
 
@@ -201,6 +215,7 @@ public class PlayerMovementController : MonoBehaviour
         // initialise actor attributes.
 
         damage_type = new AttributeDamageTypeData();
+        repel_type = new AttributeRepelTypeData();
 
         // initialise interface.
 
@@ -242,7 +257,8 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Update()
     {
-        if (master.game_state == GameState.Game)
+        if (master.game_state == GameState.Game 
+            || master.game_state == GameState.GameCutscene)
         {
             UpdatePlayerInput();
         }
@@ -250,7 +266,8 @@ public class PlayerMovementController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (master.game_state == GameState.Game)
+        if (master.game_state == GameState.Game 
+            || master.game_state == GameState.GameCutscene)
         {
             // run update if in game state.
 
@@ -523,15 +540,15 @@ public class PlayerMovementController : MonoBehaviour
         if (master.cutscene_controller.event_source == null)
             return;
 
-        facing_direction_delta = Vector3.RotateTowards(player_render.transform.forward,
-            master.cutscene_controller.event_source.transform.position - player_render.transform.position,
+        facing_direction_delta = Vector3.RotateTowards(player_renderer_object.transform.forward,
+            master.cutscene_controller.event_source.transform.position - player_renderer_object.transform.position,
             PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER,
             0.0f);
 
         facing_direction_delta.y = 0.0f;
 
         // Move our position a step closer to the target.
-        player_render.transform.rotation = Quaternion.LookRotation(facing_direction_delta);
+        player_renderer_object.transform.rotation = Quaternion.LookRotation(facing_direction_delta);
     }
 
     // clear raised inputs.
@@ -548,7 +565,7 @@ public class PlayerMovementController : MonoBehaviour
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        if (args.game_state == GameState.Game)
+        if (args.game_state == GameState.Game || master.game_state == GameState.GameCutscene)
             player_animator.runtimeAnimatorController = animator_game;
         else if (args.game_state == GameState.GameOver)
             player_animator.runtimeAnimatorController = animator_game_over;
@@ -570,7 +587,7 @@ public class PlayerMovementController : MonoBehaviour
         state_update_count = 0;
     }
 
-    private void HandleDamageObject(GameObject damage_object)
+    public void HandleDamageObject(GameObject damage_object)
     {
         // get the objects damage attributes (or default)
         // the handle moving into the damage state.
@@ -582,6 +599,20 @@ public class PlayerMovementController : MonoBehaviour
 
         if (player_state != PlayerState.player_damage || damage_type.damage_is_instant)
             ChangePlayerState(PlayerState.player_damage);
+    }
+
+    public void HandleRepelObject(GameObject repel_object)
+    {
+        // get the objects repel attributes (or default)
+        // the handle moving into the repel state.
+
+        repel_source = repel_object.gameObject;
+        repel_type = repel_object.gameObject.GetComponent<ActorAttributeRepelType>()?.repel_type;
+        if (repel_type == null)
+            repel_type = AttributeRepelTypeData.GetDefault();
+
+        if (player_state != PlayerState.player_repel)
+            ChangePlayerState(PlayerState.player_repel);
     }
 
     // collision.
@@ -599,6 +630,12 @@ public class PlayerMovementController : MonoBehaviour
         {
             HandleDamageObject(collision.gameObject);
         }
+
+        if (collision.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
+        {
+            Debug.Log(GameConstants.TAG_REPEL_OBJECT + Time.time);
+            HandleRepelObject(collision.gameObject);
+        }
     }
 
     private void OnCollisionStay(Collision collision)
@@ -606,6 +643,12 @@ public class PlayerMovementController : MonoBehaviour
         if (collision.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
         {
             HandleDamageObject(collision.gameObject);
+        }
+
+        if (collision.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
+        {
+            Debug.Log(GameConstants.TAG_REPEL_OBJECT + Time.time);
+            HandleRepelObject(collision.gameObject);
         }
     }
 
@@ -638,6 +681,11 @@ public class PlayerMovementController : MonoBehaviour
         {
             HandleDamageObject(other.gameObject);
         }
+
+        if (other.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
+        {
+            HandleRepelObject(other.gameObject);
+        }
     }
 
     private void OnTriggerStay(Collider other)
@@ -645,6 +693,11 @@ public class PlayerMovementController : MonoBehaviour
         if (other.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
         {
             HandleDamageObject(other.gameObject);
+        }
+
+        if (other.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
+        {
+            HandleRepelObject(other.gameObject);
         }
     }
 
