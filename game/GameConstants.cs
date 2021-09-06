@@ -13,6 +13,8 @@ namespace Assets.script
         public const string TAG_WATER =  "water";
         public const string TAG_MOVING_OBJECT = "moving_object";
         public const string TAG_DAMAGE_OBJECT = "damage_object";
+        public const string TAG_PLAYER_DAMAGE_OBJECT = "player_damage_object";
+        public const string TAG_REPEL_OBJECT = "repel_object";
 
         public const string NAME_PLAYER = "player";
         public const string NAME_PLAYER_CAMERA = "player_camera";

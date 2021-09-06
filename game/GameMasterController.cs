@@ -12,7 +12,8 @@ public enum GameState
     Game,
     Loading,
     GameOver,
-    Cutscene
+    Cutscene,
+    GameCutscene
 }
 
 public class GameMasterController : MonoBehaviour
@@ -34,6 +35,7 @@ public class GameMasterController : MonoBehaviour
     public GameDataController data_controller;
     public GameCutsceneController cutscene_controller;
     public GameUserInterfaceController user_interface_controller;
+    public GameResourceController resource_controller;
 
     // event handler
 
@@ -50,12 +52,14 @@ public class GameMasterController : MonoBehaviour
     private static GameMasterController global_master_controller;
     private static GameObject global_camera_object;
     private static GameObject global_player_object;
+    private static PlayerMovementController global_player_controller;
 
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
 
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         game_state = GameState.MainMenu;
         game_state_change_event_args = new GameStateChangeEventArgs();
@@ -68,6 +72,17 @@ public class GameMasterController : MonoBehaviour
         data_controller = this.gameObject.GetComponent<GameDataController>();
         cutscene_controller = this.gameObject.GetComponent<GameCutsceneController>();
         user_interface_controller = this.gameObject.GetComponent<GameUserInterfaceController>();
+        resource_controller = this.gameObject.AddComponent<GameResourceController>();
+    }
+
+    private void Start()
+    {
+        SceneManager.sceneLoaded += SceneLoaded;
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= SceneLoaded;
     }
 
     private void Update()
@@ -87,17 +102,45 @@ public class GameMasterController : MonoBehaviour
 
     public static GameMasterController GetMasterController()
     {
-        return GameObject.FindObjectOfType<GameMasterController>();
+        if(global_master_controller == null)
+            global_master_controller = GameObject.FindObjectOfType<GameMasterController>();
+
+        return global_master_controller;
     }
 
     public static GameObject GetPlayerObject()
     {
-        return GameObject.Find("player");
+        if (global_player_object == null)
+            global_player_object = GameObject.Find(GameConstants.NAME_PLAYER);
+
+        return global_player_object;
     }
 
     public static GameObject GetPlayerCameraObject()
     {
-        return GameObject.Find("player_camera");
+        if(global_camera_object == null)
+            global_camera_object = GameObject.Find(GameConstants.NAME_PLAYER_CAMERA);
+
+        return global_camera_object;
+    }
+
+    public static PlayerMovementController GetPlayerController()
+    {
+        if (global_player_object == null)
+            GetPlayerObject();
+
+        if (global_player_controller == null)
+            global_player_controller = global_player_object.GetComponent<PlayerMovementController>();
+
+        return global_player_controller;
+    }
+
+    private void SceneLoaded(Scene scene, LoadSceneMode load_scene_mode)
+    {
+        global_master_controller = null;
+        global_player_object = null;
+        global_camera_object = null;
+        global_player_controller = null;
     }
 }
 

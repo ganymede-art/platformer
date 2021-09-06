@@ -44,6 +44,8 @@ public class GamePlayerController : MonoBehaviour
     public int player_health = 6;
     public int player_max_health = 6;
 
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -70,20 +72,8 @@ public class GamePlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (master.game_state == GameState.Game)
+        if (master.game_state == GameState.Game || master.game_state == GameState.GameCutscene)
         {
-            // TEMP SAVE LOAD
-            // TODO REMOVE
-            if (Keyboard.current.uKey.wasPressedThisFrame)
-            {
-                master.data_controller.SaveData();
-            }
-
-            if (Keyboard.current.iKey.wasPressedThisFrame)
-            {
-                master.data_controller.LoadData();
-            }
-
             // game over.
 
             if (player_health <= 0 && master.game_state != GameState.GameOver)

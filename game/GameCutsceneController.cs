@@ -53,7 +53,11 @@ public class GameCutsceneController : MonoBehaviour
 
     void Update()
     {
-        if (master.game_state != GameState.Cutscene)
+        if (master.game_state != GameState.Cutscene 
+            && master.game_state != GameState.GameCutscene)
+            return;
+
+        if (current_event == null)
             return;
 
         // start event.
@@ -94,7 +98,11 @@ public class GameCutsceneController : MonoBehaviour
             else
             {
                 // start the next cutscene event.
-                StartCutscene(current_event.GetNextEventSource());
+
+                if(master.game_state == GameState.Cutscene)
+                    StartCutscene(current_event.GetNextEventSource(), false);
+                else if(master.game_state == GameState.GameCutscene)
+                    StartCutscene(current_event.GetNextEventSource(), true);
             }
         }
     }
@@ -124,9 +132,12 @@ public class GameCutsceneController : MonoBehaviour
         is_current_event_item_finished = current_event.FinishEvent();
     }
 
-    public void StartCutscene(GameObject event_source)
+    public void StartCutscene(GameObject event_source, bool is_game_cutscene)
     {
-        master.ChangeState(GameState.Cutscene);
+        if (!is_game_cutscene)
+            master.ChangeState(GameState.Cutscene);
+        else
+            master.ChangeState(GameState.GameCutscene);
 
         this.previous_event = current_event;
 
