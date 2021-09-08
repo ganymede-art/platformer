@@ -36,4 +36,11 @@ namespace Assets.script
         }
     }
 
+    [System.Serializable]
+    public struct ActorDataManager
+    {
+        public bool is_in_water;
+        public bool is_submerged;
+    }
+
 }

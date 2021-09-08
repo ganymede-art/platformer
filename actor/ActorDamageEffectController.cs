@@ -35,7 +35,8 @@ public class ActorDamageEffectController : MonoBehaviour
 
         if (manager_data == null)
         {
-            actor_renderer.material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
+            foreach (var material in actor_renderer.materials)
+                material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
             return;
         }
 
@@ -43,7 +44,10 @@ public class ActorDamageEffectController : MonoBehaviour
         is_active = manager_data.is_active;
 
         if (!is_active && was_active)
-            actor_renderer.material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
+        {
+            foreach (var material in actor_renderer.materials)
+                material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
+        }
 
         if (!is_active)
             return;
@@ -54,7 +58,8 @@ public class ActorDamageEffectController : MonoBehaviour
             
             elapsed_time = 0f;
             is_flashing = !is_flashing;
-            actor_renderer.material.SetColor(EMISSION_MATERIAL_PROPERTY, is_flashing ? Color.red : Color.black);
+            foreach(var material in actor_renderer.materials)
+                material.SetColor(EMISSION_MATERIAL_PROPERTY, is_flashing ? Color.red : Color.black);
         }
     }
 
