@@ -9,7 +9,7 @@ public class CameraDepthController : MonoBehaviour
     void Start()
     {
         cam = GetComponent<Camera>();
-        cam.depthTextureMode = DepthTextureMode.Depth;
+        //cam.depthTextureMode = DepthTextureMode.Depth;
     }
 
 }

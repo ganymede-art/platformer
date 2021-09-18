@@ -86,7 +86,7 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        if (master.game_state == GameState.Game)
+        if (master.game_state == GameState.Game || master.game_state == GameState.GameCutscene)
         {
             if (camera_mode == GameConstants.CameraMode.camera_default)
             {
@@ -106,6 +106,7 @@ public class CameraController : MonoBehaviour
         {
             if (camera_mode == GameConstants.CameraMode.camera_default)
             {
+                UpdateCameraInput();
                 UpdateCameraDefault();
             }
             else if (camera_mode == GameConstants.CameraMode.camera_fixed)
