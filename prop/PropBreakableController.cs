@@ -5,22 +5,24 @@ using Assets.script;
 
 public class PropBreakableController : MonoBehaviour
 {
+    private const float BASE_VOLUME = 1f;
+
     private GameMasterController master;
 
     public int prop_health = 1;
 
-    public string damage_audio_clip_name = string.Empty;
-    public string damage_particle_prefab_name = string.Empty;
-    private GameObject damage_particle_prefab = null;
-
     public bool is_destroy_one_shot = false;
     public string destroy_one_shot_var_name = string.Empty;
-
-    private AudioSource audio_source;
-
-    private MeshRenderer renderer;
-    private Collider collider;
     
+    private GameObject prop_destroy_fx_object;
+    private AudioSource prop_destroy_audio_source;
+    private float item_pickup_audio_pitch;
+    private float item_pickup_audio_volume;
+
+    public GameObject prop_destroy_fx_prefab;
+    public Transform prop_destroy_fx_origin;
+    public AudioClip prop_destroy_audio_clip;
+
     void Start()
     {
         master = GameMasterController.GetMasterController();
@@ -35,14 +37,11 @@ public class PropBreakableController : MonoBehaviour
 
         // otherwise set up.
 
-        renderer = this.GetComponent<MeshRenderer>();
-        collider = this.GetComponent<Collider>();
+        if (prop_destroy_fx_origin == null)
+            prop_destroy_fx_origin = this.transform;
 
-        damage_particle_prefab = master.resource_controller.GetParticlePrefab(damage_particle_prefab_name);
-
-        audio_source = this.gameObject.AddComponent<AudioSource>();
-        audio_source.spatialBlend = 1;
-        audio_source.clip = master.audio_controller.GetAudioClip(damage_audio_clip_name);
+        item_pickup_audio_pitch = Random.Range(0.95f, 1.05f);
+        item_pickup_audio_volume = BASE_VOLUME * master.audio_controller.volume_object;
     }
     
     private void OnTriggerEnter(Collider other)
@@ -55,19 +54,10 @@ public class PropBreakableController : MonoBehaviour
 
     private void HandleDamageObject(Collider other)
     {
-        // play the breaking sound.
-
-        audio_source.Play();
-
         // if the object is the player itself, repel them.
 
         if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
             GameMasterController.GetPlayerController().HandleRepelObject(this.gameObject);
-
-        // create the particle prefab.
-
-        if (damage_particle_prefab != null)
-            damage_particle_prefab = Instantiate(damage_particle_prefab, this.transform);
 
         // handle damage, destroy if out of health.
 
@@ -82,10 +72,19 @@ public class PropBreakableController : MonoBehaviour
             if (is_destroy_one_shot)
                 master.data_controller.UpdateGameVar(destroy_one_shot_var_name, true);
 
-            renderer.enabled = false;
-            collider.enabled = false;
+            prop_destroy_fx_object = Instantiate(
+                prop_destroy_fx_prefab, 
+                prop_destroy_fx_origin.position, 
+                prop_destroy_fx_origin.rotation);
 
-            Destroy(this.gameObject, 5);
+            prop_destroy_audio_source = prop_destroy_fx_object.AddComponent<AudioSource>();
+            prop_destroy_audio_source.clip = prop_destroy_audio_clip;
+            prop_destroy_audio_source.pitch = item_pickup_audio_pitch;
+            prop_destroy_audio_source.volume = item_pickup_audio_volume;
+            prop_destroy_audio_source.Play();
+
+            Destroy(this.gameObject);
+            Destroy(prop_destroy_fx_object, 5);
         }
     }
 }
