@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using UnityEngine;
 
 namespace Assets.script.Event
 {
-    class EventMessageBoxController : MonoBehaviour, IEventController
+    internal class EventMessageBoxController : MonoBehaviour, IEventController
     {
         // audio constants.
 
-        readonly int[] VOX_INDICES_1 = {4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76};
-        readonly int[] VOX_INDICES_2 = {3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70};
+        private readonly int[] VOX_INDICES_1 = { 4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76 };
+        private readonly int[] VOX_INDICES_2 = { 3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70 };
+
+        // core constants.
+
+        private int GAME_CUTSCENE_DELAY_MULTIPLIER = 4;
 
         // core variables.
 
@@ -24,28 +24,30 @@ namespace Assets.script.Event
         public float message_audio_pitch = 1.0f;
         public string message_text = string.Empty;
 
-        string output_text = string.Empty;
-        char output_next_char = char.MinValue;
-        int output_text_index = 0;
+        private string output_text = string.Empty;
+        private char output_next_char = char.MinValue;
+        private int output_text_index = 0;
 
         public bool is_question = false;
         private bool is_question_answered_positive = false;
         public GameObject next_event_source_answered_negative = null;
 
+        private int game_cutscene_delay_process_count = 0;
+
         // audio variables.
 
-        AudioSource audio_source;
+        private AudioSource audio_source;
 
-        AudioClip vox_clip = null;
-        AudioClip[] vox_clip_array = null;
-        int vox_clip_array_index = 0;
-        int[] play_vox_on_index_array = new int[20];
+        private AudioClip vox_clip = null;
+        private AudioClip[] vox_clip_array = null;
+        private int vox_clip_array_index = 0;
+        private int[] play_vox_on_index_array = new int[20];
 
         // rng.
 
-        System.Random sys_random;
+        private System.Random sys_random;
 
-        void Start()
+        private void Start()
         {
             master = GameMasterController.GetMasterController();
             audio_source = this.gameObject.AddComponent<AudioSource>();
@@ -74,6 +76,8 @@ namespace Assets.script.Event
             output_text = string.Empty;
             output_text_index = 0;
             master.user_interface_controller.ui_controller_message_box.SetMessageBox(message_icon);
+
+            game_cutscene_delay_process_count = 0;
 
             play_vox_on_index_array = (sys_random.Next(0, 1) == 0)
                 ? VOX_INDICES_1
@@ -115,12 +119,19 @@ namespace Assets.script.Event
                 // increment to next character.
                 output_text_index++;
             }
+            else
+            {
+                // count the processing steps after the
+                // text output is complete.
+
+                game_cutscene_delay_process_count++;
+            }
 
             master.cutscene_controller.message_box_text = output_text;
             master.user_interface_controller.ui_controller_message_box.UpdateMessageBox(output_text);
         }
 
-        public bool FinishEvent()
+        public bool GetIsEventComplete()
         {
             // if the button is pressed, and
             // reached the end of the message.
@@ -186,7 +197,6 @@ namespace Assets.script.Event
             if (output_text_index % 12 == 0)
                 vox_clip_array_index = sys_random.Next(0, vox_clip_array.Length - 1);
 
-
             // get the clip.
 
             vox_clip = vox_clip_array[vox_clip_array_index];
@@ -204,6 +214,17 @@ namespace Assets.script.Event
         public bool GetIsProcessComplete()
         {
             return (output_text_index == message_text.Length);
+        }
+
+        public bool GetIsGameEventComplete()
+        {
+            return (output_text_index == message_text.Length)
+                && (game_cutscene_delay_process_count >= output_text.Length * GAME_CUTSCENE_DELAY_MULTIPLIER);
+        }
+
+        public void FinishEvent()
+        {
+            return;
         }
     }
 }

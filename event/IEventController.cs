@@ -14,6 +14,8 @@ namespace Assets.script
         void StartEvent();
         void ProcessEvent();
         bool GetIsProcessComplete();
-        bool FinishEvent();
+        bool GetIsEventComplete();
+        bool GetIsGameEventComplete();
+        void FinishEvent();
     }
 }

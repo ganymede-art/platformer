@@ -45,14 +45,24 @@ namespace Assets.script
             return;
         }
 
-        public bool FinishEvent()
+        public bool GetIsEventComplete()
         {
             return true;
         }
 
         public bool GetIsProcessComplete()
         {
-            return FinishEvent();
+            return GetIsEventComplete();
+        }
+
+        public bool GetIsGameEventComplete()
+        {
+            return GetIsEventComplete();
+        }
+
+        public void FinishEvent()
+        {
+            return;
         }
     }
 }

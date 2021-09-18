@@ -36,13 +36,23 @@ public class EventDelayController : MonoBehaviour, IEventController
         return;
     }
 
-    public bool FinishEvent()
+    public bool GetIsEventComplete()
     {
         return (Time.time - start_time) >= delay_seconds;
     }
 
+    public bool GetIsGameEventComplete()
+    {
+        return GetIsEventComplete();
+    }
+
     public bool GetIsProcessComplete()
     {
-        return FinishEvent();
+        return GetIsEventComplete();
+    }
+
+    public void FinishEvent()
+    {
+        return;
     }
 }

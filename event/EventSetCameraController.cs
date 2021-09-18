@@ -38,7 +38,7 @@ public class EventSetCameraController : MonoBehaviour, IEventController
         return;
     }
 
-    public bool FinishEvent()
+    public bool GetIsEventComplete()
     {
         var player_camera_object = GameMasterController.GetPlayerCameraObject();
         float fixed_transition = player_camera_object.GetComponent<CameraController>().Fixed_Transition;
@@ -48,6 +48,16 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
     public bool GetIsProcessComplete()
     {
-        return FinishEvent();
+        return GetIsEventComplete();
+    }
+
+    public bool GetIsGameEventComplete()
+    {
+        return GetIsEventComplete();
+    }
+
+    public void FinishEvent()
+    {
+        return;
     }
 }
