@@ -11,7 +11,7 @@ public class ActorWaterEffectController : MonoBehaviour
     private ActorDataManager manager_data;
 
     public GameObject air_bubble_origin_object;
-    private GameObject air_bubble_fx_prefab;
+    public GameObject air_bubble_fx_prefab;
     private GameObject air_bubble_fx_object;
     private ParticleSystem air_bubble_ps;
     private ParticleSystem.EmissionModule air_bubble_ps_em;
@@ -21,7 +21,6 @@ public class ActorWaterEffectController : MonoBehaviour
     {
         master = GameMasterController.GetMasterController();
         manager = this.gameObject.GetComponent<IActorDataManager>();
-        air_bubble_fx_prefab = master.resource_controller.GetParticlePrefab("ps_air_bubble_small");
         air_bubble_fx_object = Instantiate(air_bubble_fx_prefab, air_bubble_origin_object.transform);
 
         air_bubble_ps = air_bubble_fx_object.GetComponent<ParticleSystem>();

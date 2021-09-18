@@ -5,8 +5,8 @@ using Assets.script;
 
 public class ActorFootstepController : MonoBehaviour
 {
-    const float AUDIO_MIN_PITCH = 0.9f;
-    const float AUDIO_MAX_PITCH = 1.1f;
+    const float AUDIO_MIN_PITCH = 0.8f;
+    const float AUDIO_MAX_PITCH = 1.2f;
 
     public IActorFootstepManager manager;
 
@@ -45,7 +45,8 @@ public class ActorFootstepController : MonoBehaviour
     AudioClip audio_step_grass_1;
     AudioClip audio_step_grass_2;
 
-    AudioClip audio_step_foliage;
+    AudioClip audio_step_foliage_1;
+    AudioClip audio_step_foliage_2;
 
     AudioClip audio_step_wood_1;
     AudioClip audio_step_wood_2;
@@ -66,32 +67,27 @@ public class ActorFootstepController : MonoBehaviour
         audio_step_default_1 = Resources.Load("sound/actor_step/sfx_step_default_1") as AudioClip;
         audio_step_default_2 = Resources.Load("sound/actor_step/sfx_step_default_2") as AudioClip;
 
-        audio_step_water_1 = Resources.Load("sound/actor_step/sfx_step_water_1") as AudioClip;
-        audio_step_water_2 = Resources.Load("sound/actor_step/sfx_step_water_2") as AudioClip;
+        audio_step_water_1 = Resources.Load("sound/general/sfx_step_water_1") as AudioClip;
 
-        audio_step_sand_1 = Resources.Load("sound/actor_step/sfx_step_sand_1") as AudioClip;
-        audio_step_sand_2 = Resources.Load("sound/actor_step/sfx_step_sand_2") as AudioClip;
+        audio_step_sand_1 = Resources.Load("sound/general/sfx_step_sand_1") as AudioClip;
 
-        audio_step_stone_1 = Resources.Load("sound/actor_step/sfx_step_stone_1") as AudioClip;
-        audio_step_stone_2 = Resources.Load("sound/actor_step/sfx_step_stone_2") as AudioClip;
+        audio_step_stone_1 = Resources.Load("sound/general/sfx_step_stone_1") as AudioClip;
 
-        audio_step_grass_1 = Resources.Load("sound/actor_step/sfx_step_grass_1") as AudioClip;
-        audio_step_grass_2 = Resources.Load("sound/actor_step/sfx_step_grass_2") as AudioClip;
+        audio_step_grass_1 = Resources.Load("sound/general/sfx_step_grass_1") as AudioClip;
 
         audio_step_wood_1 = Resources.Load("sound/actor_step/sfx_step_wood_1") as AudioClip;
-        audio_step_wood_2 = Resources.Load("sound/actor_step/sfx_step_wood_2") as AudioClip;
 
         audio_step_mud = Resources.Load("sound/actor_step/sfx_step_mud") as AudioClip;
 
         audio_step_metal = Resources.Load("sound/actor_step/sfx_step_metal") as AudioClip;
 
-        audio_step_foliage = Resources.Load("sound/actor_step/sfx_step_foliage") as AudioClip;
+        audio_step_foliage_1 = Resources.Load("sound/actor_step/sfx_step_foliage") as AudioClip;
 
         audio_source = gameObject.AddComponent<AudioSource>();
         audio_source.clip = audio_step_sand_1;
         audio_source.loop = false;
         audio_source.playOnAwake = false;
-        audio_source.volume = 0.25f;
+        audio_source.volume = 0.4f;
 
         audio_library = new Dictionary<(GameConstants.GroundType, int), AudioClip>();
 
@@ -102,19 +98,19 @@ public class ActorFootstepController : MonoBehaviour
         audio_library.Add((GameConstants.GroundType.ground_slide, 2), audio_step_default_2);
 
         audio_library.Add((GameConstants.GroundType.ground_water, 1), audio_step_water_1);
-        audio_library.Add((GameConstants.GroundType.ground_water, 2), audio_step_water_2);
+        audio_library.Add((GameConstants.GroundType.ground_water, 2), audio_step_water_1);
 
         audio_library.Add((GameConstants.GroundType.ground_grass, 1), audio_step_grass_1);
-        audio_library.Add((GameConstants.GroundType.ground_grass, 2), audio_step_grass_2);
+        audio_library.Add((GameConstants.GroundType.ground_grass, 2), audio_step_grass_1);
 
         audio_library.Add((GameConstants.GroundType.ground_sand, 1), audio_step_sand_1);
-        audio_library.Add((GameConstants.GroundType.ground_sand, 2), audio_step_sand_2);
+        audio_library.Add((GameConstants.GroundType.ground_sand, 2), audio_step_sand_1);
 
         audio_library.Add((GameConstants.GroundType.ground_stone, 1), audio_step_stone_1);
-        audio_library.Add((GameConstants.GroundType.ground_stone, 2), audio_step_stone_2);
+        audio_library.Add((GameConstants.GroundType.ground_stone, 2), audio_step_stone_1);
 
         audio_library.Add((GameConstants.GroundType.ground_wood, 1), audio_step_wood_1);
-        audio_library.Add((GameConstants.GroundType.ground_wood, 2), audio_step_wood_2);
+        audio_library.Add((GameConstants.GroundType.ground_wood, 2), audio_step_wood_1);
 
         audio_library.Add((GameConstants.GroundType.ground_mud, 1), audio_step_mud);
         audio_library.Add((GameConstants.GroundType.ground_mud, 2), audio_step_mud);
@@ -122,8 +118,8 @@ public class ActorFootstepController : MonoBehaviour
         audio_library.Add((GameConstants.GroundType.ground_metal, 1), audio_step_metal);
         audio_library.Add((GameConstants.GroundType.ground_metal, 2), audio_step_metal);
 
-        audio_library.Add((GameConstants.GroundType.ground_foliage, 1), audio_step_foliage);
-        audio_library.Add((GameConstants.GroundType.ground_foliage, 2), audio_step_foliage);
+        audio_library.Add((GameConstants.GroundType.ground_foliage, 1), audio_step_foliage_1);
+        audio_library.Add((GameConstants.GroundType.ground_foliage, 2), audio_step_foliage_1);
     }
 
     private void FixedUpdate()
