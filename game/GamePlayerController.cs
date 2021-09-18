@@ -7,15 +7,6 @@ using UnityEngine.SceneManagement;
 
 public class GamePlayerController : MonoBehaviour
 {
-    // ui constants.
-
-    const float X_ORIGIN_HEALTH = 5;
-    const float Y_ORIGIN_HEALTH = 5;
-    const float X_OFFSET_HEALTH = 5;
-    const float Y_OFFSET_HEALTH = 5;
-    const float X_WIDTH_HEALTH = 5;
-    const float Y_WIDTH_HEALTH = 5;
-
     // game over constants.
 
     const float GAME_OVER_TIMER_INTERVAL = 4f;
@@ -93,21 +84,6 @@ public class GamePlayerController : MonoBehaviour
                     Destroy(o);
                 SceneManager.LoadScene("scene_title");
             }
-        }
-    }
-
-    private void OnGUI()
-    {
-        if (master.game_state != GameState.Game)
-            return;
-
-        for(int i = 0; i < player_health; i++)
-        {
-            player_health_icon_rect.x = (X_ORIGIN_HEALTH * ui.ui_x_unit) + ((X_OFFSET_HEALTH * ui.ui_x_unit)  * i);
-            player_health_icon_rect.y = (Y_ORIGIN_HEALTH * ui.ui_y_unit);
-            player_health_icon_rect.width = (X_WIDTH_HEALTH * ui.ui_x_unit);
-            player_health_icon_rect.height = (Y_WIDTH_HEALTH * ui.ui_y_unit);
-            GUI.DrawTexture(player_health_icon_rect, player_health_icon_texture);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameDataController : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class GameDataController : MonoBehaviour
     private Dictionary<string, string> game_var_string;
     private Dictionary<string, int> game_var_int;
 
+
+    private string json_save_directory;
     private string json_save_path;
 
     void Start()
@@ -22,7 +25,10 @@ public class GameDataController : MonoBehaviour
         game_var_string = new Dictionary<string, string>();
         game_var_int = new Dictionary<string, int>();
 
-        json_save_path = Application.persistentDataPath + "/save_data.json";
+        //json_save_path = Application.persistentDataPath + "/save_data.json";
+
+        json_save_directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
+        json_save_path = json_save_directory + @"\save_data.json";
     }
 
     public void UpdateGameVar(string key, bool value)
@@ -73,7 +79,7 @@ public class GameDataController : MonoBehaviour
             return 0;
     }
 
-    public void SaveData()
+    public void SaveData(string player_start_transform_name, string camera_start_transform_name)
     {
         var save_data = new SaveData();
 
@@ -81,14 +87,22 @@ public class GameDataController : MonoBehaviour
         save_data.game_var_string = this.game_var_string;
         save_data.game_var_int = this.game_var_int;
 
-        save_data.load_scene_name = master.load_level_controller.load_scene_name;
-        save_data.load_player_start_transform_name = master.load_level_controller.load_player_start_transform_name;
-        save_data.load_camera_start_transform_name = master.load_level_controller.load_camera_start_transform_name;
+        save_data.load_scene_name = master.game_scene_data.scene_name;
+        save_data.load_player_start_transform_name = player_start_transform_name;
+        save_data.load_camera_start_transform_name = camera_start_transform_name;
 
         save_data.player_health = master.player_controller.player_health;
         save_data.player_max_health = master.player_controller.player_max_health;
 
+        Debug.Log("Saving data to: " + json_save_path);
         string json_data = JsonUtility.ToJson(save_data, true);
+
+        if (!Directory.Exists(json_save_directory))
+            Directory.CreateDirectory(json_save_directory);
+
+        if (!File.Exists(json_save_path))
+            File.Create(json_save_path).Close();
+
         File.WriteAllText(json_save_path, json_data);
     }
 

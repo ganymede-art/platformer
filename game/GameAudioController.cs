@@ -1,12 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class GameAudioController : MonoBehaviour
 {
     [System.NonSerialized] public float volume_music = 1.0f;
     [System.NonSerialized] public float volume_footstep = 1.0f;
     [System.NonSerialized] public float volume_object = 1.0f;
+    [System.NonSerialized] public float volume_item = 1.0f;
+
 
     // null sound.
 
@@ -82,8 +86,12 @@ public class GameAudioController : MonoBehaviour
     {
         // load vox.
 
-        var samples = Resources.LoadAll<AudioClip>("sound/vox");
+        //var samples = Resources.LoadAll<AudioClip>("sound/vox");
+        var samples = new List<AudioClip>();
         var temp_sample_dictionary = new Dictionary<string, List<AudioClip>>();
+
+        var load = Addressables.LoadAssetsAsync<AudioClip>("sound_vox", clip => samples.Add(clip));
+        load.WaitForCompletion();
 
         // build up samples lists, with relevant sample prefix for key.
 

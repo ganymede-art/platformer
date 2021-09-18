@@ -129,7 +129,9 @@ public class GameCutsceneController : MonoBehaviour
         if (current_event == null)
             return;
 
-        is_current_event_item_finished = current_event.FinishEvent();
+        is_current_event_item_finished = (master.game_state == GameState.Cutscene)
+            ? current_event.GetIsEventComplete()
+            : current_event.GetIsGameEventComplete();
     }
 
     public void StartCutscene(GameObject event_source, bool is_game_cutscene)

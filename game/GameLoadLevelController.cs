@@ -124,9 +124,26 @@ public class GameLoadLevelController : MonoBehaviour
 
         is_loading = false;
 
-        //load_scene_name = string.Empty;
-        //load_player_start_transform_name = string.Empty;
-        //load_camera_start_transform_name = string.Empty;
+        load_scene_name = string.Empty;
+        load_player_start_transform_name = string.Empty;
+        load_camera_start_transform_name = string.Empty;
+
+        // set the scene data.
+        // at a minimum the scene name, and the description if
+        // the loaded scene has a data attributes.
+
+        var scene_data = new GameSceneData();
+        scene_data.scene_name = scene.name;
+
+        var scene_data_com = GameObject.Find(GameConstants.NAME_GAME_SCENE_DATA)?
+            .GetComponent<MapAutoGameSceneDataController>();
+
+        if (scene_data_com != null)
+        {
+            scene_data.scene_description = scene_data_com.scene_data.scene_description;
+        }
+
+        master.game_scene_data = scene_data;
     }
 
     private void OnGUI()

@@ -15,20 +15,17 @@ public class GameUserInterfaceController : MonoBehaviour
     // ui variables
 
     GameMasterController master;
-    [NonSerialized] public TMP_FontAsset ui_font;
     [NonSerialized] public GUIStyle ui_style;
 
     // ui controllers.
 
     [NonSerialized] public UserInterfaceMessageBoxController ui_controller_message_box;
+    [NonSerialized] public UserInterfaceGameController ui_controller_game;
 
     // ui figures.
 
     int resolution_x = 0;
     int resolution_y = 0;
-
-    public float ui_x_unit = 1f;
-    public float ui_y_unit = 1f;
 
     private void Awake()
     {
@@ -47,11 +44,8 @@ public class GameUserInterfaceController : MonoBehaviour
 
         // add controllers.
 
-        ui_controller_message_box = this.gameObject.AddComponent<UserInterfaceMessageBoxController>();
-
-        // load ui resources.
-
-        ui_font = Resources.Load<TMP_FontAsset>("font/game_font");
+        ui_controller_message_box = this.gameObject.GetComponent<UserInterfaceMessageBoxController>();
+        ui_controller_game = this.gameObject.GetComponent<UserInterfaceGameController>();
 
         // initialise UI.
 
@@ -81,9 +75,6 @@ public class GameUserInterfaceController : MonoBehaviour
     {
         resolution_x = Screen.width;
         resolution_y = Screen.height;
-
-        ui_x_unit = Screen.width / 100;
-        ui_y_unit = Screen.height / 100;
     }
 
     // state change.

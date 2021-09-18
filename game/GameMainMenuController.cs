@@ -12,6 +12,7 @@ public class GameMainMenuController : MonoBehaviour
     {
         master = GameObject.FindObjectOfType<GameMasterController>();
         master.input_controller.action_start.performed += LoadTestScene;
+        master.input_controller.action_select.performed += loadGame;
     }
 
     // Update is called once per frame
@@ -24,11 +25,17 @@ public class GameMainMenuController : MonoBehaviour
     void OnDestroy()
     {
         master.input_controller.action_start.performed -= LoadTestScene;
+        master.input_controller.action_select.performed -= loadGame;
     }
 
     private void LoadTestScene(InputAction.CallbackContext context)
     {
         Debug.Log("Loading Test Scene");
         master.load_level_controller.StartLoadLevel("scene_test_1", "player_start_1", "camera_start_1");
+    }
+
+    private void loadGame(InputAction.CallbackContext context)
+    {
+        master.data_controller.LoadData();
     }
 }

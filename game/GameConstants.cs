@@ -18,6 +18,7 @@ namespace Assets.script
 
         public const string NAME_PLAYER = "player";
         public const string NAME_PLAYER_CAMERA = "player_camera";
+        public const string NAME_GAME_SCENE_DATA = "scene_data";
 
         public const string TAG_PLAYER_CAMERA_TARGET = "player_camera_target";
         public const string TAG_MAIN_CAMERA = "MainCamera";
@@ -35,6 +36,7 @@ namespace Assets.script
         public const string EVENT_TYPE_SET_PLAYER_ANIMATOR = "set_player_animator";
         public const string EVENT_TYPE_SET_ACTOR_ANIMATOR = "set_actor_animator";
         public const string EVENT_TYPE_UNSET_CAMERA = "unset_camera";
+        public const string EVENT_TYPE_SAVE_GAME = "save_game";
 
         public enum CameraMode
         {

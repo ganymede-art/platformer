@@ -20,11 +20,14 @@ public class GameMasterController : MonoBehaviour
 {
     // state variables.
 
-    public GameState game_state;
+    [System.NonSerialized] public GameState game_state_previous;
+    [System.NonSerialized] public GameState game_state;
     private float game_state_time = 0.0f;
 
     public float Game_State_Time
     { get => game_state_time; }
+
+    [System.NonSerialized] public GameSceneData game_scene_data;
 
     // master components.
 
@@ -61,6 +64,7 @@ public class GameMasterController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
+        game_state_previous = GameState.MainMenu;
         game_state = GameState.MainMenu;
         game_state_change_event_args = new GameStateChangeEventArgs();
         game_state_change_event_args.game_state = game_state;
@@ -71,7 +75,7 @@ public class GameMasterController : MonoBehaviour
         player_controller = this.gameObject.GetComponent<GamePlayerController>();
         data_controller = this.gameObject.GetComponent<GameDataController>();
         cutscene_controller = this.gameObject.GetComponent<GameCutsceneController>();
-        user_interface_controller = this.gameObject.GetComponent<GameUserInterfaceController>();
+        user_interface_controller = this.gameObject.GetComponentInChildren<GameUserInterfaceController>();
         resource_controller = this.gameObject.AddComponent<GameResourceController>();
     }
 
@@ -92,6 +96,7 @@ public class GameMasterController : MonoBehaviour
 
     public void ChangeState(GameState new_game_state)
     {
+        game_state_previous = game_state;
         game_state = new_game_state;
         game_state_change_event_args.game_state = game_state;
         game_state_time = 0.0f;
