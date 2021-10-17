@@ -10,70 +10,64 @@ public class GameCutsceneController : MonoBehaviour
     const float EVENT_STEP_INTERVAL_FAST = 0.02f;
 
     private GameMasterController master;
-    private GameUserInterfaceController ui;
 
-    [System.NonSerialized] public GameObject event_source;
-    [System.NonSerialized] public IEventController current_event;
-    [System.NonSerialized] public IEventController previous_event;
+    [System.NonSerialized] public GameObject currentEventSource;
+    [System.NonSerialized] public IEventController currentEvent;
+    [System.NonSerialized] public IEventController previousEvent;
 
-    float current_event_time = 0f;
+    float eventTimer = 0f;
 
-    float current_event_step_time = 0f;
-    float current_event_step_time_interval = 0.05f;
+    float eventProcessTimer = 0f;
+    float eventProcessInterval = 0.05f;
 
-    bool is_current_event_item_started = false;
-    bool is_current_event_item_finished = false;
-
-    // text variables.
-
-    public string message_box_text = string.Empty;
+    bool isCurrentEventStarted = false;
+    bool isCurrentEventFinished = false;
 
     // properties.
 
     public string Previous_Event_Type
     {
-        get => (previous_event == null) ? GameConstants.EVENT_TYPE_NULL : previous_event.GetEventType();
+        get => (previousEvent == null) ? GameConstants.EVENT_TYPE_NULL : previousEvent.GetEventType();
     }
 
     public string Current_Event_Type
     {
-        get => (current_event == null) ? GameConstants.EVENT_TYPE_NULL : current_event.GetEventType();
+        get => (currentEvent == null) ? GameConstants.EVENT_TYPE_NULL : currentEvent.GetEventType();
     }
 
     public bool Is_Current_Event_Process_Complete
     {
-        get => (current_event == null) ? false : current_event.GetIsProcessComplete();
+        get => (currentEvent == null) ? false : currentEvent.GetIsProcessComplete();
     }
 
     void Start()
     {
         master = this.GetComponentInParent<GameMasterController>();
-        ui = master.user_interface_controller;
     }
 
     void Update()
     {
-        if (master.game_state != GameState.Cutscene 
-            && master.game_state != GameState.GameCutscene)
+        if (master.gameState != GameState.Cutscene 
+            && master.gameState != GameState.GameCutscene)
             return;
 
-        if (current_event == null)
+        if (currentEvent == null)
             return;
 
         // start event.
-        if (!is_current_event_item_started)
+        if (!isCurrentEventStarted)
             StartEventItem();
 
-        current_event_time += Time.deltaTime;
-        current_event_step_time += Time.deltaTime;
+        eventTimer += Time.deltaTime;
+        eventProcessTimer += Time.deltaTime;
 
-        current_event_step_time_interval = (master.input_controller.Is_Input_Interact)
+        eventProcessInterval = (master.input_controller.isInputInteract)
             ? EVENT_STEP_INTERVAL_FAST
             : EVENT_STEP_INTERVAL_DEFAULT;
 
-        if (current_event_step_time >= current_event_step_time_interval)
+        if (eventProcessTimer >= eventProcessInterval)
         {
-            current_event_step_time = 0.0f;
+            eventProcessTimer = 0.0f;
 
             // continue event.
             ProcessEventItem();
@@ -82,15 +76,15 @@ public class GameCutsceneController : MonoBehaviour
         // finish event if possible.
         FinishEventItem();
 
-        if(is_current_event_item_finished)
+        if(isCurrentEventFinished)
         {
-            is_current_event_item_started = false;
-            is_current_event_item_finished = false;
+            isCurrentEventStarted = false;
+            isCurrentEventFinished = false;
 
             // move onto next event, or finish
             // when meeting right criteria.
 
-            if (current_event.GetNextEventSource() == null)
+            if (currentEvent.GetNextEventSource() == null)
             {
                 // return to game if there are no more items.
                 EndCutscene();
@@ -99,39 +93,39 @@ public class GameCutsceneController : MonoBehaviour
             {
                 // start the next cutscene event.
 
-                if(master.game_state == GameState.Cutscene)
-                    StartCutscene(current_event.GetNextEventSource(), false);
-                else if(master.game_state == GameState.GameCutscene)
-                    StartCutscene(current_event.GetNextEventSource(), true);
+                if(master.gameState == GameState.Cutscene)
+                    StartCutscene(currentEvent.GetNextEventSource(), false);
+                else if(master.gameState == GameState.GameCutscene)
+                    StartCutscene(currentEvent.GetNextEventSource(), true);
             }
         }
     }
 
     private void StartEventItem()
     {
-        current_event_time = 0.0f;
-        current_event_step_time = 0.0f;
+        eventTimer = 0.0f;
+        eventProcessTimer = 0.0f;
 
-        is_current_event_item_started = true;
+        isCurrentEventStarted = true;
 
-        current_event.StartEvent();
+        currentEvent.StartEvent();
     }
 
     private void ProcessEventItem()
     {
         // handle the current event item.
 
-        current_event.ProcessEvent();
+        currentEvent.ProcessEvent();
     }
     
     private void FinishEventItem()
     {
-        if (current_event == null)
+        if (currentEvent == null)
             return;
 
-        is_current_event_item_finished = (master.game_state == GameState.Cutscene)
-            ? current_event.GetIsEventComplete()
-            : current_event.GetIsGameEventComplete();
+        isCurrentEventFinished = (master.gameState == GameState.Cutscene)
+            ? currentEvent.GetIsEventComplete()
+            : currentEvent.GetIsGameEventComplete();
     }
 
     public void StartCutscene(GameObject event_source, bool is_game_cutscene)
@@ -141,13 +135,13 @@ public class GameCutsceneController : MonoBehaviour
         else
             master.ChangeState(GameState.GameCutscene);
 
-        this.previous_event = current_event;
+        this.previousEvent = currentEvent;
 
-        this.event_source = event_source;
-        this.current_event = event_source.GetComponent<IEventController>();
+        this.currentEventSource = event_source;
+        this.currentEvent = event_source.GetComponent<IEventController>();
 
-        current_event_time = 0f;
-        current_event_step_time = 0f;
+        eventTimer = 0f;
+        eventProcessTimer = 0f;
     }
 
     public void EndCutscene()

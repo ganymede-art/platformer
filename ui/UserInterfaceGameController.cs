@@ -18,19 +18,24 @@ public class UserInterfaceGameController : MonoBehaviour
 
     // root.
 
-    GameObject ui_object;
-    private GameObject ui_health_container_object;
-    private GameObject ui_scene_description_object;
-    private TextMeshProUGUI ui_scene_description_text;
-    private GameObject[] ui_health_objects;
+    GameObject uiObject;
+    private GameObject uiHealthContainerObject;
 
-    public GameObject ui_prefab;
+    private GameObject uiSceneTitleObject;
+    private TextMeshProUGUI uiSceneTitleText;
+    private GameObject uiSceneSubtitleObject;
+    private TextMeshProUGUI uiSceneSubtitleText;
+
+    private GameObject[] uiHealthObjects;
+
+    private GameObject uiItemBasicCountObject;
+    private TextMeshProUGUI uiItemBasicCountText;
 
     // scene description variables.
 
-    private bool is_display_desc;
-    private float display_desc_timer;
-    private Color display_desc_colour;
+    private bool isDisplayingTitle;
+    private float titleDisplayTimer;
+    private Color titleDisplayColour;
 
     void Start()
     {
@@ -39,37 +44,46 @@ public class UserInterfaceGameController : MonoBehaviour
         // add event hooks.
 
         master.GameStateChange += ChangeGameState;
+        master.data_controller.GameItemChange += GameItemChange;
 
         // scene description variables.
 
-        is_display_desc = false;
-        display_desc_timer = 0.0f;
-        display_desc_colour = new Color(1, 1, 1, 0);
+        isDisplayingTitle = false;
+        titleDisplayTimer = 0.0f;
+        titleDisplayColour = new Color(1, 1, 1, 0);
 
         // initialise ui.
 
-        ui_object = Instantiate(ui_prefab, this.transform);
-        ui_object.layer = 5;
-        DontDestroyOnLoad(ui_object);
+        uiObject = this.gameObject;
 
         // container.
 
-        ui_health_container_object = ui_object.transform.Find("ui_health_container").gameObject;
+        uiHealthContainerObject = uiObject.transform.Find("ui_health_container").gameObject;
 
         // health objects.
 
-        ui_health_objects = new GameObject[9];
+        uiHealthObjects = new GameObject[9];
 
-        for (int i = 0; i < ui_health_objects.Length; i++)
+        for (int i = 0; i < uiHealthObjects.Length; i++)
         {
-            ui_health_objects[i]
-                = ui_health_container_object.transform.Find("ui_health_" + i).gameObject;
+            uiHealthObjects[i]
+                = uiHealthContainerObject.transform.Find("ui_health_" + i).gameObject;
         }
+
+        // item objects.
+
+        uiItemBasicCountObject = GameObject.Find("ui_count_basic");
+        uiItemBasicCountText = uiItemBasicCountObject.GetComponent<TextMeshProUGUI>();
 
         // scene description.
 
-        ui_scene_description_object = ui_object.transform.Find("ui_scene_description").gameObject;
-        ui_scene_description_text = ui_scene_description_object.GetComponent<TextMeshProUGUI>();
+        uiSceneTitleObject = uiObject.transform.Find("ui_scene_title").gameObject;
+        uiSceneTitleText = uiSceneTitleObject.GetComponent<TextMeshProUGUI>();
+
+        uiSceneSubtitleObject = uiObject.transform.Find("ui_scene_subtitle").gameObject;
+        uiSceneSubtitleText = uiSceneSubtitleObject.GetComponent<TextMeshProUGUI>();
+
+        uiObject.SetActive(false);
     }
 
     private void OnDestroy()
@@ -79,63 +93,86 @@ public class UserInterfaceGameController : MonoBehaviour
 
     void Update()
     {
-        if (master.game_state != GameState.Game
-            && master.game_state != GameState.GameCutscene)
+        if (master.gameState != GameState.Game
+            && master.gameState != GameState.GameCutscene)
             return;
 
-        for (int i = 0; i < ui_health_objects.Length; i++)
+        for (int i = 0; i < uiHealthObjects.Length; i++)
         {
-            ui_health_objects[i].SetActive(master.player_controller.player_health > i);
+            uiHealthObjects[i].SetActive(master.player_controller.player_health > i);
         }
 
-        if (is_display_desc)
+        if (isDisplayingTitle)
         {
-            display_desc_timer += Time.deltaTime;
+            titleDisplayTimer += Time.deltaTime;
 
-            if (display_desc_timer >= DESC_FINISH_TIME)
+            if (titleDisplayTimer >= DESC_FINISH_TIME)
             {
-                ui_scene_description_object.SetActive(false);
-                is_display_desc = false;
+                uiSceneTitleObject.SetActive(false);
+                uiSceneSubtitleObject.SetActive(false);
+                isDisplayingTitle = false;
             }
 
-            if(display_desc_colour.a <= 1 
-                && display_desc_timer <= DESC_APPEAR_TIME)
+            if(titleDisplayColour.a <= 1 
+                && titleDisplayTimer <= DESC_APPEAR_TIME)
             {
-                display_desc_colour.a = Mathf.InverseLerp(0.0f, DESC_APPEAR_TIME, display_desc_timer);
+                titleDisplayColour.a = Mathf.InverseLerp(0.0f, DESC_APPEAR_TIME, titleDisplayTimer);
             }
 
-            if(display_desc_colour.a >= 0 
-                && display_desc_timer >= DESC_DISAPPEAR_TIME)
+            if(titleDisplayColour.a >= 0 
+                && titleDisplayTimer >= DESC_DISAPPEAR_TIME)
             {
-                display_desc_colour.a -= 0.01f;
+                titleDisplayColour.a -= 0.01f;
             }
 
-            ui_scene_description_text.color = display_desc_colour;
+            uiSceneTitleText.color = titleDisplayColour;
+            uiSceneSubtitleText.color = titleDisplayColour;
         }
         else
         {
-            ui_scene_description_object.SetActive(false);
+            uiSceneTitleObject.SetActive(false);
+            uiSceneSubtitleObject.SetActive(false);
         }
+    }
+
+    private void SetMenu()
+    {
+        uiObject.SetActive(true);
+
+        uiItemBasicCountText.text = master.data_controller.GetItemCountByType("basic").ToString();
+    }
+
+    private void UnsetMenu()
+    {
+        uiObject.SetActive(false);
     }
 
     private void ChangeGameState(object sender, EventArgs e)
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        ui_object.SetActive(args.game_state == GameState.Game
-            || args.game_state == GameState.GameCutscene);
+        if (args.gameState == GameState.Game
+            || args.gameState == GameState.GameCutscene)
+            SetMenu();
+        else
+            UnsetMenu();
     }
 
-
-
-    public void StartSceneDataDisplay()
+    private void GameItemChange(object sender, EventArgs e)
     {
-        ui_scene_description_object.SetActive(true);
-        ui_scene_description_text.text = master.game_scene_data.scene_description;
+        uiItemBasicCountText.text = master.data_controller.GetItemCountByType("basic").ToString();
+    }
 
-        is_display_desc = true;
+    public void SetSceneTitleDisplay(string sceneTitle, string sceneSubtitle)
+    {
+        uiSceneTitleObject.SetActive(true);
+        uiSceneSubtitleObject.SetActive(true);
+        uiSceneTitleText.text = sceneTitle;
+        uiSceneSubtitleText.text = sceneSubtitle;
 
-        display_desc_colour.a = 0.0f;
-        display_desc_timer = 0.0f;
+        isDisplayingTitle = true;
+
+        titleDisplayColour.a = 0.0f;
+        titleDisplayTimer = 0.0f;
     }
 }

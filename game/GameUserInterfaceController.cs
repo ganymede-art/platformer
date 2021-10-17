@@ -21,6 +21,15 @@ public class GameUserInterfaceController : MonoBehaviour
 
     [NonSerialized] public UserInterfaceMessageBoxController ui_controller_message_box;
     [NonSerialized] public UserInterfaceGameController ui_controller_game;
+    [NonSerialized] public UserInterfaceMenuController ui_controller_menu;
+
+    [NonSerialized] public GameObject uiMessageBoxObject;
+    [NonSerialized] public GameObject uiGameObject;
+    [NonSerialized] public GameObject uiMenuObject;
+
+    public GameObject uiMessageBoxPrefab;
+    public GameObject uiGamePrefab;
+    public GameObject uiMenuPrefab;
 
     // ui figures.
 
@@ -42,10 +51,20 @@ public class GameUserInterfaceController : MonoBehaviour
 
         master.GameStateChange += ChangeGameState;
 
-        // add controllers.
+        // init message box.
 
-        ui_controller_message_box = this.gameObject.GetComponent<UserInterfaceMessageBoxController>();
-        ui_controller_game = this.gameObject.GetComponent<UserInterfaceGameController>();
+        uiMessageBoxObject = Instantiate(uiMessageBoxPrefab, this.transform);
+        ui_controller_message_box = uiMessageBoxObject.GetComponent<UserInterfaceMessageBoxController>();
+
+        // init game.
+
+        uiGameObject = Instantiate(uiGamePrefab, this.transform);
+        ui_controller_game = uiGameObject.GetComponent<UserInterfaceGameController>();
+
+        // init menu.
+
+        uiMenuObject = Instantiate(uiMenuPrefab,this.transform);
+        ui_controller_menu = uiMenuObject.GetComponent<UserInterfaceMenuController>();
 
         // initialise UI.
 

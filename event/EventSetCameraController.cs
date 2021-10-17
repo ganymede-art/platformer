@@ -2,13 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using UnityEngine.Serialization;
 
 public class EventSetCameraController : MonoBehaviour, IEventController
 {
     private GameMasterController master;
-    public GameObject next_event_source = null;
-    public GameConstants.CameraMode camera_mode;
-    public CameraModeChangeData camera_mode_change_data;
+
+    [FormerlySerializedAs("next_event_source")]
+    public GameObject nextEventSource = null;
+
+    public bool isTracking;
+    public bool isInstant;
+    public Transform fixedTransform;
 
     void Start()
     {
@@ -17,7 +22,7 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
     public GameObject GetNextEventSource()
     {
-        return next_event_source;
+        return nextEventSource;
     }
 
     public string GetEventType()
@@ -30,7 +35,7 @@ public class EventSetCameraController : MonoBehaviour, IEventController
         var player_camera_object = GameMasterController.GetPlayerCameraObject();
 
         player_camera_object.GetComponent<CameraController>()
-            .SetCamera(camera_mode, camera_mode_change_data);
+            .SetFixedCamera(fixedTransform, isTracking, isInstant);
     }
 
     public void ProcessEvent()

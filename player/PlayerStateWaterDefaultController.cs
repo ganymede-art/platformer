@@ -59,12 +59,16 @@ namespace Assets.script
         public void UpdateState(PlayerMovementController mc)
         {
             mc.state_default.UpdateStateMovement(mc);
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateAnimator(PlayerMovementController mc)
         {
             mc.state_default.UpdateStateAnimator(mc);
+        }
+
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
         }
 
         public void UpdateStateSpeed(PlayerMovementController mc)
@@ -84,6 +88,11 @@ namespace Assets.script
             }
 
             mc.rigid_body.velocity = old_x_z + old_y;
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_default.UpdateStateDragAndFriction(mc);
         }
     }
 }

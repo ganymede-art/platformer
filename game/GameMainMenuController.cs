@@ -7,25 +7,18 @@ public class GameMainMenuController : MonoBehaviour
 {
     GameMasterController master;
 
-    // Start is called before the first frame update
     void Start()
     {
         master = GameObject.FindObjectOfType<GameMasterController>();
-        master.input_controller.action_start.performed += LoadTestScene;
-        master.input_controller.action_select.performed += loadGame;
+        master.input_controller.actionStart.performed += LoadTestScene;
+        master.input_controller.actionSelect.performed += loadGame;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-
-    }
 
     void OnDestroy()
     {
-        master.input_controller.action_start.performed -= LoadTestScene;
-        master.input_controller.action_select.performed -= loadGame;
+        master.input_controller.actionStart.performed -= LoadTestScene;
+        master.input_controller.actionSelect.performed -= loadGame;
     }
 
     private void LoadTestScene(InputAction.CallbackContext context)

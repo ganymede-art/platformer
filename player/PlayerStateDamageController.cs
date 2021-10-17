@@ -7,6 +7,7 @@ using UnityEngine;
 using Assets.script;
 using static Assets.script.PlayerEnums;
 using static Assets.script.PlayerConstants;
+using Assets.script.attribute;
 
 namespace Assets.script
 {
@@ -18,36 +19,17 @@ namespace Assets.script
         {
             update_count_damage = 0;
 
-            mc.master.player_controller.player_health -= mc.damage_type.damage_amount;
-
             // zero out velocities.
             mc.rigid_body.velocity = Vector3.zero;
 
-            if (mc.damage_type.damage_direction_type
-                == GameConstants.DamageDirectionType.type_up)
-            {
-                mc.rigid_body.AddForce(Vector3.up * mc.damage_type.damage_force_multiplier, ForceMode.VelocityChange);
-            }
-            else if (mc.damage_type.damage_direction_type
-                == GameConstants.DamageDirectionType.type_push)
-            {
-                mc.rigid_body.AddForce(Vector3.up * JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
-                mc.rigid_body.AddForce((mc.transform.position - mc.damage_source.transform.position) * mc.damage_type.damage_force_multiplier, ForceMode.VelocityChange);
-            }
+            Vector3 damageVector = AttributeStaticMethods.GetAttributeDamageVector(mc.damage_type, mc.damage_source, mc.gameObject);
 
-            // play sound.
+            mc.rigid_body.AddForce(damageVector, ForceMode.VelocityChange);
 
-            switch (mc.damage_type.damage_effect_type)
-            {
-                case GameConstants.DamageEffectType.type_fire:
-                    mc.audio_source.clip = mc.master.audio_controller.a_player_hurt_fire;
-                    break;
+            // play  damage sound if defined.
+            // or player default damage sound.
 
-                default:
-                    mc.audio_source.clip = mc.master.audio_controller.a_player_hurt_default;
-                    break;
-            }
-
+            mc.audio_source.clip = mc.damage_type.damageSound ?? mc.sfx_player_hurt_default;
             mc.audio_source.Play();
         }
 
@@ -74,7 +56,22 @@ namespace Assets.script
 
         public void UpdateStateAnimator(PlayerMovementController mc)
         {
-     
+            return;
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateDragAndFriction(mc);
+        }
+
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
+        }
+
+        public void UpdateStateSpeed(PlayerMovementController mc)
+        {
+            mc.state_default.UpdateStateSpeed(mc);
         }
     }
 }

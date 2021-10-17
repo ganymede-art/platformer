@@ -11,6 +11,9 @@ namespace Assets.script
         void CheckState(PlayerMovementController mc);
         void BeginState(PlayerMovementController mc);
         void UpdateState(PlayerMovementController mc);
+        void UpdateStateDragAndFriction(PlayerMovementController mc);
+        void UpdateStateSpeed(PlayerMovementController mc);
+        void UpdateStateSlide(PlayerMovementController mc);
         void UpdateStateAnimator(PlayerMovementController mc);
         void FinishState(PlayerMovementController mc);
     }

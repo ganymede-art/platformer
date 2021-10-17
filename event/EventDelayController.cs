@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using UnityEngine.Serialization;
 
 public class EventDelayController : MonoBehaviour, IEventController
 {
     private GameMasterController master;
-    public GameObject next_event_source = null;
+    private float startTime = 0.0f;
 
-    private float start_time = 0.0f;
-    public float delay_seconds = 0.0f;
+    [FormerlySerializedAs("next_event_source")]
+    public GameObject nextEventSource = null;
+    [FormerlySerializedAs("delay_seconds")]
+    public float delaySeconds = 0.0f;
 
     void Start()
     {
@@ -18,7 +21,7 @@ public class EventDelayController : MonoBehaviour, IEventController
 
     public GameObject GetNextEventSource()
     {
-        return next_event_source;
+        return nextEventSource;
     }
 
     public string GetEventType()
@@ -28,7 +31,7 @@ public class EventDelayController : MonoBehaviour, IEventController
 
     public void StartEvent()
     {
-        start_time = Time.time;
+        startTime = Time.time;
     }
 
     public void ProcessEvent()
@@ -38,7 +41,7 @@ public class EventDelayController : MonoBehaviour, IEventController
 
     public bool GetIsEventComplete()
     {
-        return (Time.time - start_time) >= delay_seconds;
+        return (Time.time - startTime) >= delaySeconds;
     }
 
     public bool GetIsGameEventComplete()

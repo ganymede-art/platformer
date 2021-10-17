@@ -8,12 +8,12 @@ public class ActorSplashController : MonoBehaviour
     const float SPAWN_INTERVAL = 0.25f;
     const float TIMER_MULTIPLIER = 1f;
 
-    public IActorSplashManager manager;
+    public IActorDataManager manager;
     public GameObject splash_prefab;
     public float splash_scale_multiplier = 1f;
 
     private float timer;
-    ActorSplashManager manager_data;
+    ActorDataManager? manager_data;
     private float y_level;
     private bool is_in_water;
     private bool is_submerged;
@@ -23,7 +23,7 @@ public class ActorSplashController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        manager = this.gameObject.GetComponent<IActorSplashManager>();
+        manager = this.gameObject.GetComponent<IActorDataManager>();
 
         timer = 0.0f;
         y_level = 0f;
@@ -36,14 +36,14 @@ public class ActorSplashController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        manager_data = manager.UpdateSplashController();
+        manager_data = manager.UpdateActorController();
 
         if (manager_data == null)
             return;
 
-        y_level = manager_data.water_level;
-        is_in_water = manager_data.is_in_water;
-        is_submerged = manager_data.is_submerged;
+        y_level = manager_data.Value.water_y_level;
+        is_in_water = manager_data.Value.is_in_water;
+        is_submerged = manager_data.Value.is_submerged;
 
         timer += (Time.deltaTime * TIMER_MULTIPLIER);
 
@@ -65,7 +65,7 @@ public class ActorSplashController : MonoBehaviour
 
             spawned_splash_prefab = Instantiate(splash_prefab, spawn_vector, Quaternion.identity);
             spawned_splash_prefab.transform.localScale = Vector3.zero;
-            spawned_splash_prefab.GetComponent<ActorFxSplashController>().scale_multiplier = splash_scale_multiplier;
+            spawned_splash_prefab.GetComponent<ActorFxSplashController>().scaleMultiplier = splash_scale_multiplier;
         }
     }
 }

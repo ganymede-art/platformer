@@ -5,38 +5,38 @@ using UnityEngine;
 
 public class CameraTintController : MonoBehaviour
 {
-    bool is_underwater = false;
+    bool isUnderwater = false;
 
-    Texture2D tint_underwater;
-    Color colour_underwater = new Color(0.2f, 0.4f, 1.0f, 0.3f);
+    Texture2D underwaterTexture;
+    Color underwaterColour = new Color(0.2f, 0.4f, 1.0f, 0.3f);
 
     Rect screen_rectangle = new Rect(0, 0, 1920, 1080);//Screen.width, Screen.height);
 
     private void Start()
     {
-        tint_underwater = new Texture2D(1, 1);
-        tint_underwater.SetPixel(0, 0, colour_underwater);
-        tint_underwater.Apply();
+        underwaterTexture = new Texture2D(1, 1);
+        underwaterTexture.SetPixel(0, 0, underwaterColour);
+        underwaterTexture.Apply();
 
 
     }
 
     private void OnGUI()
     {
-        if(is_underwater)
-            GUI.DrawTexture(screen_rectangle, tint_underwater);
+        if(isUnderwater)
+            GUI.DrawTexture(screen_rectangle, underwaterTexture);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == GameConstants.TAG_WATER)
-            is_underwater = true;
+            isUnderwater = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.tag == GameConstants.TAG_WATER)
-            is_underwater = false;
+            isUnderwater = false;
     }
 
 }

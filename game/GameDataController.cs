@@ -4,138 +4,236 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Assets.script;
+using System.Linq;
+using Newtonsoft.Json;
 
 public class GameDataController : MonoBehaviour
 {
     public GameMasterController master;
 
-    private Dictionary<string, bool> game_var_bool;
-    private Dictionary<string, string> game_var_string;
-    private Dictionary<string, int> game_var_int;
+    private Dictionary<string, bool> gameVarBool;
+    private Dictionary<string, string> gameVarString;
+    private Dictionary<string, int> gameVarInt;
 
+    private List<int> collectedGameItemFlags;
+    private Dictionary<string,int> gameItemCountByType;
+    private Dictionary<string,int> gameItemTotalCountByType;
+    private Dictionary<string,int> gameItemTotalCountByTypeAndGroup;
 
-    private string json_save_directory;
-    private string json_save_path;
+    public event EventHandler GameItemChange;
+    private GameItemChangeEventArgs gameItemChangeEventArgs;
+
+    private string jsonSaveDirectory;
+    private string jsonSavePath;
 
     void Start()
     {
         master = this.GetComponentInParent<GameMasterController>();
 
-        game_var_bool = new Dictionary<string, bool>();
-        game_var_string = new Dictionary<string, string>();
-        game_var_int = new Dictionary<string, int>();
+        // core variables.
 
-        //json_save_path = Application.persistentDataPath + "/save_data.json";
+        gameVarBool = new Dictionary<string, bool>();
+        gameVarString = new Dictionary<string, string>();
+        gameVarInt = new Dictionary<string, int>();
 
-        json_save_directory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
-        json_save_path = json_save_directory + @"\save_data.json";
+        collectedGameItemFlags = new List<int>();
+        gameItemCountByType = new Dictionary<string, int>();
+        gameItemTotalCountByType = new Dictionary<string, int>();
+        gameItemTotalCountByTypeAndGroup = new Dictionary<string, int>();
+
+        // event args.
+
+        gameItemChangeEventArgs = new GameItemChangeEventArgs();
+
+        // save directory.
+
+        jsonSaveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
+        jsonSavePath = jsonSaveDirectory + @"\save_data.json";
     }
 
     public void UpdateGameVar(string key, bool value)
     {
-        if (game_var_bool.ContainsKey(key))
-            game_var_bool[key] = value;
+        if (gameVarBool.ContainsKey(key))
+            gameVarBool[key] = value;
         else
-            game_var_bool.Add(key, value);
+            gameVarBool.Add(key, value);
     }
 
     public void UpdateGameVar(string key, string value)
     {
-        if (game_var_string.ContainsKey(key))
-            game_var_string[key] = value;
+        if (gameVarString.ContainsKey(key))
+            gameVarString[key] = value;
         else
-            game_var_string.Add(key, value);
+            gameVarString.Add(key, value);
     }
 
     public void UpdateGameVar(string key, int value)
     {
-        if (game_var_int.ContainsKey(key))
-            game_var_int[key] = value;
+        if (gameVarInt.ContainsKey(key))
+            gameVarInt[key] = value;
         else
-            game_var_int.Add(key, value);
+            gameVarInt.Add(key, value);
+    }
+
+    public void UpdateItem(GameItemData item)
+    {
+        if(GetIsItemCollected(item))
+            return;
+
+        collectedGameItemFlags.Add(item.GetHashCode());
+
+        int count = GetItemCountByType(item.type);
+        count++;
+        gameItemCountByType[item.type] = count;
+
+        int total_count = GetItemTotalCountByType(item.type);
+        total_count++;
+        gameItemTotalCountByType[item.type] = total_count;
+
+        int total_count_tg = GetItemTotalCountByTypeAndGroup(item.GetTypeAndGroup());
+        total_count_tg++;
+        gameItemTotalCountByTypeAndGroup[item.GetTypeAndGroup()] = total_count_tg;
+
+        gameItemChangeEventArgs.item = item;
+        EventHandler handler = GameItemChange;
+        if (handler != null) handler(this, gameItemChangeEventArgs);
+    }
+
+    public int GetItemCountByType(string type)
+    {
+        if (!gameItemCountByType.ContainsKey(type))
+            gameItemCountByType.Add(type, 0);
+
+        return gameItemCountByType[type];
+    }
+
+    public int GetItemTotalCountByType(string type)
+    {
+        if (!gameItemTotalCountByType.ContainsKey(type))
+            gameItemTotalCountByType.Add(type, 0);
+
+        return gameItemTotalCountByType[type];
+    }
+
+    public int GetItemTotalCountByTypeAndGroup(string type_and_group)
+    {
+        if (!gameItemTotalCountByTypeAndGroup.ContainsKey(type_and_group))
+            gameItemTotalCountByTypeAndGroup.Add(type_and_group, 0);
+
+        return gameItemTotalCountByTypeAndGroup[type_and_group];
     }
 
     public bool GetGameVarBool(string key)
     {
-        if (game_var_bool.ContainsKey(key))
-            return game_var_bool[key];
+        if (gameVarBool.ContainsKey(key))
+            return gameVarBool[key];
         else
             return false;
     }
 
     public string GetGameVarString(string key)
     {
-        if (game_var_string.ContainsKey(key))
-            return game_var_string[key];
+        if (gameVarString.ContainsKey(key))
+            return gameVarString[key];
         else
             return string.Empty;
     }
 
     public int GetGameVarInt(string key)
     {
-        if (game_var_int.ContainsKey(key))
-            return game_var_int[key];
+        if (gameVarInt.ContainsKey(key))
+            return gameVarInt[key];
         else
             return 0;
     }
 
+    public bool GetIsItemCollected(GameItemData item)
+    {
+        return collectedGameItemFlags.Contains(item.GetHashCode());
+    }
+
     public void SaveData(string player_start_transform_name, string camera_start_transform_name)
     {
-        var save_data = new SaveData();
+        var saveData = new SaveData();
 
-        save_data.game_var_bool = this.game_var_bool;
-        save_data.game_var_string = this.game_var_string;
-        save_data.game_var_int = this.game_var_int;
+        saveData.gameVarBool = this.gameVarBool;
+        saveData.gameVarString = this.gameVarString;
+        saveData.gameVarInt = this.gameVarInt;
 
-        save_data.load_scene_name = master.game_scene_data.scene_name;
-        save_data.load_player_start_transform_name = player_start_transform_name;
-        save_data.load_camera_start_transform_name = camera_start_transform_name;
+        saveData.collectedGameItemFlags = collectedGameItemFlags;
+        saveData.gameItemCountByType = gameItemCountByType;
+        saveData.gameItemTotalCountByType = gameItemTotalCountByType;
+        saveData.gameItemTotalCountByTypeAndGroup = gameItemTotalCountByTypeAndGroup;
 
-        save_data.player_health = master.player_controller.player_health;
-        save_data.player_max_health = master.player_controller.player_max_health;
+        saveData.loadSceneName = SceneManager.GetActiveScene().name;
+        saveData.loadPlayerStartTransformName = player_start_transform_name;
+        saveData.loadCameraStartTransformName = camera_start_transform_name;
 
-        Debug.Log("Saving data to: " + json_save_path);
-        string json_data = JsonUtility.ToJson(save_data, true);
+        saveData.playerHealth = master.player_controller.player_health;
+        saveData.playerMaxHealth = master.player_controller.player_max_health;
 
-        if (!Directory.Exists(json_save_directory))
-            Directory.CreateDirectory(json_save_directory);
+        Debug.Log("Saving data to: " + jsonSavePath);
+        //string json_data = JsonUtility.ToJson(save_data, true);
+        string json_data = JsonConvert.SerializeObject(saveData,Formatting.Indented);
 
-        if (!File.Exists(json_save_path))
-            File.Create(json_save_path).Close();
+        if (!Directory.Exists(jsonSaveDirectory))
+            Directory.CreateDirectory(jsonSaveDirectory);
 
-        File.WriteAllText(json_save_path, json_data);
+        if (!File.Exists(jsonSavePath))
+            File.Create(jsonSavePath).Close();
+
+        File.WriteAllText(jsonSavePath, json_data);
     }
 
     public void LoadData()
     {
-        var save_data = JsonUtility.FromJson<SaveData>
-            (File.ReadAllText(json_save_path));
+        //var save_data = JsonUtility.FromJson<SaveData>
+        //    (File.ReadAllText(json_save_path));
 
-        this.game_var_bool = save_data.game_var_bool;
-        this.game_var_string = save_data.game_var_string;
-        this.game_var_int = save_data.game_var_int;
+        var saveData = JsonConvert.DeserializeObject<SaveData>
+            (File.ReadAllText(jsonSavePath));
 
-        master.player_controller.player_health = save_data.player_health;
-        master.player_controller.player_max_health = save_data.player_max_health;
+        this.gameVarBool = saveData.gameVarBool;
+        this.gameVarString = saveData.gameVarString;
+        this.gameVarInt = saveData.gameVarInt;
+
+        this.collectedGameItemFlags = saveData.collectedGameItemFlags;
+        this.gameItemCountByType = saveData.gameItemCountByType;
+        this.gameItemTotalCountByType = saveData.gameItemTotalCountByType;
+        this.gameItemTotalCountByTypeAndGroup = saveData.gameItemTotalCountByTypeAndGroup;
+
+        master.player_controller.player_health = saveData.playerHealth;
+        master.player_controller.player_max_health = saveData.playerMaxHealth;
 
         master.load_level_controller.StartLoadLevel(
-            save_data.load_scene_name, 
-            save_data.load_player_start_transform_name, 
-            save_data.load_camera_start_transform_name);
+            saveData.loadSceneName, 
+            saveData.loadPlayerStartTransformName, 
+            saveData.loadCameraStartTransformName);
 
     }
 }
 
-public class SaveData
+public struct SaveData
 {
-    public Dictionary<string, bool> game_var_bool;
-    public Dictionary<string, string> game_var_string;
-    public Dictionary<string, int> game_var_int;
+    public Dictionary<string, bool> gameVarBool;
+    public Dictionary<string, string> gameVarString;
+    public Dictionary<string, int> gameVarInt;
 
-    public string load_scene_name;
-    public string load_player_start_transform_name;
-    public string load_camera_start_transform_name;
+    public List<int> collectedGameItemFlags;
+    public Dictionary<string, int> gameItemCountByType;
+    public Dictionary<string, int> gameItemTotalCountByType;
+    public Dictionary<string, int> gameItemTotalCountByTypeAndGroup;
 
-    public int player_health;
-    public int player_max_health;
+    public string loadSceneName;
+    public string loadPlayerStartTransformName;
+    public string loadCameraStartTransformName;
+
+    public int playerHealth;
+    public int playerMaxHealth;
+}
+
+public class GameItemChangeEventArgs : EventArgs
+{
+    public GameItemData item;
 }

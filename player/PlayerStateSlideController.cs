@@ -22,7 +22,7 @@ namespace Assets.script
             mc.slide_direction = mc.raycast_grounded_slope_direction;
             mc.rigid_body.AddForce(mc.raycast_grounded_slope_direction * mc.slide_force, ForceMode.VelocityChange);
 
-            mc.audio_source.clip = mc.master.audio_controller.a_player_slide;
+            mc.audio_source.clip = mc.sfx_player_slide;
             mc.audio_source.Play();
         }
 
@@ -70,8 +70,6 @@ namespace Assets.script
         {
             UpdateStateMovement(mc);
             UpdateStateLateralMovement(mc);
-            UpdateStateSlide(mc);
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateMovement(PlayerMovementController mc)
@@ -172,6 +170,11 @@ namespace Assets.script
 
             // Move our position a step closer to the target.
             mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateDragAndFriction(mc);
         }
     }
 }

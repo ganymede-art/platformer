@@ -18,7 +18,7 @@ namespace Assets.script
         {
             update_count_dive = 0;
 
-            mc.audio_source.clip = mc.master.audio_controller.a_player_dive;
+            mc.audio_source.clip = mc.sfx_player_dive;
             mc.audio_source.Play();
 
             if (mc.input_directional.magnitude >= DIVE_MIN_INPUT_DIRECTIONAL_MAGNITUDE)
@@ -59,7 +59,6 @@ namespace Assets.script
 
         public void UpdateState(PlayerMovementController mc)
         {
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateAnimator(PlayerMovementController mc)
@@ -74,6 +73,11 @@ namespace Assets.script
             mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
         }
 
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
+        }
+
         public void UpdateStateSpeed(PlayerMovementController mc)
         {
             Vector3 old_x_z = new Vector3(mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
@@ -85,6 +89,11 @@ namespace Assets.script
                 old_x_z = Vector3.ClampMagnitude(old_x_z, MAX_SPEED_DIVE);
                 mc.rigid_body.velocity = old_x_z + old_y;
             }
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateDragAndFriction(mc);
         }
     }
 }

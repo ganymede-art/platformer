@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using System;
 
 public class MapInstantEventTrigger : MonoBehaviour
 {
     private GameMasterController master;
+    private BoxCollider trigger;
+    private bool is_triggered = false;
 
     public GameObject event_source;
-    private BoxCollider trigger;
-
-    private bool is_triggered = false;
     public bool is_one_shot = false;
 
     public bool is_game_cutscene = false;

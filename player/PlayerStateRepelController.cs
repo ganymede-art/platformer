@@ -7,6 +7,7 @@ using UnityEngine;
 using Assets.script;
 using static Assets.script.PlayerEnums;
 using static Assets.script.PlayerConstants;
+using Assets.script.attribute;
 
 namespace Assets.script
 {
@@ -21,17 +22,9 @@ namespace Assets.script
             // zero out velocities.
             mc.rigid_body.velocity = Vector3.zero;
 
-            if (mc.repel_type.repel_direction_type
-                == GameConstants.DamageDirectionType.type_up)
-            {
-                mc.rigid_body.AddForce(Vector3.up * mc.repel_type.repel_force_multiplier, ForceMode.VelocityChange);
-            }
-            else if (mc.repel_type.repel_direction_type
-                == GameConstants.DamageDirectionType.type_push)
-            {
-                mc.rigid_body.AddForce(Vector3.up * JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
-                mc.rigid_body.AddForce((mc.transform.position - mc.repel_source.transform.position) * mc.repel_type.repel_force_multiplier, ForceMode.VelocityChange);
-            }
+            Vector3 damageVector = AttributeStaticMethods.GetAttributeDamageVector(mc.repel_type, mc.repel_source, mc.gameObject);
+
+            mc.rigid_body.AddForce(damageVector, ForceMode.VelocityChange);
         }
 
         public void CheckState(PlayerMovementController mc)
@@ -58,6 +51,21 @@ namespace Assets.script
         public void UpdateStateAnimator(PlayerMovementController mc)
         {
 
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateDragAndFriction(mc);
+        }
+
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
+        }
+
+        public void UpdateStateSpeed(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateSpeed(mc);
         }
     }
 }

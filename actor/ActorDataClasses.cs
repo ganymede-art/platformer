@@ -9,38 +9,20 @@ using Assets.script;
 namespace Assets.script
 {
     [System.Serializable]
-    public class AttributeDamageTypeData
-    {
-        public GameConstants.DamageSourceType damage_source_type = GameConstants.DamageSourceType.type_static;
-        public GameConstants.DamageEffectType damage_effect_type = GameConstants.DamageEffectType.type_default;
-        public GameConstants.DamageDirectionType damage_direction_type = GameConstants.DamageDirectionType.type_push;
-        public int damage_amount = 1;
-        public float damage_force_multiplier = 15f;
-        public bool damage_is_instant = false;
-
-        public static AttributeDamageTypeData GetDefault()
-        {
-            return new AttributeDamageTypeData();
-        }
-    }
-
-    [System.Serializable]
-    public class AttributeRepelTypeData
-    {
-        public GameConstants.DamageDirectionType repel_direction_type = GameConstants.DamageDirectionType.type_push;
-        public float repel_force_multiplier = 5f;
-
-        public static AttributeRepelTypeData GetDefault()
-        {
-            return new AttributeRepelTypeData();
-        }
-    }
-
-    [System.Serializable]
     public struct ActorDataManager
     {
         public bool is_in_water;
         public bool is_submerged;
+        public float water_y_level;
+
+        public static ActorDataManager GetDefault()
+        {
+            var adm = new ActorDataManager();
+            adm.is_in_water = false;
+            adm.is_submerged = false;
+            adm.water_y_level = 0f;
+            return adm;
+        }
     }
 
 }

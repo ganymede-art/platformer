@@ -5,20 +5,23 @@ using Assets.script;
 
 public class MapCameraModeTrigger : MonoBehaviour
 {
-    private GameObject player_camera;
-    public GameConstants.CameraMode camera_mode;
-    public CameraModeChangeData camera_mode_change_data;
+    private GameObject playerCamera;
+
+    public Transform fixedTransform;
+    public bool isTracking;
+    public bool isInstant;
 
     void Start()
     {
-        player_camera = GameMasterController.GetPlayerCameraObject();
+        playerCamera = GameMasterController.GetPlayerCameraObject();
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == GameConstants.TAG_PLAYER)
         {
-            player_camera.GetComponent<CameraController>().SetCamera(camera_mode, camera_mode_change_data);
+            playerCamera.GetComponent<CameraController>()
+                .SetFixedCamera(fixedTransform, isTracking, isInstant);
         }
     }
 
@@ -26,7 +29,7 @@ public class MapCameraModeTrigger : MonoBehaviour
     {
         if (other.tag == GameConstants.TAG_PLAYER)
         {
-            player_camera.GetComponent<CameraController>().UnsetCamera();
+            playerCamera.GetComponent<CameraController>().UnsetCamera();
         }
     }
 }

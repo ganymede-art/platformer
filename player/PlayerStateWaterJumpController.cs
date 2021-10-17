@@ -32,7 +32,7 @@ namespace Assets.script
 
             // player sound.
 
-            mc.audio_source.clip = mc.master.audio_controller.a_player_water_jump;
+            mc.audio_source.clip = mc.sfx_player_water_jump;
             mc.audio_source.Play();
         }
 
@@ -70,12 +70,16 @@ namespace Assets.script
         {
             mc.state_jump.UpdateStateJump(mc);
             mc.state_jump.UpdateStateMovement(mc);
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateAnimator(PlayerMovementController mc)
         {
             mc.state_default.UpdateStateAnimator(mc);
+        }
+
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
         }
 
         public void UpdateStateSpeed(PlayerMovementController mc)
@@ -95,5 +99,12 @@ namespace Assets.script
 
             mc.rigid_body.velocity = old_x_z + old_y;
         }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateDragAndFriction(mc);
+        }
     }
+
+
 }

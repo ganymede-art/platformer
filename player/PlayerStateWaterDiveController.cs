@@ -34,7 +34,7 @@ namespace Assets.script
 
             mc.is_under_gravity = false;
 
-            mc.audio_source.clip = mc.master.audio_controller.a_player_water_jump;
+            mc.audio_source.clip = mc.sfx_player_water_jump;
             mc.audio_source.Play();
 
             mc.dive_direction = mc.player_renderer_object.transform.forward.normalized;
@@ -62,12 +62,12 @@ namespace Assets.script
         {
             update_count_water_dive++;
 
-            if (!mc.master.input_controller.Is_Input_Interact)
+            if (!mc.master.input_controller.isInputInteract)
                 update_count_interact_released++;
             else
                 update_count_interact_released = 0;
 
-            if (!mc.master.input_controller.Is_Input_Positive)
+            if (!mc.master.input_controller.isInputPositive)
                 update_count_positive_released++;
             else
                 update_count_positive_released = 0;
@@ -114,10 +114,11 @@ namespace Assets.script
             mc.player_attack_forward_collider.enabled = false;
         }
 
+
+
         public void UpdateState(PlayerMovementController mc)
         {
             UpdateStateMovement(mc);
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateAnimator(PlayerMovementController mc)
@@ -136,7 +137,6 @@ namespace Assets.script
             mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER, 0.0f);
 
             mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
-
         }
 
         public void UpdateStateMovement(PlayerMovementController mc)
@@ -155,10 +155,15 @@ namespace Assets.script
                 + mc.player_direction_object.transform.right * horizontal_turning_rate
                 + mc.player_direction_object.transform.up * turning_vertical;
 
-            if (!mc.master.input_controller.Is_Input_Positive)
+            if (!mc.master.input_controller.isInputPositive)
                 return;
 
             mc.rigid_body.AddForce(mc.dive_direction.normalized * 0.1f, ForceMode.VelocityChange);
+        }
+
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
         }
 
         public void UpdateStateSpeed(PlayerMovementController mc)
@@ -175,6 +180,11 @@ namespace Assets.script
             }
 
             
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.state_jump.UpdateStateDragAndFriction(mc);
         }
     }
 }

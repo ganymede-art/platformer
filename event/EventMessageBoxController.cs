@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Assets.script.Event
 {
@@ -7,8 +9,13 @@ namespace Assets.script.Event
     {
         // audio constants.
 
-        private readonly int[] VOX_INDICES_1 = { 4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76 };
-        private readonly int[] VOX_INDICES_2 = { 3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70 };
+        private readonly int[][] VOX_INDICES =
+        {
+            new int[] { 4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76, 79, 81, 84, 88},
+            new int[] { 3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70, 73, 79, 81, 84 },
+            new int[] { 1, 5, 10, 12, 15, 19, 21, 24, 29, 30, 34, 38, 40, 43, 48, 53, 58, 61, 66, 71, 74, 79, 82, 85 },
+            new int[] { 2, 6, 11, 12, 14, 15, 22, 27, 29, 32, 36, 39, 41, 46, 53, 55, 57, 62, 67, 73, 78, 79, 84, 87 }
+        };
 
         // core constants.
 
@@ -17,55 +24,63 @@ namespace Assets.script.Event
         // core variables.
 
         private GameMasterController master;
-        public GameObject next_event_source = null;
-
-        public string message_icon = "default";
-        public string message_audio_vox = "default";
-        public float message_audio_pitch = 1.0f;
-        public string message_text = string.Empty;
-
-        private string output_text = string.Empty;
-        private char output_next_char = char.MinValue;
-        private int output_text_index = 0;
-
-        public bool is_question = false;
-        private bool is_question_answered_positive = false;
-        public GameObject next_event_source_answered_negative = null;
-
-        private int game_cutscene_delay_process_count = 0;
+        private string inputText = string.Empty; // original message text is not modified, only this.
+        private string outputText = string.Empty;
+        private char outputTextNextChar = char.MinValue;
+        private int outputTextIndex = 0;
+        private bool isQuestionAnsweredPositive = false;
+        private int gameCutsceneDelayProcessCount = 0;
+        
 
         // audio variables.
 
-        private AudioSource audio_source;
+        private AudioSource audioSource;
+        private AudioClip voxSound = null;
+        private int voxSoundsIndex = 0;
+        private int[] indicesToPlayVoxSound = new int[20];
 
-        private AudioClip vox_clip = null;
-        private AudioClip[] vox_clip_array = null;
-        private int vox_clip_array_index = 0;
-        private int[] play_vox_on_index_array = new int[20];
+        // public vars.
 
-        // rng.
+        [Header("Event Attributes")]
+        [FormerlySerializedAs("next_event_source")]
+        public GameObject nextEventSource = null;
+        [FormerlySerializedAs("conditional_event_source")]
+        public GameObject conditionalEventSource = null;
 
-        private System.Random sys_random;
+        [Header("Message Box Attributes")]
+        [FormerlySerializedAs("message_icon")]
+        public Sprite messageIcon = null;
+        [FormerlySerializedAs("message_text")]
+        public string messageText = string.Empty;
+        [FormerlySerializedAs("is_question")]
+        public bool isQuestion = false;
+
+        [Header("Vox Attributes")]
+        public AudioClip[] voxSounds;
+        [FormerlySerializedAs("message_audio_pitch")]
+        public float voxSoundPitch = 1.0f;
+
+        [Header("Replacer Attributes")]
+        [FormerlySerializedAs("message_text_replacer_array")]
+        public ReplacerData[] messageTextReplacers; 
 
         private void Start()
         {
             master = GameMasterController.GetMasterController();
-            audio_source = this.gameObject.AddComponent<AudioSource>();
-
-            sys_random = new System.Random();
+            audioSource = this.gameObject.AddComponent<AudioSource>();
         }
 
         public GameObject GetNextEventSource()
         {
-            if (is_question && !is_question_answered_positive)
-                return next_event_source_answered_negative;
+            if (isQuestion && isQuestionAnsweredPositive)
+                return conditionalEventSource;
 
-            return next_event_source;
+            return nextEventSource;
         }
 
         public string GetEventType()
         {
-            if (is_question)
+            if (isQuestion)
                 return GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION;
 
             return GameConstants.EVENT_TYPE_MESSAGE_BOX;
@@ -73,62 +88,67 @@ namespace Assets.script.Event
 
         public void StartEvent()
         {
-            output_text = string.Empty;
-            output_text_index = 0;
-            master.user_interface_controller.ui_controller_message_box.SetMessageBox(message_icon);
+            inputText = messageText;
+            outputText = string.Empty;
+            outputTextIndex = 0;
 
-            game_cutscene_delay_process_count = 0;
+            master.user_interface_controller.ui_controller_message_box.SetMessageBox(messageIcon);
 
-            play_vox_on_index_array = (sys_random.Next(0, 1) == 0)
-                ? VOX_INDICES_1
-                : VOX_INDICES_2;
+            gameCutsceneDelayProcessCount = 0;
+
+            indicesToPlayVoxSound
+                = VOX_INDICES[GameMasterController.staticRandom.Next(0, VOX_INDICES.Length-1)];
+
+            // process message text.
+
+            
+            ProcessReplacements();
         }
 
         public void ProcessEvent()
         {
-            if (output_text_index < message_text.Length)
+            if (outputTextIndex < inputText.Length)
             {
-                output_next_char = message_text[output_text_index];
+                outputTextNextChar = inputText[outputTextIndex];
 
-                if (output_next_char == '<')
+                if (outputTextNextChar == '<')
                 {
                     // handle tag.
 
-                    output_text += output_next_char;
+                    outputText += outputTextNextChar;
 
-                    while (output_next_char != '>')
+                    while (outputTextNextChar != '>')
                     {
-                        output_text_index++;
-                        output_next_char = message_text[output_text_index];
-                        output_text += output_next_char;
+                        outputTextIndex++;
+                        outputTextNextChar = inputText[outputTextIndex];
+                        outputText += outputTextNextChar;
                     }
                 }
                 else
                 {
                     // handle regular char.
 
-                    output_text += output_next_char;
+                    outputText += outputTextNextChar;
                 }
 
-                if (play_vox_on_index_array.Contains(output_text_index))
+                if (indicesToPlayVoxSound.Contains(outputTextIndex))
                 {
                     // play vox for every nth letter.
-                    PlayVox(message_audio_vox, message_text, output_text_index);
+                    PlayVox(inputText, outputTextIndex);
                 }
 
                 // increment to next character.
-                output_text_index++;
+                outputTextIndex++;
             }
             else
             {
                 // count the processing steps after the
                 // text output is complete.
 
-                game_cutscene_delay_process_count++;
+                gameCutsceneDelayProcessCount++;
             }
 
-            master.cutscene_controller.message_box_text = output_text;
-            master.user_interface_controller.ui_controller_message_box.UpdateMessageBox(output_text);
+            master.user_interface_controller.ui_controller_message_box.UpdateMessageBox(outputText);
         }
 
         public bool GetIsEventComplete()
@@ -136,46 +156,46 @@ namespace Assets.script.Event
             // if the button is pressed, and
             // reached the end of the message.
 
-            if (is_question)
+            if (isQuestion)
             {
-                if (!master.input_controller.Was_Input_Positive
-                    && master.input_controller.Is_Input_Positive
-                    && output_text_index == message_text.Length)
+                if (!master.input_controller.wasInputPositive
+                    && master.input_controller.isInputPositive
+                    && outputTextIndex == inputText.Length)
                 {
-                    audio_source.clip = master.audio_controller.a_message_box_positive;
-                    audio_source.pitch = 1.0f;
-                    audio_source.Play();
+                    audioSource.clip = master.audio_controller.a_message_box_positive;
+                    audioSource.pitch = 1.0f;
+                    audioSource.Play();
 
                     master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
-                    is_question_answered_positive = true;
+                    isQuestionAnsweredPositive = true;
                     return true;
                 }
 
-                if (!master.input_controller.Was_Input_Negative
-                    && master.input_controller.Is_Input_Negative
-                    && output_text_index == message_text.Length)
+                if (!master.input_controller.wasInputNegative
+                    && master.input_controller.isInputNegative
+                    && outputTextIndex == inputText.Length)
                 {
-                    audio_source.clip = master.audio_controller.a_message_box_negative;
-                    audio_source.pitch = 1.0f;
-                    audio_source.Play();
+                    audioSource.clip = master.audio_controller.a_message_box_negative;
+                    audioSource.pitch = 1.0f;
+                    audioSource.Play();
 
                     master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
-                    is_question_answered_positive = false;
+                    isQuestionAnsweredPositive = false;
                     return true;
                 }
             }
             else
             {
-                if (!master.input_controller.Was_Input_Positive
-                    && master.input_controller.Is_Input_Positive
-                    && output_text_index == message_text.Length)
+                if (!master.input_controller.wasInputPositive
+                    && master.input_controller.isInputPositive
+                    && outputTextIndex == inputText.Length)
                 {
-                    audio_source.clip = master.audio_controller.a_message_box_continue;
-                    audio_source.pitch = 1.0f;
-                    audio_source.Play();
+                    audioSource.clip = master.audio_controller.a_message_box_continue;
+                    audioSource.pitch = 1.0f;
+                    audioSource.Play();
 
                     master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
-                    is_question_answered_positive = true;
+                    isQuestionAnsweredPositive = true;
                     return true;
                 }
             }
@@ -183,48 +203,71 @@ namespace Assets.script.Event
             return false;
         }
 
-        public AudioClip PlayVox(string vox, string output_text, int output_text_index)
+        public void PlayVox(string text, int textIndex)
         {
+            // cancel if no vox sounds.
+
+            if (voxSounds == null || voxSounds.Length == 0)
+                return;
+
             // work through the audio clips for this vox.
 
-            vox_clip_array = master.audio_controller.vox_dictionary[vox];
-
-            if (vox_clip_array_index == vox_clip_array.Length)
-                vox_clip_array_index = 0;
+            if (voxSoundsIndex == voxSounds.Length)
+                voxSoundsIndex = 0;
 
             // special index jumps to break up repetition.
 
-            if (output_text_index % 12 == 0)
-                vox_clip_array_index = sys_random.Next(0, vox_clip_array.Length - 1);
+            if (textIndex % 12 == 0)
+                voxSoundsIndex = GameMasterController.staticRandom.Next(0, voxSounds.Length - 1);
 
             // get the clip.
 
-            vox_clip = vox_clip_array[vox_clip_array_index];
-            vox_clip_array_index++;
+            voxSound = voxSounds[voxSoundsIndex];
+            voxSoundsIndex++;
 
             // play the clip.
 
-            audio_source.clip = vox_clip;
-            audio_source.pitch = message_audio_pitch * UnityEngine.Random.Range(1.0f, 1.25f);
-            audio_source.Play();
+            audioSource.clip = voxSound;
+            audioSource.pitch = voxSoundPitch * UnityEngine.Random.Range(1.0f, 1.25f);
+            audioSource.Play();
 
-            return null;
+            return;
+        }
+
+        private void ProcessReplacements()
+        {
+            // get text replacements from the
+            // dictionary of replacer objects
+            // and apply these replacements
+            // to the message text.
+
+            if (messageTextReplacers == null)
+                return;
+
+            if (messageTextReplacers.Length == 0)
+                return;
+
+            foreach(var item in messageTextReplacers)
+            {
+                var replacer = item.replacerObject.GetComponent<IReplacerController>();
+                inputText = inputText.Replace(item.replacementKey, replacer.GetReplacement());
+            }
         }
 
         public bool GetIsProcessComplete()
         {
-            return (output_text_index == message_text.Length);
+            return (outputTextIndex == inputText.Length);
         }
 
         public bool GetIsGameEventComplete()
         {
-            return (output_text_index == message_text.Length)
-                && (game_cutscene_delay_process_count >= output_text.Length * GAME_CUTSCENE_DELAY_MULTIPLIER);
+            return (outputTextIndex == inputText.Length)
+                && (gameCutsceneDelayProcessCount >= outputText.Length * GAME_CUTSCENE_DELAY_MULTIPLIER);
         }
 
         public void FinishEvent()
         {
-            return;
+            master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
         }
     }
 }

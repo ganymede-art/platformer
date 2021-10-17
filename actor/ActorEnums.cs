@@ -7,12 +7,9 @@ using UnityEngine;
 
 namespace Assets.script
 {
-    public class ActorEnums
+    public enum ActorEyeMode
     {
-        public enum ActorEyeMode
-        {
-            eye_default,
-            eye_state
-        }
+        eyeDefault,
+        eyeEmote
     }
 }

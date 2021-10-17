@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using UnityEngine.Serialization;
+using static Assets.script.prop.PropConstants;
+using static Assets.script.AttributeDataClasses;
 
 public class PropBreakableController : MonoBehaviour
 {
@@ -9,19 +12,32 @@ public class PropBreakableController : MonoBehaviour
 
     private GameMasterController master;
 
-    public int prop_health = 1;
+    private GameObject destroyFxObject;
+    private AudioSource destroyAudioSource;
+    private float pickupAudioPitch;
+    private float pickupAudioVolume;
 
-    public bool is_destroy_one_shot = false;
-    public string destroy_one_shot_var_name = string.Empty;
-    
-    private GameObject prop_destroy_fx_object;
-    private AudioSource prop_destroy_audio_source;
-    private float item_pickup_audio_pitch;
-    private float item_pickup_audio_volume;
+    [Header("Prop Attributes")]
+    public int health;
 
-    public GameObject prop_destroy_fx_prefab;
-    public Transform prop_destroy_fx_origin;
-    public AudioClip prop_destroy_audio_clip;
+    [Header("Destroy Attributes")]
+    public bool isDestroyOneShot;
+    public string destroyOneShotVarName;
+
+    public GameObject destroyFxPrefab;
+    public Transform destroyFxOrigin;
+
+    public float destroyRepelForceMultiplier;
+
+    [Header("Damage Attributes")]
+    public GameObject damageFxPrefab;
+    public Transform damageFxOrigin;
+
+    public float damageRepelForceMultiplier;
+
+    [Header("Sound Effects")]
+    public AudioClip sfxDestroy;
+    public AudioClip sfxDamage;
 
     void Start()
     {
@@ -29,19 +45,39 @@ public class PropBreakableController : MonoBehaviour
 
         // destroy if already saved as destroyed.
 
-        if(is_destroy_one_shot)
+        if(isDestroyOneShot)
         {
-            if (master.data_controller.GetGameVarBool(destroy_one_shot_var_name))
+            if (master.data_controller.GetGameVarBool(destroyOneShotVarName))
                 Destroy(this.gameObject);
         }
 
         // otherwise set up.
 
-        if (prop_destroy_fx_origin == null)
-            prop_destroy_fx_origin = this.transform;
+        if (destroyFxOrigin == null)
+            destroyFxOrigin = this.transform;
 
-        item_pickup_audio_pitch = Random.Range(0.95f, 1.05f);
-        item_pickup_audio_volume = BASE_VOLUME * master.audio_controller.volume_object;
+        if (destroyRepelForceMultiplier < PROP_REPEL_FORCE_MIN)
+            destroyRepelForceMultiplier = PROP_REPEL_FORCE_MIN;
+
+        pickupAudioPitch = Random.Range(0.95f, 1.05f);
+        pickupAudioVolume = BASE_VOLUME * master.audio_controller.volumeObject;
+
+        // validation.
+
+        if (health < PROP_HEALTH_MIN)
+            health = PROP_HEALTH_MIN;
+
+        if (damageFxPrefab == null)
+            damageFxPrefab = destroyFxPrefab;
+
+        if (damageFxOrigin == null)
+            damageFxOrigin = destroyFxOrigin;
+
+        if (damageRepelForceMultiplier < PROP_REPEL_FORCE_MIN)
+            damageRepelForceMultiplier = PROP_REPEL_FORCE_MIN;
+
+        if (sfxDamage == null)
+            sfxDamage = sfxDestroy;
     }
     
     private void OnTriggerEnter(Collider other)
@@ -54,37 +90,63 @@ public class PropBreakableController : MonoBehaviour
 
     private void HandleDamageObject(Collider other)
     {
-        // if the object is the player itself, repel them.
-
-        if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
-            GameMasterController.GetPlayerController().HandleRepelObject(this.gameObject);
-
         // handle damage, destroy if out of health.
 
-        var damage_type = other.gameObject.GetComponent<ActorAttributeDamageType>()?.damage_type;
-        if (damage_type == null)
-            damage_type = AttributeDamageTypeData.GetDefault();
+        var damageType = other.gameObject.GetComponent<AttributeDamageController>()?.data;
+        if (damageType == null)
+            damageType = AttributeDamageData.GetDefault();
 
-        prop_health -= damage_type.damage_amount;
+        health -= damageType.damageAmount;
 
-        if (prop_health <= 0)
+        if (health <= 0)
         {
-            if (is_destroy_one_shot)
-                master.data_controller.UpdateGameVar(destroy_one_shot_var_name, true);
+            if (isDestroyOneShot)
+                master.data_controller.UpdateGameVar(destroyOneShotVarName, true);
 
-            prop_destroy_fx_object = Instantiate(
-                prop_destroy_fx_prefab, 
-                prop_destroy_fx_origin.position, 
-                prop_destroy_fx_origin.rotation);
+            // create destroy fx.
 
-            prop_destroy_audio_source = prop_destroy_fx_object.AddComponent<AudioSource>();
-            prop_destroy_audio_source.clip = prop_destroy_audio_clip;
-            prop_destroy_audio_source.pitch = item_pickup_audio_pitch;
-            prop_destroy_audio_source.volume = item_pickup_audio_volume;
-            prop_destroy_audio_source.Play();
+            destroyFxObject = Instantiate(
+                destroyFxPrefab, 
+                destroyFxOrigin.position, 
+                destroyFxOrigin.rotation);
+
+            destroyAudioSource = destroyFxObject.AddComponent<AudioSource>();
+            destroyAudioSource.clip = sfxDestroy;
+            destroyAudioSource.pitch = pickupAudioPitch;
+            destroyAudioSource.volume = pickupAudioVolume;
+            destroyAudioSource.Play();
 
             Destroy(this.gameObject);
-            Destroy(prop_destroy_fx_object, 5);
+            Destroy(destroyFxObject, 5);
+
+            // if the collidng object is the player itself, repel them.
+
+            if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
+                GameMasterController.GetPlayerController().SimpleRepel(this.gameObject, destroyRepelForceMultiplier);
+
+        }
+        else
+        {
+            // create damage fx.
+
+            destroyFxObject = Instantiate(
+                damageFxPrefab, 
+                damageFxOrigin.position,
+                damageFxOrigin.rotation);
+
+            destroyAudioSource = destroyFxObject.AddComponent<AudioSource>();
+            destroyAudioSource.clip = sfxDamage;
+            destroyAudioSource.pitch = pickupAudioPitch;
+            destroyAudioSource.volume = pickupAudioVolume;
+            destroyAudioSource.Play();
+
+            Destroy(destroyFxObject, 5);
+
+            // if the colliding object is the player itself, repel them.
+
+            if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
+                GameMasterController.GetPlayerController().SimpleRepel(this.gameObject, damageRepelForceMultiplier);
+
         }
     }
 }

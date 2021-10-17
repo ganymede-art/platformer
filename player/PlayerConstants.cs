@@ -11,7 +11,7 @@ namespace Assets.script
     {
         // input constants.
 
-        public const float INPUT_GAME_STATE_DELAY = 0.5f;
+        public const float INPUT_GAME_STATE_DELAY = 0.09f;
         public const float INPUT_DIRECTIONAL_THRESHOLD = 0.01f;
         public const float INPUT_BUTTON_THRESHOLD = 0.5f;
 
@@ -35,6 +35,7 @@ namespace Assets.script
 
         public const float ACCELERATION_GROUNDED = 0.5f;
         public const float ACCELERATION_AIR = 0.2f;
+        public const float ACCELERATION_CROUCH_JUMP = 0.05f;
 
         public const float MAX_SPEED_GROUNDED = 3.0f;
         public const float MAX_SPEED_WATER = 2.0f;
@@ -66,6 +67,9 @@ namespace Assets.script
         public const float JUMP_PERSIST_FORCE_MULTIPLIER = 0.4f;
         public const int JUMP_PERSIST_ENERGY_MAX = 10;
 
+        public const float FORCE_MULTIPLIER_CROUCH_JUMP = 5.0f;
+        public const float FORCE_MULTIPLIER_CROUCH_JUMP_PERSIST = 0.4f;
+
         public const float WATER_JUMP_FORCE_MULTIPLIER = 2.5f;
         public const float MINIMUM_WATER_JUMP_Y_SPEED = -1f;
 
@@ -77,6 +81,7 @@ namespace Assets.script
         public const float SLIDE_ANGLE_RECOVERY_MAX = 30f;                     // maximum angle to recover from slide.
         public const float SLIDE_SPEED_RECOVERY_MAX = 0.25f;                   // maximum speed to recover from slide.
         public const float SLIDE_ANGLE_MIN = 50f;                              // minimum angle to start sliding
+        public const float SLIDE_ANGLE_MAX = 65f;                              // maximum angle to start sliding.
         public const float SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER = 0.001f;  // multiplier for ground angle to subtract from resistance.
         public const float SLIDE_RESISTANCE_MAX = 1.0f;                        // maximum slide resistance.
         public const float SLIDE_RESISTANCE_RECOVERY = 0.05f;                  // slide resistance recovery amount
@@ -100,7 +105,11 @@ namespace Assets.script
 
         // animation constants.
 
-        public const float ANIMATION_TURNING_SPEED_MULTIPLIER = 0.5f;
+        public const float ANIMATION_TURNING_SPEED_MULTIPLIER = 0.3f;
         public const float ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER = 0.1f;
+
+        // damage constants.
+
+        public const float DAMAGE_INTERVAL = 3.0f;
     }
 }

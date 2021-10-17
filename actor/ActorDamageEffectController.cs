@@ -9,59 +9,51 @@ public class ActorDamageEffectController : MonoBehaviour
     const float FLASH_INTERVAL = 0.1f;
     const string EMISSION_MATERIAL_PROPERTY = "_Emission";
 
-    public IActorDamageEffectManager manager;
-    private ActorDamageEffectManager manager_data;
+    bool isActive = false;
+    float flashTimer = 0f;
+    bool isFlashing = false;
+    private Renderer actorRenderer;
 
-    bool was_active = false;
-    bool is_active = false;
-    GameConstants.DamageEffectType damage_effect_type;
-    Renderer actor_renderer;
-
-    float elapsed_time = 0f;
-    bool is_flashing = false;
+    public GameObject actorRendererObject;
 
     // Start is called before the first frame update
     void Start()
     {
-        manager = this.gameObject.GetComponent<IActorDamageEffectManager>();
-        manager_data = manager.UpdateDamageEffectController();
-        actor_renderer = manager_data.actor_renderer;
+        if (actorRendererObject == null)
+            this.enabled = false;
+
+        actorRenderer = actorRendererObject.GetComponent<Renderer>();
+
+        if (actorRenderer == null)
+            this.enabled = false;
     }
 
     // Update is called once per frame
     void Update()
-    {
-        manager_data = manager.UpdateDamageEffectController();
-
-        if (manager_data == null)
-        {
-            foreach (var material in actor_renderer.materials)
-                material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
-            return;
-        }
-
-        was_active = is_active;
-        is_active = manager_data.is_active;
-
-        if (!is_active && was_active)
-        {
-            foreach (var material in actor_renderer.materials)
-                material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
-        }
-
-        if (!is_active)
+    { 
+        if (!isActive)
             return;
 
-        elapsed_time += Time.deltaTime;
-        if (elapsed_time >= FLASH_INTERVAL)
+        flashTimer += Time.deltaTime;
+        if (flashTimer >= FLASH_INTERVAL)
         {
-            
-            elapsed_time = 0f;
-            is_flashing = !is_flashing;
-            foreach(var material in actor_renderer.materials)
-                material.SetColor(EMISSION_MATERIAL_PROPERTY, is_flashing ? Color.red : Color.black);
+            flashTimer = 0f;
+            isFlashing = !isFlashing;
+            foreach(var material in actorRenderer.materials)
+                material.SetColor(EMISSION_MATERIAL_PROPERTY, isFlashing ? Color.red : Color.black);
         }
     }
 
+    public void SetDamageEffect()
+    {
+        isActive = true;
+    }
 
+    public void UnsetDamageEffect()
+    {
+        isActive = false;
+
+        foreach (var material in actorRenderer.materials)
+            material.SetColor(EMISSION_MATERIAL_PROPERTY, Color.black);
+    }
 }

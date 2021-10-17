@@ -8,9 +8,4 @@ using UnityEngine;
 namespace Assets.script
 {
 
-    [System.Serializable]
-    public class CameraModeChangeData
-    {
-        public Transform fixed_transform;
-    }
 }

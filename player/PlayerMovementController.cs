@@ -5,14 +5,15 @@ using Assets.script;
 using System;
 using static Assets.script.PlayerEnums;
 using static Assets.script.PlayerConstants;
+using static Assets.script.AttributeDataClasses;
 
 public class PlayerMovementController : MonoBehaviour
     , IActorFootstepManager
-    , ICameraAudioManager
-    , IActorSplashManager
-    , IActorDamageEffectManager
+    , IActorDataManager
 {
     // state variables.
+
+    private Vector3 stored_velocity = Vector3.zero;
 
     [System.NonSerialized] public PlayerEnums.PlayerState player_state = PlayerState.player_default;
     [System.NonSerialized] public PlayerEnums.PlayerState player_state_previous = PlayerState.player_default;
@@ -28,6 +29,8 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public PlayerStateAttackController state_attack;
     [System.NonSerialized] public PlayerStateDamageController state_damage;
     [System.NonSerialized] public PlayerStateRepelController state_repel;
+    [System.NonSerialized] public PlayerStateCrouchController state_crouch;
+    [System.NonSerialized] public PlayerStateCrouchJumpController state_crouch_jump;
 
     [System.NonSerialized] public int state_update_count = 0;
 
@@ -37,17 +40,9 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public bool is_input_directional = false;
     [System.NonSerialized] public bool was_input_directional = false;
 
-    [System.NonSerialized] public bool is_input_left = false;
-    [System.NonSerialized] public bool is_input_right = false;
-
-    [System.NonSerialized] public bool is_input_positive = false;
-    [System.NonSerialized] public bool was_input_positive = false;
-
-    [System.NonSerialized] public bool is_input_interact = false;
-    [System.NonSerialized] public bool was_input_interact = false;
-
     [System.NonSerialized] public bool is_raised_positive = false;
     [System.NonSerialized] public bool is_raised_interact = false;
+    [System.NonSerialized] public bool is_raised_positive_2 = false;
 
     // component variables.
 
@@ -61,6 +56,7 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public GameObject player_direction_object;
     [System.NonSerialized] public GameObject player_attack_forward_object;
     [System.NonSerialized] public Collider player_attack_forward_collider;
+    [System.NonSerialized] public ActorDamageEffectController damageEffectController;
 
     // physical variables.
 
@@ -78,6 +74,7 @@ public class PlayerMovementController : MonoBehaviour
     [System.NonSerialized] public RaycastHit spherecast_hit_info;
     [System.NonSerialized] public bool is_spherecast_hit = false;
     [System.NonSerialized] public bool is_spherecast_grounded = false;
+    [System.NonSerialized] public bool is_spherecast_grounded_since_state_begin = false;
 
     [System.NonSerialized] public float raycast_grounded_slope_angle = 0.0f;
     [System.NonSerialized] public Vector3 raycast_grounded_slope_normal = Vector3.up;
@@ -115,21 +112,25 @@ public class PlayerMovementController : MonoBehaviour
     // damage variables.
 
     [System.NonSerialized] public GameObject damage_source = null;
-    [System.NonSerialized] public AttributeDamageTypeData damage_type = null;
+    [System.NonSerialized] public AttributeDamageData damage_type = null;
+
+    [System.NonSerialized] public bool isDamaged = false;
+    [System.NonSerialized] public float damageTimer = 0.0f;
+    [System.NonSerialized] public float damageInterval = DAMAGE_INTERVAL;
 
     // repel variables.
 
     [System.NonSerialized] public GameObject repel_source = null;
-    [System.NonSerialized] public AttributeRepelTypeData repel_type = null;
+    [System.NonSerialized] public AttributeDamageData repel_type = null;
 
     // moving object variables.
 
-    List<GameObject> moving_object_collision_list = new List<GameObject>();
+    [System.NonSerialized] public List<GameObject> moving_object_collision_list = new List<GameObject>();
     bool is_colliding_moving_object = false;
 
     // water variables.
 
-    List<GameObject> water_object_collision_list = new List<GameObject>();
+    [System.NonSerialized] public List<GameObject> water_object_collision_list = new List<GameObject>();
     [System.NonSerialized] public bool is_colliding_water_object = false;
     [System.NonSerialized] public bool is_partial_submerged = false;
     [System.NonSerialized] public bool is_full_submerged = false;
@@ -147,14 +148,18 @@ public class PlayerMovementController : MonoBehaviour
     // audio variables.
 
     [System.NonSerialized] public AudioSource audio_source;
-    [System.NonSerialized] public AudioSource audio_source_loop;
+
+    public AudioClip sfx_player_dive;
+    public AudioClip sfx_player_hurt_default;
+    public AudioClip sfx_player_jump;
+    public AudioClip sfx_player_crouch_jump;
+    public AudioClip sfx_player_slide;
+    public AudioClip sfx_player_water_jump;
 
     // interface variables.
 
-    CameraAudioManager camera_audio_manager;
     ActorFootstepManager footstep_manager;
-    ActorSplashManager splash_manager;
-    ActorDamageEffectManager damage_effect_manager;
+    ActorDataManager adm;
 
     private void Start()
     {
@@ -172,6 +177,8 @@ public class PlayerMovementController : MonoBehaviour
         state_attack = new PlayerStateAttackController();
         state_damage = new PlayerStateDamageController();
         state_repel = new PlayerStateRepelController();
+        state_crouch = new PlayerStateCrouchController();
+        state_crouch_jump = new PlayerStateCrouchJumpController();
 
         player_state_controllers = new Dictionary<PlayerState, IPlayerStateController>();
 
@@ -185,6 +192,8 @@ public class PlayerMovementController : MonoBehaviour
         player_state_controllers.Add(PlayerState.player_attack, state_attack);
         player_state_controllers.Add(PlayerState.player_damage, state_damage);
         player_state_controllers.Add(PlayerState.player_repel, state_repel);
+        player_state_controllers.Add(PlayerState.player_crouch, state_crouch);
+        player_state_controllers.Add(PlayerState.player_crouch_jump, state_crouch_jump);
 
         // initialise componenets.
 
@@ -201,6 +210,8 @@ public class PlayerMovementController : MonoBehaviour
         player_attack_forward_collider = player_attack_forward_object.GetComponent<Collider>();
         player_attack_forward_collider.enabled = false;
 
+        damageEffectController = this.gameObject.GetComponentInChildren<ActorDamageEffectController>();
+
         // add listeners.
 
         master.GameStateChange += ChangeGameState;
@@ -209,20 +220,17 @@ public class PlayerMovementController : MonoBehaviour
 
         audio_source = this.gameObject.AddComponent<AudioSource>();
 
-        audio_source_loop = this.gameObject.AddComponent<AudioSource>();
-        audio_source_loop.loop = true;
-
         // initialise actor attributes.
 
-        damage_type = new AttributeDamageTypeData();
-        repel_type = new AttributeRepelTypeData();
+        damage_type = new AttributeDamageData();
+        repel_type = new AttributeDamageData();
 
         // initialise interface.
 
-        camera_audio_manager = new CameraAudioManager();
         footstep_manager = new ActorFootstepManager();
-        splash_manager = new ActorSplashManager();
-        damage_effect_manager = new ActorDamageEffectManager();
+
+        adm = new ActorDataManager();
+        adm = ActorDataManager.GetDefault();
 
         // setup.
 
@@ -248,8 +256,8 @@ public class PlayerMovementController : MonoBehaviour
 
         // collider inits.
 
-        player_sphere_collider.material.bounceCombine = PhysicMaterialCombine.Minimum;
         player_sphere_collider.material.bounciness = 0.0f;
+        player_sphere_collider.material.bounceCombine = PhysicMaterialCombine.Minimum;
 
         grounded_raycast_max_distance = player_sphere_collider.radius + GROUNDED_RAYCAST_ADDITIONAL_DISTANCE;
         grounded_spherecast_max_distance = GROUNDED_SPHERECAST_ADDITIONAL_DISTANCE;
@@ -257,23 +265,30 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Update()
     {
-        if (master.game_state == GameState.Game 
-            || master.game_state == GameState.GameCutscene)
+        if (master.gameState == GameState.Game 
+            || master.gameState == GameState.GameCutscene)
         {
             UpdatePlayerInput();
+            UpdateActorDataManager();
+
+            if(isDamaged)
+            {
+                damageTimer += Time.deltaTime;
+
+                if (damageTimer >= DAMAGE_INTERVAL)
+                    UnsetDamaged();
+            }
         }
+
+        
     }
 
     private void FixedUpdate()
     {
-        if (master.game_state == GameState.Game 
-            || master.game_state == GameState.GameCutscene)
+        if (master.gameState == GameState.Game 
+            || master.gameState == GameState.GameCutscene)
         {
             // run update if in game state.
-
-            rigid_body.collisionDetectionMode = CollisionDetectionMode.Continuous;
-            rigid_body.isKinematic = false;
-            player_animator.enabled = true;
 
             UpdateWaterStatus();
             UpdateMovingObjectStatus();
@@ -281,7 +296,7 @@ public class PlayerMovementController : MonoBehaviour
             UpdateGroundedRay();
             UpdateGroundedSphere();
             UpdateGravity();
-            UpdateDragAndFriction();
+            player_state_controllers[player_state].UpdateStateDragAndFriction(this);
 
             // update the player state.
 
@@ -291,6 +306,8 @@ public class PlayerMovementController : MonoBehaviour
             // do state specific actions.
 
             player_state_controllers[player_state].UpdateState(this);
+            player_state_controllers[player_state].UpdateStateSlide(this);
+            player_state_controllers[player_state].UpdateStateSpeed(this);
 
             // update animator.
 
@@ -301,24 +318,16 @@ public class PlayerMovementController : MonoBehaviour
 
             UpdateClearRaisedInputs();
         }
-        else if (master.game_state == GameState.GameOver)
+        else if (master.gameState == GameState.GameOver)
         {
-            rigid_body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            rigid_body.isKinematic = true;
-            UpdateAnimatorVariables();
+            
         }
-        else if (master.game_state == GameState.Cutscene)
+        else if (master.gameState == GameState.Cutscene)
         {
-            rigid_body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            rigid_body.isKinematic = true;
             UpdateAnimatorCutscene();
         }
         else
         {
-            // freeze player.
-
-            rigid_body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            rigid_body.isKinematic = true;
             player_animator.enabled = false;
         }
     }
@@ -327,21 +336,22 @@ public class PlayerMovementController : MonoBehaviour
     {
 
         // ignore all input for a short
-        // time when entering game state.
+        // time when entering game state
+        // from a non-game state.
 
-        if (master.Game_State_Time <= INPUT_GAME_STATE_DELAY)
+        if (master.gameStatePrevious != GameState.Game
+            && master.gameStatePrevious != GameState.GameCutscene
+            && master.GameStateTime <= INPUT_GAME_STATE_DELAY)
             return;
 
         // get previous inputs.
 
         was_input_directional = is_input_directional;
-        was_input_positive = is_input_positive;
-        was_input_interact = is_input_interact;
 
         // get input from input mapper.
 
-        float input_horizontal = master.input_controller.action_horizontal.ReadValue<float>();
-        float input_vertical = master.input_controller.action_vertical.ReadValue<float>();
+        float input_horizontal = master.input_controller.actionHorizontal.ReadValue<float>();
+        float input_vertical = master.input_controller.actionVertical.ReadValue<float>();
 
         Vector3 input = new Vector3(input_horizontal, 0.0f, input_vertical);
 
@@ -350,23 +360,19 @@ public class PlayerMovementController : MonoBehaviour
 
         input_directional = input;
         is_input_directional = input_directional.magnitude > INPUT_DIRECTIONAL_THRESHOLD;
-
-        is_input_left = master.input_controller.action_horizontal.ReadValue<float>() < -0.5f;
-        is_input_right = master.input_controller.action_horizontal.ReadValue<float>() > 0.5f;
-
-        // get button inputs.
-
-        is_input_positive = master.input_controller.action_positive.ReadValue<float>() >= INPUT_BUTTON_THRESHOLD;
-        is_input_interact = master.input_controller.action_interact.ReadValue<float>() >= INPUT_BUTTON_THRESHOLD;
         
         // raise events for fixed update
         // edge detection.
 
-        if (!was_input_positive && is_input_positive)
+        if (!master.input_controller.wasInputPositive && master.input_controller.isInputPositive)
             is_raised_positive = true;
 
-        if (!was_input_interact && is_input_interact)
+        if (!master.input_controller.wasInputInteract && master.input_controller.isInputInteract)
             is_raised_interact = true;
+
+        if (!master.input_controller.wasInputPositive2 
+            && master.input_controller.isInputPositive2)
+            is_raised_positive_2 = true;
     }
 
     private void UpdateWaterStatus()
@@ -392,9 +398,6 @@ public class PlayerMovementController : MonoBehaviour
 
         if (is_raycast_hit)
         {
-            // set grounded, if under max distance.
-            is_raycast_grounded = raycast_hit_info.distance <= grounded_raycast_max_distance;
-
             // set the angle of the surface.
             raycast_grounded_slope_angle = Vector3.Angle(raycast_hit_info.normal, Vector3.up);
 
@@ -404,6 +407,10 @@ public class PlayerMovementController : MonoBehaviour
             // set the ground slope direction.
             var temp = Vector3.Cross(raycast_hit_info.normal, Vector3.down);
             raycast_grounded_slope_direction = Vector3.Cross(temp, raycast_hit_info.normal);
+
+            // set grounded, if under max distance.
+            is_raycast_grounded = raycast_hit_info.distance <= grounded_raycast_max_distance 
+                && raycast_grounded_slope_angle <= SLIDE_ANGLE_MAX;
 
             // if grounded, and in the regular state, set the position above the floor.
 
@@ -415,6 +422,7 @@ public class PlayerMovementController : MonoBehaviour
                     rigid_body.position.z));
                 Debug.DrawRay(transform.position, Vector3.down, Color.magenta);
             }
+            
         }
     }
 
@@ -426,7 +434,8 @@ public class PlayerMovementController : MonoBehaviour
 
         if (is_spherecast_hit)
         {
-            is_spherecast_grounded = spherecast_hit_info.distance <= grounded_spherecast_max_distance;
+            if (!is_spherecast_grounded_since_state_begin)
+                is_spherecast_grounded_since_state_begin = is_spherecast_grounded;
 
             // if also ray grounded
             // set the slope normal.
@@ -440,7 +449,9 @@ public class PlayerMovementController : MonoBehaviour
                 ? Vector3.Angle(raycast_hit_info.normal, Vector3.up)
                 : raycast_grounded_slope_angle;
 
-            // set the grounded type, if grounded.
+            is_spherecast_grounded = spherecast_hit_info.distance <= grounded_spherecast_max_distance
+                && spherecast_grounded_slope_angle <= SLIDE_ANGLE_MAX;
+
             if (is_spherecast_grounded)
             {
                 if (spherecast_hit_info.collider.gameObject
@@ -449,10 +460,6 @@ public class PlayerMovementController : MonoBehaviour
                 else
                     ground_type = spherecast_hit_info.collider.gameObject
                         .GetComponent<MapAttributeGroundType>().ground_type;
-            }
-            else
-            {
-                ground_type = GameConstants.GroundType.ground_default;
             }
         }
     }
@@ -470,54 +477,9 @@ public class PlayerMovementController : MonoBehaviour
             rigid_body.AddForce(Physics.gravity * GRAVITY_MULTIPLIER, ForceMode.Acceleration);
     }
 
-    private void UpdateDragAndFriction()
-    {
-        // state specific drag.
-
-        if (player_state == PlayerState.player_jump
-            || player_state == PlayerState.player_slide
-            || player_state == PlayerState.player_dive
-            || player_state == PlayerState.player_damage
-            || player_state == PlayerState.player_water_dive)
-        {
-            rigid_body.drag = DRAG_AIR;
-            player_sphere_collider.material.dynamicFriction = 0f;
-            player_sphere_collider.material.staticFriction = 0f;
-            player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Minimum;
-            return;
-        }
-
-        // update based on circumstances.
-
-        rigid_body.drag = is_raycast_grounded ? DRAG_GROUNDED : DRAG_AIR;
-
-        if (is_input_directional || !is_raycast_grounded)
-        {
-            player_sphere_collider.material.dynamicFriction = 0f;
-            player_sphere_collider.material.staticFriction = 0f;
-        }
-        else
-        {
-            if (moving_object_collision_list.Count == 0)
-            {
-                player_sphere_collider.material.dynamicFriction = 100;
-                player_sphere_collider.material.staticFriction = 100;
-            }
-            else
-            {
-                player_sphere_collider.material.dynamicFriction = 1;
-                player_sphere_collider.material.staticFriction = 1;
-            }
-        }
-
-        // change physics combine mode.
-
-        player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Average;
-    }
-
     private void UpdateAnimatorVariables()
     {
-        player_animator.SetInteger("anim_game_state", (int)master.game_state);
+        player_animator.SetInteger("anim_game_state", (int)master.gameState);
         player_animator.SetInteger("anim_player_state", (int)player_state);
         player_animator.SetInteger("anim_player_state_update_count", state_update_count);
         player_animator.SetBool("anim_is_grounded", is_spherecast_grounded);
@@ -537,11 +499,11 @@ public class PlayerMovementController : MonoBehaviour
     private void UpdateAnimatorCutscene()
     {
 
-        if (master.cutscene_controller.event_source == null)
+        if (master.cutscene_controller.currentEventSource == null)
             return;
 
         facing_direction_delta = Vector3.RotateTowards(player_renderer_object.transform.forward,
-            master.cutscene_controller.event_source.transform.position - player_renderer_object.transform.position,
+            master.cutscene_controller.currentEventSource.transform.position - player_renderer_object.transform.position,
             PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER,
             0.0f);
 
@@ -557,6 +519,7 @@ public class PlayerMovementController : MonoBehaviour
     {
         is_raised_positive = false;
         is_raised_interact = false;
+        is_raised_positive_2 = false;
     }
 
     // state change.
@@ -565,14 +528,60 @@ public class PlayerMovementController : MonoBehaviour
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        if (args.game_state == GameState.Game || master.game_state == GameState.GameCutscene)
+        if (args.gameState == GameState.Game || master.gameState == GameState.GameCutscene)
             player_animator.runtimeAnimatorController = animator_game;
-        else if (args.game_state == GameState.GameOver)
+        else if (args.gameState == GameState.GameOver)
             player_animator.runtimeAnimatorController = animator_game_over;
-        else if (args.game_state == GameState.Cutscene)
+        else if (args.gameState == GameState.Cutscene)
             player_animator.runtimeAnimatorController = animator_cutscene;
         else
             player_animator.runtimeAnimatorController = animator_game;
+
+        // store, or restore, velocity when changing state.
+
+        if (args.gameState == GameState.Game
+            || args.gameState == GameState.GameCutscene)
+        {
+            if(args.game_state_previous != GameState.Game 
+                && args.game_state_previous != GameState.GameCutscene)
+                ResumeController(e);
+        }
+        else
+        {
+            if (args.game_state_previous == GameState.Game
+                || args.game_state_previous == GameState.GameCutscene)
+                PauseController(e);
+        }
+
+        // if not in a game state, clear the directional input.
+
+        if (args.gameState != GameState.Game && master.gameState != GameState.GameCutscene)
+            input_directional = Vector3.zero;
+    }
+
+    private void PauseController(EventArgs e)
+    {
+        GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
+
+        stored_velocity = rigid_body.velocity;
+
+        rigid_body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+        rigid_body.isKinematic = true;
+        UpdateAnimatorVariables();
+    }
+
+    private void ResumeController(EventArgs e)
+    {
+        GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
+
+        rigid_body.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rigid_body.isKinematic = false;
+        player_animator.enabled = true;
+
+        // restore velocity if coming from the pause meny.
+
+        if(args.game_state_previous == GameState.Menu)
+            rigid_body.velocity = stored_velocity;
     }
 
     public void ChangePlayerState(PlayerState new_state)
@@ -584,36 +593,19 @@ public class PlayerMovementController : MonoBehaviour
 
         player_state_controllers[player_state].BeginState(this);
 
+        // set general state variables.
+
         state_update_count = 0;
+        is_spherecast_grounded_since_state_begin = false;
     }
 
-    public void HandleDamageObject(GameObject damage_object)
+    public void SimpleRepel(GameObject repelSource, float repelForceMultiplier)
     {
-        // get the objects damage attributes (or default)
-        // the handle moving into the damage state.
-
-        damage_source = damage_object.gameObject;
-        damage_type = damage_object.gameObject.GetComponent<ActorAttributeDamageType>()?.damage_type;
-        if (damage_type == null)
-            damage_type = AttributeDamageTypeData.GetDefault();
-
-        if (player_state != PlayerState.player_damage || damage_type.damage_is_instant)
-            ChangePlayerState(PlayerState.player_damage);
+        rigid_body.velocity = Vector3.zero;
+        var repelVector = (this.transform.position - repelSource.transform.position).normalized;
+        rigid_body.AddForce(repelVector * repelForceMultiplier, ForceMode.VelocityChange);
     }
 
-    public void HandleRepelObject(GameObject repel_object)
-    {
-        // get the objects repel attributes (or default)
-        // the handle moving into the repel state.
-
-        repel_source = repel_object.gameObject;
-        repel_type = repel_object.gameObject.GetComponent<ActorAttributeRepelType>()?.repel_type;
-        if (repel_type == null)
-            repel_type = AttributeRepelTypeData.GetDefault();
-
-        if (player_state != PlayerState.player_repel)
-            ChangePlayerState(PlayerState.player_repel);
-    }
 
     // collision.
 
@@ -624,31 +616,6 @@ public class PlayerMovementController : MonoBehaviour
             moving_object_collision_list.Add(collision.gameObject);
 
             is_colliding_moving_object = true;
-        }
-
-        if (collision.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
-        {
-            HandleDamageObject(collision.gameObject);
-        }
-
-        if (collision.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
-        {
-            Debug.Log(GameConstants.TAG_REPEL_OBJECT + Time.time);
-            HandleRepelObject(collision.gameObject);
-        }
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        if (collision.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
-        {
-            HandleDamageObject(collision.gameObject);
-        }
-
-        if (collision.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
-        {
-            Debug.Log(GameConstants.TAG_REPEL_OBJECT + Time.time);
-            HandleRepelObject(collision.gameObject);
         }
     }
 
@@ -674,30 +641,32 @@ public class PlayerMovementController : MonoBehaviour
             water_object_collision_list.Add(other.gameObject);
 
             is_colliding_water_object = true;
-            water_y_level = other.transform.position.y + (other.bounds.size.y / 2);
+            water_y_level = other.bounds.center.y + (other.bounds.size.y / 2);
+            
         }
 
         if (other.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
         {
-            HandleDamageObject(other.gameObject);
+            PlayerStaticMethods.HandleDamageObject(this, other.gameObject, false);
         }
 
         if (other.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
         {
-            HandleRepelObject(other.gameObject);
+            PlayerStaticMethods.HandleRepelObject(this, other.gameObject);
         }
+
     }
 
     private void OnTriggerStay(Collider other)
     {
         if (other.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
         {
-            HandleDamageObject(other.gameObject);
+            PlayerStaticMethods.HandleDamageObject(this, other.gameObject, true);
         }
 
         if (other.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
         {
-            HandleRepelObject(other.gameObject);
+            PlayerStaticMethods.HandleRepelObject(this, other.gameObject);
         }
     }
 
@@ -711,24 +680,46 @@ public class PlayerMovementController : MonoBehaviour
             {
                 is_colliding_water_object = false;
                 water_y_level = 0.0f;
+                is_full_submerged = false;
+                is_partial_submerged = false;
             }
         }
     }
 
+    // set and unset.
+
+    public void SetDamaged(AttributeDamageData damageData)
+    {
+        isDamaged = true;
+
+        damageTimer = 0.0f;
+        master.player_controller.player_health -= damageData.damageAmount;
+        ChangePlayerState(PlayerState.player_damage);
+
+        damageEffectController.SetDamageEffect();
+    }
+
+    public void UnsetDamaged()
+    {
+        isDamaged = false;
+
+        damageTimer = 0.0f;
+        damageEffectController.UnsetDamageEffect();
+    }
+
     // interface managers.
 
-    public CameraAudioManager UpdateCameraAudioController()
+    private void UpdateActorDataManager()
     {
-        if (master.game_state != GameState.Game)
-            return null;
-
-        camera_audio_manager.is_submerged = is_full_submerged;
-        return camera_audio_manager;
+        adm.is_in_water = is_colliding_water_object;
+        adm.is_submerged = is_full_submerged;
+        adm.water_y_level = water_y_level;
     }
 
     public ActorFootstepManager UpdateFootstepController()
     {
-        if (master.game_state != GameState.Game)
+        if (master.gameState != GameState.Game
+            && master.gameState != GameState.GameCutscene)
             return null;
 
         if(player_state == PlayerState.player_water_dive)
@@ -749,52 +740,39 @@ public class PlayerMovementController : MonoBehaviour
         return footstep_manager;
     }
 
-    public ActorSplashManager UpdateSplashController()
+    public ActorDataManager? UpdateActorController()
     {
-        if (master.game_state != GameState.Game)
-            return null;
-
-        splash_manager.water_level = water_y_level;
-        splash_manager.is_in_water = is_colliding_water_object;
-        splash_manager.is_submerged = is_full_submerged;
-        return splash_manager;
-    }
-
-    public ActorDamageEffectManager UpdateDamageEffectController()
-    {
-        if (master.game_state != GameState.Game)
-            return null;
-
-        damage_effect_manager.is_active = player_state == PlayerState.player_damage;
-        damage_effect_manager.damage_effect_type = damage_type.damage_effect_type;
-        damage_effect_manager.actor_renderer = player_renderer;
-        return damage_effect_manager;
+        return adm;
     }
 
     private void OnGUI()
     {
-        GUI.color = Color.black;
-        GUI.Label(new Rect(64, Screen.height - 600, 600, 600),
-            "player_state: " + player_state
-            + "\nupdate count: " + state_update_count
-            + "\npos " + rigid_body.position.x.ToString("0.00")
-            + "|" + rigid_body.position.y.ToString("0.00")
-            + "|" + rigid_body.position.z.ToString("0.00")
-            + "\nvel " + rigid_body.velocity.x.ToString("0.00")
-            + "|" + rigid_body.velocity.y.ToString("0.00")
-            + "|" + rigid_body.velocity.z.ToString("0.00")
-            + "\nray distance: " + raycast_hit_info.distance
-            + "\nray grounded: " + is_raycast_grounded
-            + "\nray angle: " + raycast_grounded_slope_angle
-            + "\nsphere distance: " + spherecast_hit_info.distance
-            + "\nsphere grounded: " + is_spherecast_grounded
-            + "\nmoving object collisions: " + moving_object_collision_list.Count
-            + "\nis colliding moving object: " + is_colliding_moving_object
-            + "\nwater trigger collisions: " + water_object_collision_list.Count
-            + "\nis colliding water trigger: " + is_colliding_water_object
-            + "\nwater y level: " + water_y_level
-            + "\nis partial submerged: " + is_partial_submerged
-            + "\nis full submerged: " + is_full_submerged
-            + "\nslide resistance: " + slide_resistance);
+        //GUI.color = Color.black;
+        //GUI.Label(new Rect(64, Screen.height - 600, 600, 600),
+        //    "player_state: " + player_state
+        //    + "\nupdate count: " + state_update_count
+        //    + "\npos " + rigid_body.position.x.ToString("0.00")
+        //    + "|" + rigid_body.position.y.ToString("0.00")
+        //    + "|" + rigid_body.position.z.ToString("0.00")
+        //    + "\nvel " + rigid_body.velocity.x.ToString("0.00")
+        //    + "|" + rigid_body.velocity.y.ToString("0.00")
+        //    + "|" + rigid_body.velocity.z.ToString("0.00")
+        //    + "\nmovement hit: " + is_movement_hit
+        //    + "\nray distance: " + raycast_hit_info.distance
+        //    + "\nray grounded: " + is_raycast_grounded
+        //    + "\nray angle   : " + raycast_grounded_slope_angle
+        //    + "\nsphere distance            : " + spherecast_hit_info.distance
+        //    + "\nsphere grounded            : " + is_spherecast_grounded
+        //    + "\nsphere angle               : " + spherecast_grounded_slope_angle
+        //    + "\nmoving object collisions   : " + moving_object_collision_list.Count
+        //    + "\ncolliding moving object    : " + is_colliding_moving_object
+        //    + "\nwater trigger collisions   : " + water_object_collision_list.Count
+        //    + "\ncolliding water trigger    : " + is_colliding_water_object
+        //    + "\nwater y level              : " + water_y_level
+        //    + "\nis partial submerged       : " + is_partial_submerged
+        //    + "\nis full submerged          : " + is_full_submerged
+        //    + "\nslide resistance           : " + slide_resistance);
     }
+
+    
 }

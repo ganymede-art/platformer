@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using UnityEngine.Serialization;
 
 public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
 {
     private GameMasterController master;
-    public GameObject next_event_source = null;
 
+    [FormerlySerializedAs("next_event_source")]
+    public GameObject nextEventSource = null;
     public string trigger = string.Empty;
 
     void Start()
@@ -17,7 +19,7 @@ public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
 
     public GameObject GetNextEventSource()
     {
-        return next_event_source;
+        return nextEventSource;
     }
 
     public string GetEventType()

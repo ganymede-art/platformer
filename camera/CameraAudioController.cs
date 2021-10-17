@@ -2,33 +2,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.Serialization;
 public class CameraAudioController : MonoBehaviour
 {
-    public GameObject manager_game_object;
-    private ICameraAudioManager manager;
-    private CameraAudioManager manager_data;
+    [FormerlySerializedAs("manager_game_object")]
+    public GameObject managerObject;
+    private IActorDataManager manager;
+    private ActorDataManager? managerData;
 
-    AudioLowPassFilter audio_low_pass_filter;
+    AudioLowPassFilter audioLowPassFilter;
 
     // Start is called before the first frame update
     void Start()
     {
-        manager_game_object = GameObject.FindGameObjectWithTag(GameConstants.TAG_PLAYER);
-        manager = manager_game_object.GetComponent<ICameraAudioManager>();
+        managerObject = GameObject.Find(GameConstants.NAME_PLAYER);
+        manager = managerObject.GetComponent<IActorDataManager>();
 
-        audio_low_pass_filter = gameObject.AddComponent<AudioLowPassFilter>();
-        audio_low_pass_filter.enabled = false;
-        audio_low_pass_filter.cutoffFrequency = 500f;
+        audioLowPassFilter = gameObject.AddComponent<AudioLowPassFilter>();
+        audioLowPassFilter.enabled = false;
+        audioLowPassFilter.cutoffFrequency = 500f;
     }
 
     private void FixedUpdate()
     {
-        manager_data = manager.UpdateCameraAudioController();
+        if(manager == null)
+        {
+            managerObject = GameObject.Find(GameConstants.NAME_PLAYER);
+            manager = managerObject.GetComponent<IActorDataManager>();
 
-        if (manager_data == null)
+            if (manager == null)
+                return;
+        }
+
+        managerData = manager.UpdateActorController();
+
+        if (managerData == null)
             return;
 
-        audio_low_pass_filter.enabled = manager_data.is_submerged;
+        audioLowPassFilter.enabled = managerData.Value.is_submerged;
     }
 }

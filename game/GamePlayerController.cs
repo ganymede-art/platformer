@@ -63,17 +63,17 @@ public class GamePlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (master.game_state == GameState.Game || master.game_state == GameState.GameCutscene)
+        if (master.gameState == GameState.Game || master.gameState == GameState.GameCutscene)
         {
             // game over.
 
-            if (player_health <= 0 && master.game_state != GameState.GameOver)
+            if (player_health <= 0 && master.gameState != GameState.GameOver)
             {
                 master.ChangeState(GameState.GameOver);
                 game_over_timer = 0f;
             }
         }
-        else if(master.game_state == GameState.GameOver)
+        else if(master.gameState == GameState.GameOver)
         {
             game_over_timer += Time.deltaTime;
 

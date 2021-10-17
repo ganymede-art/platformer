@@ -48,7 +48,7 @@ namespace Assets.script
 
             // player sound.
 
-            mc.audio_source.clip = mc.master.audio_controller.a_player_jump;
+            mc.audio_source.clip = mc.sfx_player_jump;
             mc.audio_source.Play();
         }
 
@@ -93,12 +93,11 @@ namespace Assets.script
         {
             UpdateStateJump(mc);
             UpdateStateMovement(mc);
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateAnimator(PlayerMovementController mc)
         {
-            if (update_count_jump ==  1)
+            if (mc.state_update_count ==  0)
                 mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.player_direction_object.transform.forward);
 
             // update player facing direction.
@@ -108,7 +107,8 @@ namespace Assets.script
             mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move our position a step closer to the target.
-            mc.player_direction_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.player_direction_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction);
+            
         }
 
         public void UpdateStateJump(PlayerMovementController mc)
@@ -117,7 +117,7 @@ namespace Assets.script
 
             mc.jump_persist_energy -= 1;
 
-            if (mc.is_input_positive && mc.jump_persist_energy > 0)
+            if (mc.master.input_controller.isInputPositive && mc.jump_persist_energy > 0)
             {
                 // if the jump input is given, and persist energy > 0, add extra jump force.
 
@@ -141,59 +141,12 @@ namespace Assets.script
 
             var force = camera_relative_movement * PlayerConstants.ACCELERATION_AIR;
 
-            // do raycasts.
+            PlayerStaticMethods.StepMovement(mc, camera_relative_movement, force);
+        }
 
-            is_movement_hit = Physics.SphereCast(
-                mc.transform.position, 
-                PlayerConstants.GROUNDED_SPHERECAST_RADIUS, 
-                camera_relative_movement, 
-                out movement_hit, 
-                PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE);
-
-            // apply forces based on raycast hits.
-
-            if (is_movement_hit)
-            {
-                // initial step cast.
-                is_step_movement_hit = Physics.SphereCast(
-                    mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, 
-                    PlayerConstants.GROUNDED_SPHERECAST_RADIUS, 
-                    camera_relative_movement, 
-                    out step_movement_hit, 
-                    PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE);
-
-                // second step check for ceilings.
-                if (Physics.CheckSphere(
-                    mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, 
-                    PlayerConstants.GROUNDED_SPHERECAST_RADIUS, 
-                    GameConstants.LAYER_MASK_ALL_BUT_PLAYER))
-                    is_step_movement_hit = true;
-
-                if (!is_step_movement_hit)
-                {
-                    // step obstace, move up and move directly ahead.
-
-                    if (mc.rigid_body.velocity.y < PlayerConstants.STEP_MAX_VELOCITY)
-                        mc.rigid_body.AddForce(Vector3.up, ForceMode.VelocityChange);
-
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
-                }
-                else
-                {
-                    // full obstacle, move on a plane to the collided surface.
-
-                    force = Vector3.ProjectOnPlane(force, movement_hit.normal);
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
-
-                    Debug.DrawRay(mc.transform.position, force, Color.blue);
-                }
-            }
-            else
-            {
-                // no obstace directly ahead.
-
-                mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
-            }
+        public void UpdateStateSlide(PlayerMovementController mc)
+        {
+            return;
         }
 
         public void UpdateStateSpeed(PlayerMovementController mc)
@@ -209,6 +162,15 @@ namespace Assets.script
             }
         }
 
-        
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            mc.rigid_body.drag = DRAG_AIR;
+            mc.player_sphere_collider.material.dynamicFriction = 0f;
+            mc.player_sphere_collider.material.staticFriction = 0f;
+
+            mc.player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Minimum;
+        }
+
+
     }
 }

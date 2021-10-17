@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Assets.script;
-
+using System;
 public class GameLoadLevelController : MonoBehaviour
 {
     public GameMasterController master;
@@ -14,23 +14,18 @@ public class GameLoadLevelController : MonoBehaviour
 
     // load variables.
 
-    public string load_scene_name = string.Empty;
-    public string load_player_start_transform_name = string.Empty;
-    public string load_camera_start_transform_name = string.Empty;
+    private float load_timer = 0.0f;
+    private bool isLoading = false;
 
-    float load_timer = 0.0f;
-
-    bool is_loading = false;
+    [NonSerialized] public string loadSceneName = string.Empty;
+    [NonSerialized] public string loadPlayerStartTransformName = string.Empty;
+    [NonSerialized] public string loadCameraStartTransformName = string.Empty;
 
     // transition variables.
 
-    Rect transition_rectangle = new Rect(0, 0, 9999, 9999);
-    Color transition_color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
-    Texture2D transition_texture;
-
-    // debug variables.
-
-    Rect debug_label_rectangle = new Rect(0, 0, 600, 200);
+    Rect transitionRectangle = new Rect(0, 0, 9999, 9999);
+    Color transitionColour = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+    Texture2D transitionTexture;
 
     private void Start()
     {
@@ -39,12 +34,12 @@ public class GameLoadLevelController : MonoBehaviour
 
         // initialise transition variables.
 
-        transition_texture  = new Texture2D(1, 1);
+        transitionTexture  = new Texture2D(1, 1);
     }
 
     private void Update()
     {
-        if(is_loading)
+        if(isLoading)
         {
             // increment the load timer while loading.
 
@@ -77,18 +72,18 @@ public class GameLoadLevelController : MonoBehaviour
 
         master.ChangeState(GameState.Loading);
 
-        is_loading = true;
+        isLoading = true;
 
         load_timer = 0.0f;
 
-        load_scene_name = scene_name;
-        load_player_start_transform_name = player_start_transform_name;
-        load_camera_start_transform_name = camera_start_transform_name;
+        loadSceneName = scene_name;
+        loadPlayerStartTransformName = player_start_transform_name;
+        loadCameraStartTransformName = camera_start_transform_name;
     }
 
     private void DoLoadLevel()
     {
-        SceneManager.LoadScene(load_scene_name, LoadSceneMode.Single);
+        SceneManager.LoadScene(loadSceneName, LoadSceneMode.Single);
     }
 
     private void EndLoadLevel(Scene scene, LoadSceneMode load_scene_mode)
@@ -96,10 +91,10 @@ public class GameLoadLevelController : MonoBehaviour
         // get the player and camera start transforms.
 
         var player_start_transform = GameObject.Find
-            (load_player_start_transform_name).transform;
+            (loadPlayerStartTransformName).transform;
 
         var camera_start_transform = GameObject.Find
-            (load_camera_start_transform_name).transform;
+            (loadCameraStartTransformName).transform;
 
         // initialise the player and camera.
 
@@ -122,38 +117,21 @@ public class GameLoadLevelController : MonoBehaviour
 
         master.ChangeState(GameState.Game);
 
-        is_loading = false;
+        isLoading = false;
 
-        load_scene_name = string.Empty;
-        load_player_start_transform_name = string.Empty;
-        load_camera_start_transform_name = string.Empty;
-
-        // set the scene data.
-        // at a minimum the scene name, and the description if
-        // the loaded scene has a data attributes.
-
-        var scene_data = new GameSceneData();
-        scene_data.scene_name = scene.name;
-
-        var scene_data_com = GameObject.Find(GameConstants.NAME_GAME_SCENE_DATA)?
-            .GetComponent<MapAutoGameSceneDataController>();
-
-        if (scene_data_com != null)
-        {
-            scene_data.scene_description = scene_data_com.scene_data.scene_description;
-        }
-
-        master.game_scene_data = scene_data;
+        loadSceneName = string.Empty;
+        loadPlayerStartTransformName = string.Empty;
+        loadCameraStartTransformName = string.Empty;
     }
 
     private void OnGUI()
     {
         if (load_timer > 0.0f)
         {
-            transition_color.a = load_timer;
-            transition_texture.SetPixel(0, 0, transition_color);
-            transition_texture.Apply();
-            GUI.DrawTexture(transition_rectangle, transition_texture);
+            transitionColour.a = load_timer;
+            transitionTexture.SetPixel(0, 0, transitionColour);
+            transitionTexture.Apply();
+            GUI.DrawTexture(transitionRectangle, transitionTexture);
         }
 
         if (!Application.isEditor)

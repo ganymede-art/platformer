@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.ActorEnums;
+using UnityEngine.Serialization;
 
 public class ActorEyeController : MonoBehaviour
 {
@@ -10,63 +10,86 @@ public class ActorEyeController : MonoBehaviour
     const float RANDOM_BLINK_INTERVAL_MIN = 1.0f;
     const float RANDOM_BLINK_INTERVAL_MAX = 3.0f;
 
-    public GameObject actor_renderer_object;
-    public int eye_material_index = 0;
-    public Material[] blink_materials;
+    private ActorEyeMode eyeMode;
 
-    private ActorEyeMode eye_mode;
+    private Renderer actorRenderer;
+    private Material[] rendererMaterials;
 
-    private Renderer actor_renderer;
-    private Material[] actor_materials;
+    private float blinkInterval = 0.0f;
+    private float blinkTimer = 0.0f;
+    private int blinkIndex = 0;
 
-    private float blink_interval = 0.0f;
-    private float blink_time = 0.0f;
-    private int blink_index = 0;
+    private bool isBlinkingStarted = false;
+    private bool isBlinkingFinished = false;
 
-    private bool is_blinking_started = false;
-    private bool is_blinking_finished = false;
+    [FormerlySerializedAs("actor_renderer_object")]
+    public GameObject actorRendererObject;
+    [FormerlySerializedAs("eye_material_index")]
+    public int eyeMaterialIndex = 0;
+
+    [FormerlySerializedAs("blink_materials")]
+    public Material[] blinkMaterials;
+    public Material[] emoteMaterials;
 
     private void Start()
     {
-        actor_renderer = actor_renderer_object.GetComponent<Renderer>();
-        actor_materials = actor_renderer.materials;
+        actorRenderer = actorRendererObject.GetComponent<Renderer>();
+        rendererMaterials = actorRenderer.materials;
+        eyeMode = ActorEyeMode.eyeDefault;
     }
 
     private void Update()
     {
-        blink_time += Time.deltaTime;
-
-        if(!is_blinking_started && blink_time >= blink_interval)
+        if (eyeMode == ActorEyeMode.eyeDefault)
         {
-            blink_time = 0.0f;
-            blink_interval = BLINK_INTERVAL;
-            blink_index = 0;
-            is_blinking_started = true;
-            is_blinking_finished = false;
-        }
+            blinkTimer += Time.deltaTime;
 
-        if(is_blinking_started && blink_time >= blink_interval)
-        {
-            blink_time = 0.0f;
-
-            actor_materials[eye_material_index] = blink_materials[blink_index];
-            actor_renderer.materials = actor_materials;
-
-            if(blink_index == blink_materials.Length - 1)
-                is_blinking_finished = true;
-
-            blink_index += is_blinking_finished ? -1 : 1;
-
-            if (blink_index == -1)
+            if (!isBlinkingStarted && blinkTimer >= blinkInterval)
             {
-                is_blinking_started = false;
-                is_blinking_finished = false;
-                blink_index = 0;
-                blink_interval = Random.Range(RANDOM_BLINK_INTERVAL_MIN, RANDOM_BLINK_INTERVAL_MAX);
+                blinkTimer = 0.0f;
+                blinkInterval = BLINK_INTERVAL;
+                blinkIndex = 0;
+                isBlinkingStarted = true;
+                isBlinkingFinished = false;
             }
 
-        }
+            if (isBlinkingStarted && blinkTimer >= blinkInterval)
+            {
+                blinkTimer = 0.0f;
 
+                rendererMaterials[eyeMaterialIndex] = blinkMaterials[blinkIndex];
+                actorRenderer.materials = rendererMaterials;
+
+                if (blinkIndex == blinkMaterials.Length - 1)
+                    isBlinkingFinished = true;
+
+                blinkIndex += isBlinkingFinished ? -1 : 1;
+
+                if (blinkIndex == -1)
+                {
+                    isBlinkingStarted = false;
+                    isBlinkingFinished = false;
+                    blinkIndex = 0;
+                    blinkInterval = Random.Range(RANDOM_BLINK_INTERVAL_MIN, RANDOM_BLINK_INTERVAL_MAX);
+                }
+
+            }
+        }
     }
+
+    public void SetEmote(int emoteMaterialIndex)
+    {
+        eyeMode = ActorEyeMode.eyeEmote;
+
+        rendererMaterials[eyeMaterialIndex] = emoteMaterials[emoteMaterialIndex];
+        actorRenderer.materials = rendererMaterials;
+    }
+
+    public void UnsetEmote()
+    {
+        eyeMode = ActorEyeMode.eyeDefault;
+        blinkTimer = 0.0f;
+    }
+
 
 }

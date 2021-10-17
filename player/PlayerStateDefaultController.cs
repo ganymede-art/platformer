@@ -22,12 +22,6 @@ namespace Assets.script
 
         // variables.
 
-        RaycastHit movement_hit;
-        RaycastHit step_movement_hit;
-
-        bool is_movement_hit = false;
-        bool is_step_movement_hit = false;
-
         public void BeginState(PlayerMovementController mc)
         {
             update_count_default = 0;
@@ -51,17 +45,33 @@ namespace Assets.script
                 return;
             }
 
-            if (mc.slide_resistance <= 0.0f)
+            // exit to attack state if attack is pressed
+            // and grounded.
+
+            if(mc.is_raised_interact
+                && mc.is_spherecast_grounded)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_slide);
+                mc.ChangePlayerState(PlayerEnums.PlayerState.player_attack);
                 return;
             }
 
-            // exit to diving state, if the previous state
-            // was jump, attack is pressed, and in air.
+            // exit to crouch state if positive 3 is pressed
+            // and grounded.
+
+            if(mc.master.input_controller.isInputPositive2
+                && mc.is_spherecast_grounded)
+            {
+                mc.ChangePlayerState(PlayerEnums.PlayerState.player_crouch);
+                return;
+            }
+
+            // exit to diving state, if previous state was jump,
+            // if not grounded since entering this state, 
+            // attack is pressed, and in air.
 
             if (mc.is_raised_interact
-                && mc.player_state_previous == PlayerEnums.PlayerState.player_jump
+                && mc.player_state_previous == PlayerState.player_jump
+                && !mc.is_spherecast_grounded_since_state_begin
                 && !mc.is_spherecast_grounded)
             {
                 mc.ChangePlayerState(PlayerEnums.PlayerState.player_dive);
@@ -77,8 +87,6 @@ namespace Assets.script
         public void UpdateState(PlayerMovementController mc)
         {
             UpdateStateMovement(mc);
-            UpdateStateSlide(mc);
-            UpdateStateSpeed(mc);
         }
 
         public void UpdateStateMovement(PlayerMovementController mc)
@@ -99,59 +107,7 @@ namespace Assets.script
 
             var force = slope_relative_movement * acceleration;
 
-            // do raycasts.
-
-            is_movement_hit = Physics.SphereCast
-                (mc.transform.position, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, slope_relative_movement, out movement_hit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE);
-
-            Debug.DrawRay(mc.transform.position, slope_relative_movement, Color.red);
-
-            // apply forces based on raycast hits.
-
-            if (is_movement_hit)
-            {
-                // initial step cast.
-                is_step_movement_hit = Physics.SphereCast
-                    (mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, slope_relative_movement, out step_movement_hit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE);
-
-                // addition step check for ceilings.
-                if (Physics.CheckSphere(mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, GameConstants.LAYER_MASK_ALL_BUT_PLAYER))
-                    is_step_movement_hit = true;
-
-                if (!is_step_movement_hit)
-                {
-                    // step obstace, move up and move directly ahead.
-
-                    Debug.Log("Doing a step. " + Time.time);
-
-                    if (mc.rigid_body.velocity.y < PlayerConstants.STEP_MAX_VELOCITY)
-                        mc.rigid_body.AddForce(Vector3.up, ForceMode.VelocityChange);
-
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
-
-                    // force the sphere grounded status while moving up short steps.
-                    mc.is_spherecast_grounded = true;
-
-                    Debug.DrawRay(mc.transform.position, Vector3.up, Color.magenta);
-                }
-                else
-                {
-                    // full obstacle, move on a plane to the collided surface.
-
-                    force = Vector3.ProjectOnPlane(force, movement_hit.normal);
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
-
-                    Debug.DrawRay(mc.transform.position, force, Color.blue);
-                }
-            }
-            else
-            {
-                // no obstace directly ahead.
-
-                mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
-
-                Debug.DrawRay(mc.transform.position, Vector3.up, Color.green);
-            }
+            PlayerStaticMethods.StepMovement(mc, slope_relative_movement, force);
         }
 
         public void UpdateStateSlide(PlayerMovementController mc)
@@ -171,6 +127,12 @@ namespace Assets.script
             }
 
             mc.slide_resistance = Mathf.Clamp(mc.slide_resistance, 0.0f, SLIDE_RESISTANCE_MAX);
+
+            if (mc.slide_resistance <= 0.0f && mc.is_spherecast_grounded)
+            {
+                mc.ChangePlayerState(PlayerEnums.PlayerState.player_slide);
+                return;
+            }
         }
 
         public void UpdateStateSpeed(PlayerMovementController mc)
@@ -220,6 +182,36 @@ namespace Assets.script
             // Move our position a step closer to the target.
             mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
             mc.player_direction_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+        }
+
+        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        {
+            // update based on circumstances.
+
+            mc.rigid_body.drag = mc.is_raycast_grounded ? DRAG_GROUNDED : DRAG_AIR;
+
+            if (mc.is_input_directional || !mc.is_raycast_grounded)
+            {
+                mc.player_sphere_collider.material.dynamicFriction = 0f;
+                mc.player_sphere_collider.material.staticFriction = 0f;
+            }
+            else
+            {
+                if (mc.moving_object_collision_list.Count == 0)
+                {
+                    mc.player_sphere_collider.material.dynamicFriction = 100;
+                    mc.player_sphere_collider.material.staticFriction = 100;
+                }
+                else
+                {
+                    mc.player_sphere_collider.material.dynamicFriction = 1;
+                    mc.player_sphere_collider.material.staticFriction = 1;
+                }
+            }
+
+            // change physics combine mode.
+
+            mc.player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Average;
         }
     }
 }

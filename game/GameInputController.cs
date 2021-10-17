@@ -2,101 +2,100 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 
 public class GameInputController : MonoBehaviour
 {
     public InputActionAsset controls;
-    InputActionMap action_map;
+    InputActionMap actionMap;
 
-    public InputAction action_positive;
-    public InputAction action_negative;
-    public InputAction action_horizontal;
-    public InputAction action_vertical;
-    public InputAction action_interact;
-    public InputAction action_inspect;
-    public InputAction action_start;
-    public InputAction action_select;
-    public InputAction action_aim_horizontal;
-    public InputAction action_aim_vertical;
-    public InputAction action_aim_zoom;
-    public InputAction action_extra_positive;
-    public InputAction action_extra_negative;
+    [NonSerialized] public InputAction actionPositive;
+    [NonSerialized] public InputAction actionNegative;
+    [NonSerialized] public InputAction actionHorizontal;
+    [NonSerialized] public InputAction actionVertical;
+    [NonSerialized] public InputAction actionInteract;
+    [NonSerialized] public InputAction actionInspect;
+    [NonSerialized] public InputAction actionStart;
+    [NonSerialized] public InputAction actionSelect;
+    [NonSerialized] public InputAction actionAimHorizontal;
+    [NonSerialized] public InputAction actionAimVertical;
+    [NonSerialized] public InputAction actionAimZoom;
+    [NonSerialized] public InputAction actionPositive2;
+    [NonSerialized] public InputAction actionNegative2;
 
-    public float sensitivity_camera_zoom = 0.05f;
-    public float sensitivity_camera_horizontal = 0.7f;
-    public float sensitivity_camera_vertical = 0.7f;
+    [NonSerialized] public float sensitivityCameraZoom = 0.05f;
+    [NonSerialized] public float sensitivityCameraHorizontal = 0.7f;
+    [NonSerialized] public float sensitivityCameraVertical = 0.7f;
 
-    private bool was_input_positive = false;
-    private bool was_input_negative = false;
-    private bool was_input_interact = false;
-    [System.NonSerialized] public bool was_input_extra_positive = false;
+    [System.NonSerialized] public bool wasInputPositive = false;
+    [System.NonSerialized] public bool wasInputNegative = false;
+    [System.NonSerialized] public bool wasInputInteract = false;
+    [System.NonSerialized] public bool wasInputInspect = false;
+    [System.NonSerialized] public bool wasInputPositive2 = false;
+    [System.NonSerialized] public bool wasInputNegative2 = false;
 
-    private bool is_input_positive = false;
-    private bool is_input_negative = false;
-    private bool is_input_interact = false;
-    [System.NonSerialized] public bool is_input_extra_positive = false;
+    [System.NonSerialized] public bool wasInputStart = false;
 
-    public bool Was_Input_Positive
-    { get => was_input_positive; }
+    [System.NonSerialized] public bool isInputPositive = false;
+    [System.NonSerialized] public bool isInputNegative = false;
+    [System.NonSerialized] public bool isInputInteract = false;
+    [System.NonSerialized] public bool isInputInspect = false;
+    [System.NonSerialized] public bool isInputPositive2 = false;
+    [System.NonSerialized] public bool isInputNegative2 = false;
 
-    public bool Was_Input_Negative
-    { get => was_input_negative; }
-
-    public bool Was_Input_Interact
-    { get => was_input_interact; }
-
-    public bool Is_Input_Positive
-    { get => is_input_positive; }
-
-    public bool Is_Input_Negative
-    { get => is_input_negative; }
-
-    public bool Is_Input_Interact
-    { get => is_input_interact; }
+    [System.NonSerialized] public bool isInputStart = false;
 
     void Awake()
     {
-        action_map = controls.FindActionMap("action_map");
+        actionMap = controls.FindActionMap("action_map");
 
-        action_positive = action_map.FindAction("positive");
-        action_negative = action_map.FindAction("negative");
-        action_horizontal = action_map.FindAction("horizontal");
-        action_vertical = action_map.FindAction("vertical");
-        action_interact = action_map.FindAction("interact");
-        action_inspect = action_map.FindAction("inspect");
-        action_start = action_map.FindAction("start");
-        action_select = action_map.FindAction("select");
-        action_aim_horizontal = action_map.FindAction("aim_horizontal");
-        action_aim_vertical = action_map.FindAction("aim_vertical");
-        action_aim_zoom = action_map.FindAction("aim_zoom");
-        action_extra_positive = action_map.FindAction("extra_positive");
-        action_extra_negative = action_map.FindAction("extra_negative");
+        actionPositive = actionMap.FindAction("positive");
+        actionNegative = actionMap.FindAction("negative");
+        actionHorizontal = actionMap.FindAction("horizontal");
+        actionVertical = actionMap.FindAction("vertical");
+        actionInteract = actionMap.FindAction("interact");
+        actionInspect = actionMap.FindAction("inspect");
+        actionStart = actionMap.FindAction("start");
+        actionSelect = actionMap.FindAction("select");
+        actionAimHorizontal = actionMap.FindAction("aim_horizontal");
+        actionAimVertical = actionMap.FindAction("aim_vertical");
+        actionAimZoom = actionMap.FindAction("aim_zoom");
+        actionPositive2 = actionMap.FindAction("positive_2");
+        actionNegative2 = actionMap.FindAction("negative_2");
 
-        action_positive.Enable();
-        action_negative.Enable();
-        action_horizontal.Enable();
-        action_vertical.Enable();
-        action_interact.Enable();
-        action_inspect.Enable();
-        action_start.Enable();
-        action_select.Enable();
-        action_aim_horizontal.Enable();
-        action_aim_vertical.Enable();
-        action_aim_zoom.Enable();
-        action_extra_positive.Enable();
-        action_extra_negative.Enable();
+        actionPositive.Enable();
+        actionNegative.Enable();
+        actionHorizontal.Enable();
+        actionVertical.Enable();
+        actionInteract.Enable();
+        actionInspect.Enable();
+        actionStart.Enable();
+        actionSelect.Enable();
+        actionAimHorizontal.Enable();
+        actionAimVertical.Enable();
+        actionAimZoom.Enable();
+
+        actionPositive2.Enable();
+        actionNegative2.Enable();
     }
 
     void Update()
     {
-        was_input_positive = is_input_positive;
-        was_input_negative = is_input_negative;
-        was_input_interact = is_input_interact;
-        was_input_extra_positive = is_input_extra_positive;
+        wasInputPositive = isInputPositive;
+        wasInputNegative = isInputNegative;
+        wasInputInteract = isInputInteract;
+        wasInputInspect = isInputInspect;
+        wasInputPositive2 = isInputPositive2;
+        wasInputNegative2 = isInputNegative2;
 
-        is_input_positive = action_positive.ReadValue<float>() >= 0.1f;
-        is_input_negative = action_negative.ReadValue<float>() >= 0.1f;
-        is_input_interact = action_interact.ReadValue<float>() >= 0.1f;
-        is_input_extra_positive = action_extra_positive.ReadValue<float>() >= 0.1f;
+        wasInputStart = isInputStart;
+
+        isInputPositive = actionPositive.ReadValue<float>() >= 0.1f;
+        isInputNegative = actionNegative.ReadValue<float>() >= 0.1f;
+        isInputInteract = actionInteract.ReadValue<float>() >= 0.1f;
+        isInputInspect = actionInspect.ReadValue<float>() >= 0.1f;
+        isInputPositive2 = actionPositive2.ReadValue<float>() >= 0.1f;
+        isInputNegative2 = actionNegative2.ReadValue<float>() >= 0.1f;
+        isInputStart = actionStart.ReadValue<float>() >= 0.1f;
     }
 }

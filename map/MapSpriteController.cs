@@ -18,6 +18,7 @@ public class MapSpriteController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.transform.LookAt(targetCamera.transform);
+        if(targetCamera != null)
+            this.transform.LookAt(targetCamera.transform);
     }
 }

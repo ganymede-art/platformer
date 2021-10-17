@@ -2,65 +2,76 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using static Assets.script.GameConstants;
+using UnityEngine.Serialization;
 
 public class CameraController : MonoBehaviour
 {
     const float Y_MIN = -20;
     const float Y_MAX = 60;
 
-    const float X_SPEED = 1f;
-    const float Y_SPEED = 1f;
+    const float X_SPEED = 200f;
+    const float Y_SPEED = 200f;
     const float ZOOM_SPEED = 1f;
 
     const float AUTO_ROTATION_DIFFERENCE_MIN = 30f;
-    const float AUTO_X_SPEED = 0.1f;
-    const float AUTO_X_SPEED_MANUAL = 0.5f;
+    const float AUTO_X_SPEED = 100f;
+    const float AUTO_X_SPEED_MANUAL = 600f;
 
     const float CAMERA_CLIPPING_RADIUS = 0.05f;
 
     const float MAX_DISTANCE_MIN = 1.0f;
-    const float MAX_DISTANCE_MAX = 5.0f;
+    const float MAX_DISTANCE_MAX = 3.0f;
 
-    public Transform target;
-    public float target_distance;
-    private GameObject target_direction_object;
+    const float FIXED_TRANSITION_STEP = 2f;
 
-    public float distance;
+    private GameObject targetDirectionObject;
+
+    private float xInput = 0.0f;
+    private float yInput = 0.0f;
+
+    private float xSensitivity = 0.0f;
+    private float ySensitivity = 0.0f;
 
     private float x = 0.0f;
     private float y = 0.0f;
 
-    private bool is_auto_rotation = false;
-    private bool is_manual_auto_rotation = false;
+    private bool isAutoRotation = false;
+    private bool isManualAutoRotation = false;
 
-    private float auto_x = 0.0f;
-    private float auto_x_speed = 0.0f;
+    private float autoX = 0.0f;
+    private float autoXSpeed = 0.0f;
 
-    private float auto_rotation_difference = 0.0f;
-    private Quaternion auto_rotation_start = Quaternion.identity;
-    private Quaternion auto_rotation_end = Quaternion.identity;
+    private float autoRotationDifference = 0.0f;
+    private Quaternion autoRotationStart = Quaternion.identity;
+    private Quaternion autoRotationEnd = Quaternion.identity;
 
     // Fixed camera variables.
 
-    private GameConstants.CameraMode camera_mode;
+    private GameConstants.CameraMode cameraMode;
 
-    private Transform fixed_transform = null;
-    private float fixed_transition = 0f;
+    private Transform fixedTransform = null;
+    private float fixedTransition = 0f;
 
-    private Vector3 fixed_start_position;
-    private Quaternion fixed_start_rotation;
-
-    const float FIXED_TRANSITION_STEP = 2f;
+    private Vector3 fixedStartPosition;
+    private Quaternion fixedStartRotation;
 
     // game variables.
 
     GameMasterController master;
 
+    // public fields.
+
+    public Transform target;
+    [FormerlySerializedAs("target_distance")]
+    public float targetDistance;
+    public float distance;
+
     // properties.
 
     public float Fixed_Transition
     {
-        get { return fixed_transition; }
+        get { return fixedTransition; }
     }
 
 
@@ -68,52 +79,38 @@ public class CameraController : MonoBehaviour
     {
         master = GameObject.FindObjectOfType<GameMasterController>();
 
-        camera_mode = GameConstants.CameraMode.camera_default;
+        cameraMode = GameConstants.CameraMode.camera_default;
 
-        fixed_start_position = this.transform.position;
-        fixed_start_rotation = this.transform.rotation;
+        fixedStartPosition = this.transform.position;
+        fixedStartRotation = this.transform.rotation;
 
-        fixed_transform = this.transform;
-        fixed_transition = 1.0f;
+        fixedTransform = this.transform;
+        fixedTransition = 1.0f;
 
         // set to default target (player).
 
         target = GameObject.FindGameObjectWithTag(GameConstants.TAG_PLAYER_CAMERA_TARGET).transform;
-        target_direction_object = GameObject.Find(PlayerConstants.PLAYER_DIRECTION_GAME_OBJECT_NAME);
+        targetDirectionObject = GameObject.Find(PlayerConstants.PLAYER_DIRECTION_GAME_OBJECT_NAME);
 
         Debug.Log("Camera Starting");
     }
 
     void Update()
     {
-        if (master.game_state == GameState.Game || master.game_state == GameState.GameCutscene)
+        if (master.gameState == GameState.Game 
+            || master.gameState == GameState.GameCutscene
+            || master.gameState == GameState.Cutscene)
         {
-            if (camera_mode == GameConstants.CameraMode.camera_default)
+            if (cameraMode == GameConstants.CameraMode.camera_default)
             {
                 UpdateCameraInput();
                 UpdateCameraDefault();
             }
-            else if (camera_mode == GameConstants.CameraMode.camera_fixed)
+            else if (cameraMode == GameConstants.CameraMode.camera_fixed)
             {
                 UpdateCameraFixed();
             }
-            else if (camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
-            {
-                UpdateCameraFixedTracking();
-            }
-        }
-        else if (master.game_state == GameState.Cutscene)
-        {
-            if (camera_mode == GameConstants.CameraMode.camera_default)
-            {
-                UpdateCameraInput();
-                UpdateCameraDefault();
-            }
-            else if (camera_mode == GameConstants.CameraMode.camera_fixed)
-            {
-                UpdateCameraFixed();
-            }
-            else if (camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
+            else if (cameraMode == GameConstants.CameraMode.camera_fixed_tracking)
             {
                 UpdateCameraFixedTracking();
             }
@@ -122,48 +119,56 @@ public class CameraController : MonoBehaviour
 
     private void UpdateCameraInput()
     {
+        // get input.
+
+        xInput = master.input_controller.actionAimHorizontal.ReadValue<float>();
+        yInput = master.input_controller.actionAimVertical.ReadValue<float>();
+
+        xInput = Mathf.Clamp(xInput, -1, 1);
+        yInput = Mathf.Clamp(yInput, -1, 1);
+
+        xSensitivity = master.input_controller.sensitivityCameraHorizontal;
+        ySensitivity = master.input_controller.sensitivityCameraVertical;
+
         // Get x and y offset from input.
 
-        x += master.input_controller.action_aim_horizontal.ReadValue<float>() * (X_SPEED
-            * master.input_controller.sensitivity_camera_horizontal);
-
-        y -= master.input_controller.action_aim_vertical.ReadValue<float>() * (Y_SPEED
-            * master.input_controller.sensitivity_camera_vertical);
+        x += (xInput * (X_SPEED * xSensitivity)) * Time.deltaTime;
+        y -= (yInput * (Y_SPEED * ySensitivity)) * Time.deltaTime;
 
         // if in auto rotation, gradually turn to be behind the target.
 
-        is_manual_auto_rotation = master.input_controller.is_input_extra_positive;
-        if (is_auto_rotation || is_manual_auto_rotation)
+        isManualAutoRotation = master.input_controller.isInputNegative2;
+        if (isAutoRotation || isManualAutoRotation)
         {
-            auto_x = target_direction_object.transform.rotation.eulerAngles.y;
+            autoX = targetDirectionObject.transform.rotation.eulerAngles.y;
 
-            auto_rotation_start = Quaternion.Euler(y, auto_x, 0);
-            auto_rotation_end = Quaternion.Euler(y, x, 0.0f);
+            autoRotationStart = Quaternion.Euler(y, autoX, 0);
+            autoRotationEnd = Quaternion.Euler(y, x, 0.0f);
 
-            auto_rotation_difference = Quaternion.Angle(auto_rotation_start, auto_rotation_end);
+            autoRotationDifference = Quaternion.Angle(autoRotationStart, autoRotationEnd);
 
-            if (is_manual_auto_rotation)
-                auto_x_speed = (auto_rotation_difference > AUTO_ROTATION_DIFFERENCE_MIN)
+            if (isManualAutoRotation)
+                autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN)
                     ? AUTO_X_SPEED_MANUAL
-                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, auto_rotation_difference) * AUTO_X_SPEED_MANUAL;
+                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED_MANUAL;
             else
-                auto_x_speed = (auto_rotation_difference > AUTO_ROTATION_DIFFERENCE_MIN) 
+                autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN) 
                     ? AUTO_X_SPEED 
-                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, auto_rotation_difference) * AUTO_X_SPEED;
+                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED;
 
-            auto_rotation_end = Quaternion.RotateTowards(auto_rotation_end, auto_rotation_start, auto_x_speed);
+            autoRotationEnd = Quaternion.RotateTowards(autoRotationEnd, autoRotationStart, autoXSpeed * Time.deltaTime);
 
-            x = auto_rotation_end.eulerAngles.y;     // auto yaw.
+            x = autoRotationEnd.eulerAngles.y;     // auto yaw.
             //y = auto_rotation_end.eulerAngles.x;   // do not auto pitch.
         }
 
         // Get max distance from input.
 
-        target_distance += master.input_controller.action_aim_zoom.ReadValue<float>()
-            * (ZOOM_SPEED * master.input_controller.sensitivity_camera_zoom);
+        targetDistance += master.input_controller.actionAimZoom.ReadValue<float>()
+            * (ZOOM_SPEED * master.input_controller.sensitivityCameraZoom);
 
-        if (target_distance > MAX_DISTANCE_MAX) target_distance = MAX_DISTANCE_MAX;
-        if (target_distance < MAX_DISTANCE_MIN) target_distance = MAX_DISTANCE_MIN;
+        if (targetDistance > MAX_DISTANCE_MAX) targetDistance = MAX_DISTANCE_MAX;
+        if (targetDistance < MAX_DISTANCE_MIN) targetDistance = MAX_DISTANCE_MIN;
 
         // Limit how low or high y can go.
 
@@ -178,13 +183,13 @@ public class CameraController : MonoBehaviour
 
         // Increment the transition amount (0 is none, 1 is complete).
 
-        fixed_transition += tran_speed;
-        fixed_transition = Mathf.Clamp(fixed_transition, 0, 1);
+        fixedTransition += tran_speed;
+        fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
 
         // Lerp between the start and end points.
 
-        transform.position = Vector3.Lerp(fixed_start_position, fixed_transform.position, fixed_transition);
-        transform.rotation = Quaternion.Lerp(fixed_start_rotation, fixed_transform.rotation, fixed_transition);
+        transform.position = Vector3.Lerp(fixedStartPosition, fixedTransform.position, fixedTransition);
+        transform.rotation = Quaternion.Lerp(fixedStartRotation, fixedTransform.rotation, fixedTransition);
 
         // Set the X and Y rotation to the current rotation.
         // So the dynamic camera is in the same position when
@@ -202,12 +207,12 @@ public class CameraController : MonoBehaviour
 
         // Increment the transition amount (0 is none, 1 is complete).
 
-        fixed_transition += tran_speed;
-        fixed_transition = Mathf.Clamp(fixed_transition, 0, 1);
+        fixedTransition += tran_speed;
+        fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
 
         // Lerp between the start and end points.
 
-        transform.position = Vector3.Lerp(fixed_start_position, fixed_transform.position, fixed_transition);
+        transform.position = Vector3.Lerp(fixedStartPosition, fixedTransform.position, fixedTransition);
         transform.LookAt(target.position);
 
         // Set the X and Y rotation to the current rotation.
@@ -215,7 +220,8 @@ public class CameraController : MonoBehaviour
         // exiting the fixed camera zone.
 
         x = transform.rotation.eulerAngles.y;
-        y = transform.rotation.eulerAngles.x;
+        y = 0; // flatten the tilt when exiting tracking camera.
+        //y = transform.rotation.eulerAngles.x;
     }
 
     private void UpdateCameraDefault()
@@ -227,19 +233,22 @@ public class CameraController : MonoBehaviour
         // Get the camera's distance, checking for collision.
 
         RaycastHit hit;
-        if (Physics.SphereCast(target.position, CAMERA_CLIPPING_RADIUS, transform.forward * -1, out hit, target_distance))
+        bool isHit = Physics.SphereCast(target.position, CAMERA_CLIPPING_RADIUS, transform.forward * -1, 
+            out hit, targetDistance, GameConstants.LAYER_MASK_ALL_BUT_ENTITIES);
+
+        if (isHit)
         {
             distance = hit.distance;
         }
         else
         {
-            if (distance < target_distance)
+            if (distance < targetDistance)
             {
                 distance += 0.1f;
             }
-            if (distance > target_distance)
+            if (distance > targetDistance)
             {
-                distance = target_distance;
+                distance = targetDistance;
             }
         }
 
@@ -248,82 +257,73 @@ public class CameraController : MonoBehaviour
 
         // Apply the position and rotation to the camera.
 
-        if (fixed_transition < 1.0f)
+        if (fixedTransition < 1.0f)
         {
             // Get the transition speed.
 
-            float tran_speed = FIXED_TRANSITION_STEP * Time.deltaTime;
+            float transitionSpeed = FIXED_TRANSITION_STEP * Time.deltaTime;
 
             // Increment the transition amount (0 is none, 1 is complete).
 
-            fixed_transition += tran_speed;
-            fixed_transition = Mathf.Clamp(fixed_transition, 0, 1);
+            fixedTransition += transitionSpeed;
+            fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
 
             // Lerp between the start and end points.
 
-            transform.position = Vector3.Lerp(fixed_start_position, position, fixed_transition);
-            transform.rotation = Quaternion.Lerp(fixed_start_rotation, rotation, fixed_transition);
+            transform.position = Vector3.Lerp(fixedStartPosition, position, fixedTransition);
+            transform.rotation = Quaternion.Lerp(fixedStartRotation, rotation, fixedTransition);
         }
         else
         {
             transform.rotation = rotation;
-            transform.position = position;
+
+            // TODO cool cinematic position lerping.
+            // this almost is perfect, but needs a little tweaking.
+
+            float lerpSpeed = Vector3.Distance(transform.position, position) * 8;
+            transform.position = Vector3.MoveTowards(transform.position,position, lerpSpeed * Time.deltaTime);
+
+            //transform.position = position;
         }
     }
 
-    public void SetCamera(GameConstants.CameraMode new_camera_mode, CameraModeChangeData new_data)
+    public void SetFixedCamera(Transform fixedTransform, bool isTracking, bool isInstant)
     {
-        this.camera_mode = new_camera_mode;
+        cameraMode = (isTracking) 
+            ? CameraMode.camera_fixed_tracking 
+            : CameraMode.camera_fixed;
 
-        if (camera_mode == GameConstants.CameraMode.camera_default)
-        {
-            // reset the transition.
+        // set the transition.
 
-            fixed_start_position = this.transform.position;
-            fixed_start_rotation = this.transform.rotation;
-            fixed_transition = 0.0f;
-        }
-        else if (camera_mode == GameConstants.CameraMode.camera_fixed)
-        {
-            // set the transition.
+        fixedStartPosition = this.transform.position;
+        fixedStartRotation = this.transform.rotation;
+        fixedTransition = (isInstant)
+            ? 1.0f
+            : 0.0f;
 
-            fixed_start_position = this.transform.position;
-            fixed_start_rotation = this.transform.rotation;
-            fixed_transition = 0.0f;
-
-            this.fixed_transform = new_data.fixed_transform;
-        }
-        else if (camera_mode == GameConstants.CameraMode.camera_fixed_tracking)
-        {
-            // set the transition.
-
-            fixed_start_position = this.transform.position;
-            fixed_start_rotation = this.transform.rotation;
-            fixed_transition = 0.0f;
-
-            this.fixed_transform = new_data.fixed_transform;
-        }
+        this.fixedTransform = fixedTransform;
     }
+
 
     public void UnsetCamera()
     {
-        camera_mode = GameConstants.CameraMode.camera_default;
+        cameraMode = GameConstants.CameraMode.camera_default;
 
         // Reset the transition.
 
-        fixed_start_position = this.transform.position;
-        fixed_start_rotation = this.transform.rotation;
-        fixed_transition = 0.0f;
+        fixedStartPosition = this.transform.position;
+        fixedStartRotation = this.transform.rotation;
+        fixedTransition = 0.0f;
     }
 
     public void SetAutoRotation()
     {
-        is_auto_rotation = true;
+        isAutoRotation = true;
     }
 
     public void UnsetAutoRotation()
     {
-        is_auto_rotation = false;
+        isAutoRotation = false;
     }
 }
 

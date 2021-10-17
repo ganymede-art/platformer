@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class ActorFxSplashController : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class ActorFxSplashController : MonoBehaviour
     Material material;
     Color colour;
 
-    public float scale_multiplier = 1f;
+    [FormerlySerializedAs("scale_multiplier")]
+    public float scaleMultiplier = 1f;
 
     private void Start()
     {
@@ -29,9 +31,9 @@ public class ActorFxSplashController : MonoBehaviour
         timer += Time.deltaTime * TIMER_MULTIPLIER;
         opacity -= Time.deltaTime * TIMER_MULTIPLIER;
 
-        scale.x = timer * scale_multiplier;
+        scale.x = timer * scaleMultiplier;
         scale.y = 1f;
-        scale.z = timer * scale_multiplier;
+        scale.z = timer * scaleMultiplier;
 
         colour.a = opacity;
         material.color = colour;

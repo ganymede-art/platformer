@@ -13,11 +13,11 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
 
     // root.
 
+    bool is_active = false;
+    bool is_visible = false;
     GameObject ui_object;
     Canvas ui_canvas;
     CanvasScaler ui_canvas_scaler;
-
-    public GameObject ui_prefab;
 
     // cutscene.
 
@@ -35,11 +35,6 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
     GameObject positive_object;
     GameObject negative_object;
 
-    // vox sprites.
-
-    public Dictionary<string, Sprite> vox_sprite_dictionary;
-
-
     // Start is called before the first frame update
     void Start()
     {
@@ -52,17 +47,6 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
         // load ui resources.
 
         vox_sprite = Resources.Load<Sprite>("texture/vox/default");
-
-        // initialise and load vox resources.
-
-        vox_sprite_dictionary = new Dictionary<string, Sprite>();
-
-        var vox_sprites = Resources.LoadAll<Sprite>("texture/vox");
-
-        foreach (var vox_sprite in vox_sprites)
-        {
-            vox_sprite_dictionary.Add(vox_sprite.name, vox_sprite);
-        }
 
         // initialise UI.
 
@@ -78,10 +62,8 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
     {
         // create UI.
 
-        ui_object = Instantiate(ui_prefab, this.transform);
-        ui_object.layer = 5;
-        DontDestroyOnLoad(ui_object);
-
+        ui_object = this.gameObject;
+        
         ui_message_box = ui_object.transform.Find("ui_message_box_text").gameObject;
         ui_message_box_text = ui_message_box.GetComponent<TextMeshProUGUI>();
 
@@ -93,53 +75,58 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
         continue_object = ui_object.transform.Find("ui_continue").gameObject;
         positive_object = ui_object.transform.Find("ui_positive").gameObject;
         negative_object = ui_object.transform.Find("ui_negative").gameObject;
+
+        ui_object.SetActive(false);
     }
 
     void Update()
     {
-        if (master.game_state != GameState.Cutscene
-            && master.game_state != GameState.GameCutscene)
+        if (!is_active)
             return;
+
+        // set visible if active.
+
+        is_visible =
+        (
+            (master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
+                || master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION)
+            &&
+            (master.gameState == GameState.Cutscene
+                || master.gameState == GameState.GameCutscene)
+        );
+
+        ui_object.SetActive(is_visible);
 
         // set visible only if the current event type is message box.
 
-        if (master.cutscene_controller.event_source == null)
+        if (master.cutscene_controller.currentEventSource == null)
             return;
 
         continue_object.SetActive(master.cutscene_controller.Is_Current_Event_Process_Complete
             && master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
-            && master.game_state == GameState.Cutscene);
+            && master.gameState == GameState.Cutscene);
 
         positive_object.SetActive(master.cutscene_controller.Is_Current_Event_Process_Complete
             && master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
-            && master.game_state == GameState.Cutscene);
+            && master.gameState == GameState.Cutscene);
 
         negative_object.SetActive(master.cutscene_controller.Is_Current_Event_Process_Complete
             && master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
-            && master.game_state == GameState.Cutscene);
-
-        ui_object.SetActive(
-            master.cutscene_controller.current_event.GetEventType() == GameConstants.EVENT_TYPE_MESSAGE_BOX
-            || master.cutscene_controller.current_event.GetEventType() == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION);
+            && master.gameState == GameState.Cutscene);
     }
 
     private void ChangeGameState(object sender, EventArgs e)
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
-        
-        ui_object.SetActive(args.game_state == GameState.Cutscene 
-            || args.game_state == GameState.GameCutscene);
-
-        if(args.game_state != GameState.Cutscene 
-            && args.game_state != GameState.GameCutscene)
-        {
-            UnsetMessageBox();
-        }
     }
 
-    public void SetMessageBox(string message_icon)
+    public void SetMessageBox(Sprite message_icon)
     {
-        vox_image.sprite = vox_sprite_dictionary[message_icon];
+        is_active = true;
+
+        ui_object.SetActive(true);
+
+        vox_image.sprite = message_icon;
     }
 
     public void UpdateMessageBox(string message_text)
@@ -149,7 +136,11 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
 
     public void UnsetMessageBox()
     {
+        is_active = false;
+
+        ui_object.SetActive(false);
+
         ui_message_box_text.text = string.Empty;
-        vox_sprite = vox_sprite_dictionary["default"];
+        vox_image.sprite = vox_sprite;
     }
 }

@@ -5,16 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using Assets.script;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Assets.script
 {
     class EventSetActorAnimatorController : MonoBehaviour, IEventController
     {
         private GameMasterController master;
-        public GameObject actor_object = null;
-        private Animator actor_animator = null;
-        public GameObject next_event_source = null;
+        private Animator actorAnimator = null;
 
+        [FormerlySerializedAs("next_event_source")]
+        public GameObject nextEventSource = null;
+        [FormerlySerializedAs("actor_object")]
+        public GameObject actorObject = null;
         public string trigger = string.Empty;
 
         void Start()
@@ -24,7 +27,7 @@ namespace Assets.script
 
         public GameObject GetNextEventSource()
         {
-            return next_event_source;
+            return nextEventSource;
         }
 
         public string GetEventType()
@@ -34,16 +37,13 @@ namespace Assets.script
 
         public void StartEvent()
         {
-            if(actor_animator == null)
-                actor_animator = actor_object.GetComponentInChildren<Animator>();
+            if(actorAnimator == null)
+                actorAnimator = actorObject.GetComponentInChildren<Animator>();
 
-            actor_animator.SetTrigger(trigger);
+            actorAnimator.SetTrigger(trigger);
         }
 
-        public void ProcessEvent()
-        {
-            return;
-        }
+        public void ProcessEvent() { }
 
         public bool GetIsEventComplete()
         {
@@ -60,9 +60,6 @@ namespace Assets.script
             return GetIsEventComplete();
         }
 
-        public void FinishEvent()
-        {
-            return;
-        }
+        public void FinishEvent() { }
     }
 }
