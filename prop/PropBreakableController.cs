@@ -41,13 +41,13 @@ public class PropBreakableController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
+        master = GameMasterController.GlobalMasterController;
 
         // destroy if already saved as destroyed.
 
         if(isDestroyOneShot)
         {
-            if (master.data_controller.GetGameVarBool(destroyOneShotVarName))
+            if (master.dataController.GetGameVarBool(destroyOneShotVarName))
                 Destroy(this.gameObject);
         }
 
@@ -60,7 +60,7 @@ public class PropBreakableController : MonoBehaviour
             destroyRepelForceMultiplier = PROP_REPEL_FORCE_MIN;
 
         pickupAudioPitch = Random.Range(0.95f, 1.05f);
-        pickupAudioVolume = BASE_VOLUME * master.audio_controller.volumeObject;
+        pickupAudioVolume = BASE_VOLUME * master.audioController.volumeObject;
 
         // validation.
 
@@ -101,7 +101,7 @@ public class PropBreakableController : MonoBehaviour
         if (health <= 0)
         {
             if (isDestroyOneShot)
-                master.data_controller.UpdateGameVar(destroyOneShotVarName, true);
+                master.dataController.UpdateGameVar(destroyOneShotVarName, true);
 
             // create destroy fx.
 
@@ -122,7 +122,7 @@ public class PropBreakableController : MonoBehaviour
             // if the collidng object is the player itself, repel them.
 
             if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
-                GameMasterController.GetPlayerController().SimpleRepel(this.gameObject, destroyRepelForceMultiplier);
+                GameMasterController.GlobalPlayerController.SimpleRepel(this.gameObject, destroyRepelForceMultiplier);
 
         }
         else
@@ -145,7 +145,7 @@ public class PropBreakableController : MonoBehaviour
             // if the colliding object is the player itself, repel them.
 
             if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
-                GameMasterController.GetPlayerController().SimpleRepel(this.gameObject, damageRepelForceMultiplier);
+                GameMasterController.GlobalPlayerController.SimpleRepel(this.gameObject, damageRepelForceMultiplier);
 
         }
     }

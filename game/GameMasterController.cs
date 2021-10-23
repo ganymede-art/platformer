@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Assets.script;
 using UnityEngine.Serialization;
+using static Assets.script.GameConstants;
 
 public enum GameState
 {
@@ -30,13 +31,13 @@ public class GameMasterController : MonoBehaviour
 
     // master components.
 
-    public GameLoadLevelController load_level_controller;
-    public GameInputController input_controller;
-    public GameAudioController audio_controller;
-    public GamePlayerController player_controller;
-    public GameDataController data_controller;
-    public GameCutsceneController cutscene_controller;
-    public GameUserInterfaceController user_interface_controller;
+    public GameLoadLevelController loadLevelController;
+    public GameInputController inputController;
+    public GameAudioController audioController;
+    public GamePlayerController playerController;
+    public GameDataController dataController;
+    public GameCutsceneController cutsceneController;
+    public GameUserInterfaceController userInterfaceController;
 
     // event handler
 
@@ -45,15 +46,61 @@ public class GameMasterController : MonoBehaviour
 
     // prefabs.
 
-    public GameObject player_prefab;
-    public GameObject camera_prefab;
+    [FormerlySerializedAs("player_prefab")]
+    public GameObject playerPrefab;
+    [FormerlySerializedAs("camera_prefab")]
+    public GameObject cameraPrefab;
 
     // static references.
 
     private static GameMasterController globalMasterController;
     private static GameObject globalCameraObject;
     private static GameObject globalPlayerObject;
-    private static PlayerMovementController globalPlayerController;
+    private static PlayerController globalPlayerController;
+
+    public static GameMasterController GlobalMasterController
+    {
+        get
+        {
+            if (globalMasterController == null)
+                globalMasterController = GameObject.FindObjectOfType<GameMasterController>();
+
+            return globalMasterController;
+        }
+    }
+
+    public static GameObject GlobalCameraObject
+    {
+        get
+        {
+            if (globalCameraObject == null)
+                globalCameraObject = GameObject.Find(GameConstants.NAME_PLAYER_CAMERA);
+
+            return globalCameraObject;
+        }
+    }
+
+    public static GameObject GlobalPlayerObject
+    {
+        get
+        {
+            if (globalPlayerObject == null)
+                globalPlayerObject = GameObject.Find(GameConstants.NAME_PLAYER);
+
+            return globalPlayerObject;
+        }
+    }
+
+    public static PlayerController GlobalPlayerController
+    {
+        get
+        {
+            if (globalPlayerController == null)
+                globalPlayerController = GlobalPlayerObject.GetComponent<PlayerController>();
+
+            return globalPlayerController;
+        }
+    }
 
     // global random.
 
@@ -71,18 +118,21 @@ public class GameMasterController : MonoBehaviour
         gameStateChangeEventArgs = new GameStateChangeEventArgs();
         gameStateChangeEventArgs.gameState = gameState;
 
-        load_level_controller = this.gameObject.AddComponent<GameLoadLevelController>();
-        input_controller = this.gameObject.GetComponent<GameInputController>();
-        audio_controller = this.gameObject.GetComponent<GameAudioController>();
-        player_controller = this.gameObject.GetComponent<GamePlayerController>();
-        data_controller = this.gameObject.GetComponent<GameDataController>();
-        cutscene_controller = this.gameObject.GetComponent<GameCutsceneController>();
-        user_interface_controller = this.gameObject.GetComponentInChildren<GameUserInterfaceController>();
+        loadLevelController = this.gameObject.AddComponent<GameLoadLevelController>();
+        inputController = this.gameObject.GetComponent<GameInputController>();
+        audioController = this.gameObject.GetComponent<GameAudioController>();
+        playerController = this.gameObject.GetComponent<GamePlayerController>();
+        dataController = this.gameObject.GetComponent<GameDataController>();
+        cutsceneController = this.gameObject.GetComponent<GameCutsceneController>();
+        userInterfaceController = this.gameObject.GetComponentInChildren<GameUserInterfaceController>();
 
         // setup physics.
 
-        Physics.IgnoreLayerCollision(8, 9);
-        Physics.IgnoreLayerCollision(8, 10);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_PLAYER);
+
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ENEMY);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ACTOR);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ENEMY_BOUNDARY); ;
     }
 
     private void Start()
@@ -101,7 +151,7 @@ public class GameMasterController : MonoBehaviour
 
         if(gameState == GameState.Game || gameState == GameState.GameCutscene)
         {
-            if(!input_controller.wasInputStart && input_controller.isInputStart)
+            if(!inputController.wasInputStart && inputController.isInputStart)
             {
                 ChangeState(GameState.Menu);
             }
@@ -118,41 +168,6 @@ public class GameMasterController : MonoBehaviour
 
         EventHandler handler = GameStateChange;
         if (handler != null) handler(this, gameStateChangeEventArgs);
-    }
-
-    public static GameMasterController GetMasterController()
-    {
-        if(globalMasterController == null)
-            globalMasterController = GameObject.FindObjectOfType<GameMasterController>();
-
-        return globalMasterController;
-    }
-
-    public static GameObject GetPlayerObject()
-    {
-        if (globalPlayerObject == null)
-            globalPlayerObject = GameObject.Find(GameConstants.NAME_PLAYER);
-
-        return globalPlayerObject;
-    }
-
-    public static GameObject GetPlayerCameraObject()
-    {
-        if(globalCameraObject == null)
-            globalCameraObject = GameObject.Find(GameConstants.NAME_PLAYER_CAMERA);
-
-        return globalCameraObject;
-    }
-
-    public static PlayerMovementController GetPlayerController()
-    {
-        if (globalPlayerObject == null)
-            GetPlayerObject();
-
-        if (globalPlayerController == null)
-            globalPlayerController = globalPlayerObject.GetComponent<PlayerMovementController>();
-
-        return globalPlayerController;
     }
 
     private void SceneLoaded(Scene scene, LoadSceneMode load_scene_mode)

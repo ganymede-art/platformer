@@ -6,7 +6,7 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
 {
     private GameMasterController master;
     private GameObject player_object;
-    private PlayerMovementController player_controller;
+    private PlayerController player_controller;
 
     public float interact_range = 1.0f;
 
@@ -17,9 +17,9 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
-        player_object = GameMasterController.GetPlayerObject();
-        player_controller = player_object.GetComponent<PlayerMovementController>();
+        master = GameMasterController.GlobalMasterController;
+        player_object = GameMasterController.GlobalPlayerObject;
+        player_controller = player_object.GetComponent<PlayerController>();
     }
 
     void Update()
@@ -34,11 +34,11 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
         if (!is_in_range)
             return;
 
-        if (player_controller.is_spherecast_grounded
-            && !master.input_controller.wasInputInteract
-            && master.input_controller.isInputInteract)
+        if (player_controller.isSpherecastGrounded
+            && !master.inputController.wasInputInteract
+            && master.inputController.isInputInteract)
         {
-            master.cutscene_controller.StartCutscene(event_source,false);
+            master.cutsceneController.StartCutscene(event_source,false);
         }
     }
 }

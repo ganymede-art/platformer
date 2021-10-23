@@ -61,7 +61,7 @@ public class GameCutsceneController : MonoBehaviour
         eventTimer += Time.deltaTime;
         eventProcessTimer += Time.deltaTime;
 
-        eventProcessInterval = (master.input_controller.isInputInteract)
+        eventProcessInterval = (master.inputController.isInputInteract)
             ? EVENT_STEP_INTERVAL_FAST
             : EVENT_STEP_INTERVAL_DEFAULT;
 

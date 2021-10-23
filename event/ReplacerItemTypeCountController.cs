@@ -12,17 +12,17 @@ public class ReplacerItemTypeCountController : MonoBehaviour, IReplacerControlle
 
     public string GetReplacement()
     {
-        return master.data_controller.GetItemCountByType(itemType).ToString();
+        return master.dataController.GetItemCountByType(itemType).ToString();
     }
 
     public object GetReplacementValue()
     {
-        return master.data_controller.GetItemCountByType(itemType);
+        return master.dataController.GetItemCountByType(itemType);
     }
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
+        master = GameMasterController.GlobalMasterController;
     }
 
     

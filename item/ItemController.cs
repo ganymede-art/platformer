@@ -37,8 +37,8 @@ public class ItemController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
-        playerObject = GameMasterController.GetPlayerObject();
+        master = GameMasterController.GlobalMasterController;
+        playerObject = GameMasterController.GlobalPlayerObject;
 
         // give item data default values if not set.
 
@@ -51,7 +51,7 @@ public class ItemController : MonoBehaviour
         // check if item is already collected,
         // destroy self if this is the case.
 
-        if (master.data_controller.GetIsItemCollected(itemData))
+        if (master.dataController.GetIsItemCollected(itemData))
             Destroy(this.gameObject);
 
         // store original orientation
@@ -65,7 +65,7 @@ public class ItemController : MonoBehaviour
                 pickupFxOrigin = this.transform;
 
         pickupAudioPitch = UnityEngine.Random.Range(0.95f, 1.05f);
-        pickupAudioVolume = BASE_VOLUME * master.audio_controller.volumeItem;
+        pickupAudioVolume = BASE_VOLUME * master.audioController.volumeItem;
     }
 
     
@@ -86,7 +86,7 @@ public class ItemController : MonoBehaviour
             pickupAudioSource.volume = pickupAudioVolume;
             pickupAudioSource.Play();
 
-            master.data_controller.UpdateItem(itemData);
+            master.dataController.UpdateItem(itemData);
 
             // if a game event is present, start the cutscene.
 
@@ -97,7 +97,7 @@ public class ItemController : MonoBehaviour
                     this.transform.position,
                     originalRotation);
 
-                master.cutscene_controller.StartCutscene(item_pickup_event_source, isPickupEventGameCutscene);
+                master.cutsceneController.StartCutscene(item_pickup_event_source, isPickupEventGameCutscene);
             }
 
             // destroy the item.

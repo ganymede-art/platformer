@@ -13,7 +13,7 @@ public class MapCameraModeTrigger : MonoBehaviour
 
     void Start()
     {
-        playerCamera = GameMasterController.GetPlayerCameraObject();
+        playerCamera = GameMasterController.GlobalCameraObject;
     }
 
     private void OnTriggerEnter(Collider other)

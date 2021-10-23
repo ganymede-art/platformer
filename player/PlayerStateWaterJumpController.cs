@@ -5,87 +5,98 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateWaterJumpController : IPlayerStateController
+    public class PlayerStateWaterJumpController : MonoBehaviour, IPlayerStateController
     {
         int update_count_water_jump = 0;
 
-        public void BeginState(PlayerMovementController mc)
+        private PlayerStateJumpController state_jump;
+
+        private void Start()
         {
+            state_jump = GameMasterController.GlobalPlayerController
+                .stateControllers[PlayerStateType.playerJump] as PlayerStateJumpController;
+        }
+
+        public void BeginState(PlayerController mc)
+        {
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("water_jump_up");
+
             update_count_water_jump = 0;
 
             // enter jump state.
             // reset jump power.
 
-            mc.jump_persist_energy = JUMP_PERSIST_ENERGY_MAX;
+            mc.jumpPersistEnergy = JUMP_PERSIST_ENERGY_MAX;
 
             // add jumping force.
 
-            mc.rigid_body.velocity = new Vector3
-                (mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
+            mc.rigidBody.velocity = new Vector3
+                (mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
 
-            mc.rigid_body.AddForce(Vector3.up * WATER_JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(Vector3.up * WATER_JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
 
             // player sound.
 
-            mc.audio_source.clip = mc.sfx_player_water_jump;
-            mc.audio_source.Play();
+            mc.audioSource.clip = mc.soundWaterJump;
+            mc.audioSource.Play();
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
             update_count_water_jump++;
 
             // exit to water dive if pressing interact.
 
-            if (mc.is_raised_interact)
+            if (mc.isRaisedInteract && mc.master.playerController.canWaterDive)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_water_dive);
+                mc.ChangePlayerState(PlayerStateType.playerWaterDive);
                 return;
             }
 
-            if (mc.rigid_body.velocity.y <= 0)
+            if (mc.rigidBody.velocity.y <= 0)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_water_default);
+                mc.ChangePlayerState(PlayerStateType.playerWaterDefault);
                 return;
             }
 
-            if (!mc.is_partial_submerged)
+            if (!mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_jump);
+                mc.ChangePlayerState(PlayerStateType.playerJump);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
-            mc.state_jump.UpdateStateJump(mc);
-            mc.state_jump.UpdateStateMovement(mc);
+            state_jump.UpdateStateJump(mc);
+            state_jump.UpdateStateMovement(mc);
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
-            mc.state_default.UpdateStateAnimator(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateAnimator(mc);
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            Vector3 old_x_z = new Vector3(mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
-            Vector3 old_y = new Vector3(0, mc.rigid_body.velocity.y, 0);
+            Vector3 old_x_z = new Vector3(mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
+            Vector3 old_y = new Vector3(0, mc.rigidBody.velocity.y, 0);
 
             if (old_x_z.magnitude > MAX_SPEED_WATER)
             {
@@ -97,12 +108,17 @@ namespace Assets.script
                 old_y = Vector3.ClampMagnitude(old_y, MAX_SPEED_WATER);
             }
 
-            mc.rigid_body.velocity = old_x_z + old_y;
+            mc.rigidBody.velocity = old_x_z + old_y;
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.state_jump.UpdateStateDragAndFriction(mc);
+            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
+        }
+
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerWaterJump;
         }
     }
 

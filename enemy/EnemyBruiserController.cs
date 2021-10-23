@@ -71,7 +71,7 @@ namespace Assets.script.enemy
 
         private void Start()
         {
-            master = GameMasterController.GetMasterController();
+            master = GameMasterController.GlobalMasterController;
             data = new EnemyCoreData();
 
             // get components in objects.
@@ -100,7 +100,7 @@ namespace Assets.script.enemy
             enemyAnimator = enemyAnimatorObject.GetComponent<Animator>();
 
             audioSource = audioSourceObject.GetComponent<AudioSource>();
-            audioSource.volume = master.audio_controller.volumeObject;
+            audioSource.volume = master.audioController.volumeObject;
 
             // get damage effect controller.
 
@@ -129,7 +129,7 @@ namespace Assets.script.enemy
 
             // get a reference to the player.
 
-            playerObject = GameMasterController.GetPlayerObject();
+            playerObject = GameMasterController.GlobalPlayerObject;
             distanceToPlayerObject = float.MaxValue;
 
             // check values.
@@ -275,7 +275,7 @@ namespace Assets.script.enemy
                 // if the object is the player itself, repel them.
 
                 if (other.transform.root.gameObject.name == GameConstants.NAME_PLAYER)
-                    GameMasterController.GetPlayerController().SimpleRepel(this.gameObject,3);
+                    GameMasterController.GlobalPlayerController.SimpleRepel(this.gameObject,3);
 
                 var damageData = other.gameObject.GetComponent<AttributeDamageController>()?.data;
                 if (damageData == null)

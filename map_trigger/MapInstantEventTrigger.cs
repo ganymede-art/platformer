@@ -30,7 +30,7 @@ public class MapInstantEventTrigger : MonoBehaviour
             if (!Physics.CheckBox(gameObject.transform.TransformPoint(trigger.center),
                 trigger.bounds.size,
                 this.transform.rotation,
-                GameConstants.LAYER_MASK_ONLY_PLAYER))
+                GameConstants.MASK_ONLY_PLAYER))
                 is_triggered = false;
         }
     }
@@ -43,7 +43,7 @@ public class MapInstantEventTrigger : MonoBehaviour
             if (!is_triggered)
             {
                 is_triggered = true;
-                master.cutscene_controller.StartCutscene(event_source, is_game_cutscene);
+                master.cutsceneController.StartCutscene(event_source, is_game_cutscene);
             }
         }
     }

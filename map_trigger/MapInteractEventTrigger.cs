@@ -26,9 +26,9 @@ public class MapInteractEventTrigger : MonoBehaviour
         if (master.gameState != GameState.Game)
             return;
 
-        if (!master.input_controller.wasInputInteract
-            && master.input_controller.isInputInteract)
-            master.cutscene_controller.StartCutscene(event_source,false);
+        if (!master.inputController.wasInputInteract
+            && master.inputController.isInputInteract)
+            master.cutsceneController.StartCutscene(event_source,false);
 
     }
 

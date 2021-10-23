@@ -8,13 +8,14 @@ namespace Assets.script
 {
     public interface IPlayerStateController
     {
-        void CheckState(PlayerMovementController mc);
-        void BeginState(PlayerMovementController mc);
-        void UpdateState(PlayerMovementController mc);
-        void UpdateStateDragAndFriction(PlayerMovementController mc);
-        void UpdateStateSpeed(PlayerMovementController mc);
-        void UpdateStateSlide(PlayerMovementController mc);
-        void UpdateStateAnimator(PlayerMovementController mc);
-        void FinishState(PlayerMovementController mc);
+        PlayerStateType GetStateType();
+        void CheckState(PlayerController mc);
+        void BeginState(PlayerController mc);
+        void UpdateState(PlayerController mc);
+        void UpdateStateDragAndFriction(PlayerController mc);
+        void UpdateStateSpeed(PlayerController mc);
+        void UpdateStateSlide(PlayerController mc);
+        void UpdateStateAnimator(PlayerController mc);
+        void FinishState(PlayerController mc);
     }
 }

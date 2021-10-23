@@ -98,8 +98,8 @@ public class GameLoadLevelController : MonoBehaviour
 
         // initialise the player and camera.
 
-        var player_prefab = master.player_prefab;
-        var camera_prefab = master.camera_prefab;
+        var player_prefab = master.playerPrefab;
+        var camera_prefab = master.cameraPrefab;
 
         var player = Instantiate(player_prefab, 
             player_start_transform.position, 

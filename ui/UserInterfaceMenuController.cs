@@ -55,8 +55,8 @@ public class UserInterfaceMenuController : MonoBehaviour
 
         ui_object.SetActive(true);
 
-        int basic_count = master.data_controller.GetItemCountByType("basic");
-        int main_count = master.data_controller.GetItemCountByType("main");
+        int basic_count = master.dataController.GetItemCountByType("basic");
+        int main_count = master.dataController.GetItemCountByType("main");
 
         ui_basic_count_text.text = basic_count.ToString();
         ui_main_count_text.text = main_count.ToString();
@@ -91,7 +91,7 @@ public class UserInterfaceMenuController : MonoBehaviour
 
     public void LoadGame()
     {
-        master.data_controller.LoadData();
+        master.dataController.LoadData();
     }
 
     public void QuitGame()

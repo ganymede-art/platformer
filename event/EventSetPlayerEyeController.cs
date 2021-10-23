@@ -47,7 +47,7 @@ namespace Assets.script
 
         public void StartEvent()
         {
-            var component = GameMasterController.GetPlayerObject().GetComponent<ActorEyeController>();
+            var component = GameMasterController.GlobalPlayerObject.GetComponent<ActorEyeController>();
             component.SetEmote(eyeEmoteIndex);
         }
     }

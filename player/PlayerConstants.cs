@@ -17,10 +17,13 @@ namespace Assets.script
 
         // component constants.
 
-        public const string MAIN_COLLIDER_GAME_OBJECT_NAME = "main_collider";
-        public const string PLAYER_RENDER_GAME_OBJECT_NAME = "player_render";
-        public const string PLAYER_DIRECTION_GAME_OBJECT_NAME = "player_direction";
-        public const string PLAYER_ATTACK_FORWARD_OBJECT_NAME = "attack_forward_trigger";
+        public const string COLLIDER_OBJECT = "player_collider";
+        public const string RENDERER_OBJECT = "player_render";
+        public const string DIRECTION_OBJECT = "player_direction";
+        public const string EYES_OBJECT = "player_eyes";
+        public const string ATTACK_FORWARD_1_OBJECT = "attack_forward_1";
+        public const string ATTACK_FORWARD_2_OBJECT = "attack_forward_2";
+        public const string ATTACK_DOWN_1_OBJECT = "attack_down_1";
 
         // physical constants.
 

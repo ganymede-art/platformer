@@ -4,78 +4,82 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateAttackController : IPlayerStateController
+    public class PlayerStateAttackController : MonoBehaviour, IPlayerStateController
     {
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
-            mc.player_animator.SetTrigger("anim_attack");
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("attack");
 
             // play attack sound.
 
-            mc.audio_source.clip = mc.sfx_player_dive;
-            mc.audio_source.Play();
+            mc.audioSource.clip = mc.soundAttack;
+            mc.audioSource.Play();
 
             // zero out vertical velocity and add diving force.
 
-            mc.rigid_body.velocity = new Vector3
-                (mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
-            mc.rigid_body.velocity = new Vector3
+            mc.rigidBody.velocity = new Vector3
+                (mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
+            mc.rigidBody.velocity = new Vector3
                 (0, 0, 0);
 
-            mc.rigid_body.AddForce(Vector3.up * JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
-            mc.rigid_body.AddForce(mc.player_direction_object.transform.forward * (JUMP_FORCE_MULTIPLIER), ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(Vector3.up * JUMP_FORCE_MULTIPLIER, ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(mc.directionObject.transform.forward * (JUMP_FORCE_MULTIPLIER), ForceMode.VelocityChange);
 
             // enable the attack forward trigger.
 
-            mc.player_attack_forward_collider.enabled = true;
+            mc.attackForward1Collider.enabled = true;
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
-            if (mc.state_update_count >= 15)
+            if (mc.stateUpdateCount >= 15)
             {
-                mc.ChangePlayerState(PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             // disable the attack forward trigger.
 
-            mc.player_attack_forward_collider.enabled = false;
+            mc.attackForward1Collider.enabled = false;
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
-            mc.state_default.UpdateStateSpeed(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
             
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.state_jump.UpdateStateDragAndFriction(mc);
+            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            mc.state_default.UpdateStateSpeed(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
         }
 
-        
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerAttack;
+        }
     }
 }

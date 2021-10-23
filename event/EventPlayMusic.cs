@@ -44,7 +44,7 @@ namespace Assets.script
 
         public void StartEvent()
         {
-            GameMasterController.GetMasterController().audio_controller.PlayMusic(musicData);
+            GameMasterController.GlobalMasterController.audioController.PlayMusic(musicData);
         }
     }
 }

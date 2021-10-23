@@ -5,23 +5,23 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateCrouchJumpController : IPlayerStateController
+    public class PlayerStateCrouchJumpController : MonoBehaviour, IPlayerStateController
     {
         // variables.
 
         int update_count_jump = 0;
 
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
             // set the animation.
 
-            mc.player_animator.ResetTrigger("anim_crouch");
-            mc.player_animator.SetTrigger("anim_crouch_jump");
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("crouch_jump_up");
 
             // reset the update count.
 
@@ -30,28 +30,28 @@ namespace Assets.script
             // if coming from the water jump state,
             // don't add any additional force.
 
-            if (mc.player_state_previous == PlayerState.player_water_jump)
+            if (mc.previousStateType == PlayerStateType.playerWaterJump)
                 return;
 
             // enter jump state.
             // reset jump power.
 
-            mc.jump_persist_energy = PlayerConstants.JUMP_PERSIST_ENERGY_MAX;
+            mc.jumpPersistEnergy = PlayerConstants.JUMP_PERSIST_ENERGY_MAX;
 
             // add jumping force.
 
-            mc.rigid_body.velocity = new Vector3
-                (mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
+            mc.rigidBody.velocity = new Vector3
+                (mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
 
-            mc.rigid_body.AddForce(Vector3.up * PlayerConstants.FORCE_MULTIPLIER_CROUCH_JUMP, ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(Vector3.up * PlayerConstants.FORCE_MULTIPLIER_CROUCH_JUMP, ForceMode.VelocityChange);
 
             // player sound.
 
-            mc.audio_source.clip = mc.sfx_player_crouch_jump;
-            mc.audio_source.Play();
+            mc.audioSource.clip = mc.soundCrouchJump;
+            mc.audioSource.Play();
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
             // increment the update count.
 
@@ -59,64 +59,64 @@ namespace Assets.script
 
             // enter default state if right criteria are met.
 
-            if (mc.rigid_body.velocity.y <= 0)
+            if (mc.rigidBody.velocity.y <= 0)
             {
-                mc.ChangePlayerState(PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
 
             // enter default state if grounded.
 
             if (update_count_jump >= PlayerConstants.UPDATE_COUNT_JUMP_RECOVERY_MIN
-                && (mc.is_raycast_grounded || mc.is_spherecast_grounded))
+                && (mc.isRaycastGrounded || mc.isSpherecastGrounded))
             {
-                mc.ChangePlayerState(PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
             UpdateStateJump(mc);
             UpdateStateMovement(mc);
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
-            mc.state_jump.UpdateStateAnimator(mc);
-            
+            mc.stateControllers[PlayerStateType.playerJump].UpdateStateAnimator(mc);
+
         }
 
-        public void UpdateStateJump(PlayerMovementController mc)
+        public void UpdateStateJump(PlayerController mc)
         {
             // decrement the remaining jump persist energy.
 
-            mc.jump_persist_energy -= 1;
+            mc.jumpPersistEnergy -= 1;
 
-            if (mc.master.input_controller.isInputPositive && mc.jump_persist_energy > 0)
+            if (mc.master.inputController.isInputPositive && mc.jumpPersistEnergy > 0)
             {
                 // if the jump input is given, and persist energy > 0, add extra jump force.
 
-                mc.rigid_body.AddForce(Vector3.up * PlayerConstants.FORCE_MULTIPLIER_CROUCH_JUMP_PERSIST, ForceMode.VelocityChange);
+                mc.rigidBody.AddForce(Vector3.up * PlayerConstants.FORCE_MULTIPLIER_CROUCH_JUMP_PERSIST, ForceMode.VelocityChange);
             }
             else
             {
                 // if the jump input is let go, zero out the jump persist energy.
 
-                mc.jump_persist_energy = 0;
+                mc.jumpPersistEnergy = 0;
             }
         }
 
-        public void UpdateStateMovement(PlayerMovementController mc)
+        public void UpdateStateMovement(PlayerController mc)
         {
             // input movement relative to camera.
 
-            var camera_relative_movement = Quaternion.Euler(0, mc.camera_object.transform.eulerAngles.y, 0) * mc.input_directional;
+            var camera_relative_movement = Quaternion.Euler(0, mc.cameraObject.transform.eulerAngles.y, 0) * mc.inputDirectional;
 
             // force
 
@@ -125,32 +125,35 @@ namespace Assets.script
             PlayerStaticMethods.StepMovement(mc, camera_relative_movement, force);
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            Vector3 old_x_z = new Vector3(mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
-            Vector3 old_y = new Vector3(0, mc.rigid_body.velocity.y, 0);
+            Vector3 old_x_z = new Vector3(mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
+            Vector3 old_y = new Vector3(0, mc.rigidBody.velocity.y, 0);
 
             if (old_x_z.magnitude > PlayerConstants.MAX_SPEED_GROUNDED)
             {
 
                 old_x_z = Vector3.ClampMagnitude(old_x_z, PlayerConstants.MAX_SPEED_GROUNDED);
-                mc.rigid_body.velocity = old_x_z + old_y;
+                mc.rigidBody.velocity = old_x_z + old_y;
             }
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.rigid_body.drag = DRAG_AIR;
-            mc.player_sphere_collider.material.dynamicFriction = 0f;
-            mc.player_sphere_collider.material.staticFriction = 0f;
-            mc.player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Minimum;
+            mc.rigidBody.drag = DRAG_AIR;
+            mc.rbCollider.material.dynamicFriction = 0f;
+            mc.rbCollider.material.staticFriction = 0f;
+            mc.rbCollider.material.frictionCombine = PhysicMaterialCombine.Minimum;
         }
 
-
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerCrouchJump;
+        }
     }
 }

@@ -28,9 +28,29 @@ namespace Assets.script
 
         public const string DIRECTORY_FONT = "font/game_font";
 
-        public const int LAYER_MASK_ONLY_PLAYER = 1 << 8;
-        public const int LAYER_MASK_ALL_BUT_PLAYER = ~(1 << 8);
-        public const int LAYER_MASK_ALL_BUT_ENTITIES = ~((1 << 8) | (1 << 9) | (1 << 10) | (1 << 11));
+        public const int LAYER_PLAYER = 8;
+        public const int LAYER_ACTOR = 9;
+        public const int LAYER_ENEMY = 10;
+        public const int LAYER_IGNORE_CAMERA = 11;
+        public const int LAYER_ENEMY_BOUNDARY = 12;
+
+        public const int MASK_ONLY_PLAYER = 1 << LAYER_PLAYER;
+        public const int MASK_ALL_BUT_PLAYER = ~(1 << LAYER_PLAYER);
+        public const int MASK_PLAYER_IGNORES = 
+            ~(
+                (1 << LAYER_PLAYER)        |
+                (1 << LAYER_ACTOR)         |
+                (1 << LAYER_ENEMY)         |
+                (1 << LAYER_IGNORE_CAMERA) |
+                (1 << LAYER_ENEMY_BOUNDARY)
+            );
+        public const int MASK_ENEMY_IGNORES =
+            ~(
+                (1 << LAYER_PLAYER) |
+                (1 << LAYER_ACTOR) |
+                (1 << LAYER_ENEMY) |
+                (1 << LAYER_IGNORE_CAMERA)
+            );
 
         public const string EVENT_TYPE_NULL = "null";
         public const string EVENT_TYPE_DELAY = "delay";
@@ -45,7 +65,7 @@ namespace Assets.script
         public const string EVENT_TYPE_SAVE_GAME = "save_game";
         public const string EVENT_TYPE_CONDITIONAL_INT = "conditional_int";
         public const string EVENT_TYPE_PLAY_MUSIC = "play_music";
-        
+        public const string EVENT_TYPE_SET_PLAYER_ABILITY = "set_player_ability";
 
         public enum CameraMode
         {

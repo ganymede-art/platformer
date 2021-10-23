@@ -170,8 +170,18 @@ public class GameDataController : MonoBehaviour
         saveData.loadPlayerStartTransformName = player_start_transform_name;
         saveData.loadCameraStartTransformName = camera_start_transform_name;
 
-        saveData.playerHealth = master.player_controller.player_health;
-        saveData.playerMaxHealth = master.player_controller.player_max_health;
+        saveData.playerHealth = master.playerController.health;
+        saveData.playerMaxHealth = master.playerController.maxHealth;
+
+        saveData.ammo = master.playerController.ammo;
+        saveData.ammo = master.playerController.maxAmmo;
+
+        saveData.canAttack = master.playerController.canAttack;
+        saveData.canCrouchJump = master.playerController.canCrouchJump;
+        saveData.canDive = master.playerController.canDive;
+        saveData.canWaterDive = master.playerController.canWaterDive;
+        saveData.canWaterJump = master.playerController.canWaterJump;
+
 
         Debug.Log("Saving data to: " + jsonSavePath);
         //string json_data = JsonUtility.ToJson(save_data, true);
@@ -203,10 +213,19 @@ public class GameDataController : MonoBehaviour
         this.gameItemTotalCountByType = saveData.gameItemTotalCountByType;
         this.gameItemTotalCountByTypeAndGroup = saveData.gameItemTotalCountByTypeAndGroup;
 
-        master.player_controller.player_health = saveData.playerHealth;
-        master.player_controller.player_max_health = saveData.playerMaxHealth;
+        master.playerController.health = saveData.playerHealth;
+        master.playerController.maxHealth = saveData.playerMaxHealth;
 
-        master.load_level_controller.StartLoadLevel(
+         master.playerController.ammo = saveData.ammo;
+         master.playerController.maxAmmo = saveData.ammo;
+
+         master.playerController.canAttack = saveData.canAttack;
+         master.playerController.canCrouchJump = saveData.canCrouchJump;
+         master.playerController.canDive = saveData.canDive;
+         master.playerController.canWaterDive = saveData.canWaterDive;
+         master.playerController.canWaterJump = saveData.canWaterJump;
+
+        master.loadLevelController.StartLoadLevel(
             saveData.loadSceneName, 
             saveData.loadPlayerStartTransformName, 
             saveData.loadCameraStartTransformName);
@@ -231,6 +250,15 @@ public struct SaveData
 
     public int playerHealth;
     public int playerMaxHealth;
+
+    public int ammo;
+    public int maxAmmo;
+
+    [NonSerialized] public bool canAttack;
+    [NonSerialized] public bool canCrouchJump;
+    [NonSerialized] public bool canDive;
+    [NonSerialized] public bool canWaterDive;
+    [NonSerialized] public bool canWaterJump;
 }
 
 public class GameItemChangeEventArgs : EventArgs

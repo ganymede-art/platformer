@@ -11,7 +11,7 @@ public class MapAutoSceneTitleController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
-        master.user_interface_controller.ui_controller_game.SetSceneTitleDisplay(sceneTitle, sceneSubtitle);
+        master = GameMasterController.GlobalMasterController;
+        master.userInterfaceController.ui_controller_game.SetSceneTitleDisplay(sceneTitle, sceneSubtitle);
     }
 }

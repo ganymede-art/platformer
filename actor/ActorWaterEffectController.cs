@@ -19,7 +19,7 @@ public class ActorWaterEffectController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
+        master = GameMasterController.GlobalMasterController;
         manager = this.gameObject.GetComponent<IActorDataManager>();
         air_bubble_fx_object = Instantiate(air_bubble_fx_prefab, air_bubble_origin_object.transform);
 

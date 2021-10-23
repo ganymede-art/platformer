@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateDefaultController : IPlayerStateController
+    public class PlayerStateDefaultController : MonoBehaviour, IPlayerStateController
     {
         int update_count_default = 0;
 
@@ -22,46 +22,47 @@ namespace Assets.script
 
         // variables.
 
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
             update_count_default = 0;
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
             update_count_default++;
 
             // enter jumping state if right criteria are met.
 
-            if (mc.is_raised_positive && mc.is_spherecast_grounded)
+            if (mc.isRaisedPositive && mc.isSpherecastGrounded)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_jump);
+                mc.ChangePlayerState(PlayerStateType.playerJump);
                 return;
             }
 
-            if (mc.is_partial_submerged)
+            if (mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_water_default);
+                mc.ChangePlayerState(PlayerStateType.playerWaterDefault);
                 return;
             }
 
             // exit to attack state if attack is pressed
             // and grounded.
 
-            if(mc.is_raised_interact
-                && mc.is_spherecast_grounded)
+            if(mc.isRaisedInteract
+                && mc.isSpherecastGrounded
+                && mc.master.playerController.canAttack)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_attack);
+                mc.ChangePlayerState(PlayerStateType.playerAttack);
                 return;
             }
 
             // exit to crouch state if positive 3 is pressed
             // and grounded.
 
-            if(mc.master.input_controller.isInputPositive2
-                && mc.is_spherecast_grounded)
+            if(mc.master.inputController.isInputPositive2
+                && mc.isSpherecastGrounded)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_crouch);
+                mc.ChangePlayerState(PlayerStateType.playerCrouch);
                 return;
             }
 
@@ -69,39 +70,40 @@ namespace Assets.script
             // if not grounded since entering this state, 
             // attack is pressed, and in air.
 
-            if (mc.is_raised_interact
-                && mc.player_state_previous == PlayerState.player_jump
-                && !mc.is_spherecast_grounded_since_state_begin
-                && !mc.is_spherecast_grounded)
+            if (mc.isRaisedInteract
+                && mc.previousStateType == PlayerStateType.playerJump
+                && !mc.isSpherecastGroundedSinceStateBegin
+                && !mc.isSpherecastGrounded
+                && mc.master.playerController.canDive)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_dive);
+                mc.ChangePlayerState(PlayerStateType.playerDive);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
             UpdateStateMovement(mc);
         }
 
-        public void UpdateStateMovement(PlayerMovementController mc)
+        public void UpdateStateMovement(PlayerController mc)
         {
             // input movement relative to camera.
 
-            var camera_relative_movement = Quaternion.Euler(0, mc.camera_object.transform.eulerAngles.y, 0) * mc.input_directional;
+            var camera_relative_movement = Quaternion.Euler(0, mc.cameraObject.transform.eulerAngles.y, 0) * mc.inputDirectional;
 
             // camera movement relative to slope.
 
-            var slope_relative_movement = Vector3.ProjectOnPlane(camera_relative_movement, mc.spherecast_grounded_slope_normal);
+            var slope_relative_movement = Vector3.ProjectOnPlane(camera_relative_movement, mc.spherecastGroundedSlopeNormal);
 
             // acceleration
 
-            float acceleration = mc.is_spherecast_grounded ? PlayerConstants.ACCELERATION_GROUNDED : PlayerConstants.ACCELERATION_AIR;
+            float acceleration = mc.isSpherecastGrounded ? PlayerConstants.ACCELERATION_GROUNDED : PlayerConstants.ACCELERATION_AIR;
 
             // force
 
@@ -110,108 +112,113 @@ namespace Assets.script
             PlayerStaticMethods.StepMovement(mc, slope_relative_movement, force);
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             // move towards the sliding state
             // if the right criteria are met.
 
-            if (mc.raycast_grounded_slope_angle > SLIDE_ANGLE_MIN
-                || mc.ground_type == GameConstants.GroundType.ground_slide)
+            if (mc.raycastGroundedSlopeAngle > SLIDE_ANGLE_MIN
+                || mc.groundType == GameConstants.GroundType.ground_slide)
             {
                 // reduce the slide resistance
-                mc.slide_resistance -= (mc.raycast_grounded_slope_angle * SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER);
+                mc.slideResistance -= (mc.raycastGroundedSlopeAngle * SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER);
             }
             else
             {
-                mc.slide_resistance = SLIDE_RESISTANCE_MAX;
+                mc.slideResistance = SLIDE_RESISTANCE_MAX;
             }
 
-            mc.slide_resistance = Mathf.Clamp(mc.slide_resistance, 0.0f, SLIDE_RESISTANCE_MAX);
+            mc.slideResistance = Mathf.Clamp(mc.slideResistance, 0.0f, SLIDE_RESISTANCE_MAX);
 
-            if (mc.slide_resistance <= 0.0f && mc.is_spherecast_grounded)
+            if (mc.slideResistance <= 0.0f && mc.isSpherecastGrounded)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_slide);
+                mc.ChangePlayerState(PlayerStateType.playerSlide);
                 return;
             }
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
             // limit speed while in the default state.
             // maximum speed depends on criteria.
 
-            if (mc.is_partial_submerged)
+            if (mc.isPartialSubmerged)
             {
-                if (mc.rigid_body.velocity.magnitude > PlayerConstants.MAX_SPEED_WATER)
+                if (mc.rigidBody.velocity.magnitude > PlayerConstants.MAX_SPEED_WATER)
                 {
-                    mc.rigid_body.velocity = Vector3.ClampMagnitude(mc.rigid_body.velocity, PlayerConstants.MAX_SPEED_WATER);
+                    mc.rigidBody.velocity = Vector3.ClampMagnitude(mc.rigidBody.velocity, PlayerConstants.MAX_SPEED_WATER);
                 }
             }
             else
             {
-                if (mc.is_spherecast_grounded)
+                if (mc.isSpherecastGrounded)
                 {
-                    if (mc.rigid_body.velocity.magnitude > PlayerConstants.MAX_SPEED_GROUNDED)
+                    if (mc.rigidBody.velocity.magnitude > PlayerConstants.MAX_SPEED_GROUNDED)
                     {
-                        mc.rigid_body.velocity = Vector3.ClampMagnitude(mc.rigid_body.velocity, PlayerConstants.MAX_SPEED_GROUNDED);
+                        mc.rigidBody.velocity = Vector3.ClampMagnitude(mc.rigidBody.velocity, PlayerConstants.MAX_SPEED_GROUNDED);
                     }
                 }
                 else
                 {
-                    Vector3 old_x_z = new Vector3(mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
-                    Vector3 old_y = new Vector3(0, mc.rigid_body.velocity.y, 0);
+                    Vector3 old_x_z = new Vector3(mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
+                    Vector3 old_y = new Vector3(0, mc.rigidBody.velocity.y, 0);
 
                     if (old_x_z.magnitude > PlayerConstants.MAX_SPEED_GROUNDED)
                     {
 
                         old_x_z = Vector3.ClampMagnitude(old_x_z, PlayerConstants.MAX_SPEED_GROUNDED);
-                        mc.rigid_body.velocity = old_x_z + old_y;
+                        mc.rigidBody.velocity = old_x_z + old_y;
                     }
                 }
             }
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
             // update player facing direction.
 
-            mc.facing_direction = Quaternion.Euler(0, mc.camera_object.transform.rotation.eulerAngles.y, 0) * mc.input_directional;
+            mc.facingDirection = Quaternion.Euler(0, mc.cameraObject.transform.rotation.eulerAngles.y, 0) * mc.inputDirectional;
 
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+            mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move our position a step closer to the target.
-            mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
-            mc.player_direction_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
+            mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
             // update based on circumstances.
 
-            mc.rigid_body.drag = mc.is_raycast_grounded ? DRAG_GROUNDED : DRAG_AIR;
+            mc.rigidBody.drag = mc.isRaycastGrounded ? DRAG_GROUNDED : DRAG_AIR;
 
-            if (mc.is_input_directional || !mc.is_raycast_grounded)
+            if (mc.isInputDirectional || !mc.isRaycastGrounded)
             {
-                mc.player_sphere_collider.material.dynamicFriction = 0f;
-                mc.player_sphere_collider.material.staticFriction = 0f;
+                mc.rbCollider.material.dynamicFriction = 0f;
+                mc.rbCollider.material.staticFriction = 0f;
             }
             else
             {
-                if (mc.moving_object_collision_list.Count == 0)
+                if (mc.collidingMovingObjects.Count == 0)
                 {
-                    mc.player_sphere_collider.material.dynamicFriction = 100;
-                    mc.player_sphere_collider.material.staticFriction = 100;
+                    mc.rbCollider.material.dynamicFriction = 100;
+                    mc.rbCollider.material.staticFriction = 100;
                 }
                 else
                 {
-                    mc.player_sphere_collider.material.dynamicFriction = 1;
-                    mc.player_sphere_collider.material.staticFriction = 1;
+                    mc.rbCollider.material.dynamicFriction = 1;
+                    mc.rbCollider.material.staticFriction = 1;
                 }
             }
 
             // change physics combine mode.
 
-            mc.player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Average;
+            mc.rbCollider.material.frictionCombine = PhysicMaterialCombine.Average;
+        }
+
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerDefault;
         }
     }
 }

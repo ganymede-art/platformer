@@ -5,114 +5,114 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateSlideController : IPlayerStateController
+    public class PlayerStateSlideController : MonoBehaviour, IPlayerStateController
     {
         int update_count_slide = 0;
 
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
             update_count_slide = 0;
 
-            mc.slide_force = SLIDE_FORCE_MULIPLIER;
-            mc.slide_direction = mc.raycast_grounded_slope_direction;
-            mc.rigid_body.AddForce(mc.raycast_grounded_slope_direction * mc.slide_force, ForceMode.VelocityChange);
+            mc.slideForce = SLIDE_FORCE_MULIPLIER;
+            mc.slideDirection = mc.raycastGroundedSlopeDirection;
+            mc.rigidBody.AddForce(mc.raycastGroundedSlopeDirection * mc.slideForce, ForceMode.VelocityChange);
 
-            mc.audio_source.clip = mc.sfx_player_slide;
-            mc.audio_source.Play();
+            mc.audioSource.clip = mc.soundSlide;
+            mc.audioSource.Play();
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
             update_count_slide++;
 
             // exit if entering water.
-            if (mc.is_partial_submerged)
+            if (mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_water_default);
+                mc.ChangePlayerState(PlayerStateType.playerWaterDefault);
                 return;
             }
 
             // exit if slide resistance recovered.
-            if (mc.slide_resistance >= SLIDE_RESISTANCE_MAX)
+            if (mc.slideResistance >= SLIDE_RESISTANCE_MAX)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
 
             // exit if fully in air.
-            if (!mc.is_spherecast_grounded && !mc.is_raycast_grounded)
+            if (!mc.isSpherecastGrounded && !mc.isRaycastGrounded)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
 
             // exit if slow enough to jump.
-            if (mc.is_raised_positive
-                && mc.is_spherecast_grounded
-                && mc.rigid_body.velocity.magnitude < SLIDE_SPEED_RECOVERY_MAX)
+            if (mc.isRaisedPositive
+                && mc.isSpherecastGrounded
+                && mc.rigidBody.velocity.magnitude < SLIDE_SPEED_RECOVERY_MAX)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_jump);
+                mc.ChangePlayerState(PlayerStateType.playerJump);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
             UpdateStateMovement(mc);
             UpdateStateLateralMovement(mc);
         }
 
-        public void UpdateStateMovement(PlayerMovementController mc)
+        public void UpdateStateMovement(PlayerController mc)
         {
             // slide forward.
 
-            if (mc.raycast_grounded_slope_angle >= SLIDE_FORCE_ANGLE_MIN)
+            if (mc.raycastGroundedSlopeAngle >= SLIDE_FORCE_ANGLE_MIN)
             {
                 // update the slide vector.
 
-                mc.slide_direction = Vector3.RotateTowards
-                    (mc.slide_direction, mc.raycast_grounded_slope_direction.normalized, SLIDE_DIRECTION_ROTATION_MULTIPLIER, 0.0f);
+                mc.slideDirection = Vector3.RotateTowards
+                    (mc.slideDirection, mc.raycastGroundedSlopeDirection.normalized, SLIDE_DIRECTION_ROTATION_MULTIPLIER, 0.0f);
 
                 // add the regular slide force, if no obstacle.
 
-                mc.is_slide_hit = Physics.SphereCast
-                    (mc.transform.position, GROUNDED_SPHERECAST_RADIUS, mc.slide_direction, out mc.movement_hit, MOVEMENT_SPHERECAST_DISTANCE);
+                mc.isSlideHit = Physics.SphereCast
+                    (mc.transform.position, GROUNDED_SPHERECAST_RADIUS, mc.slideDirection, out mc.movementHit, MOVEMENT_SPHERECAST_DISTANCE);
 
 
-                if (!mc.is_slide_hit)
+                if (!mc.isSlideHit)
                 {
-                    mc.rigid_body.AddForce(mc.slide_direction * SLIDE_FORCE_MULIPLIER, ForceMode.VelocityChange);
+                    mc.rigidBody.AddForce(mc.slideDirection * SLIDE_FORCE_MULIPLIER, ForceMode.VelocityChange);
                 }
             }
         }
 
-        public void UpdateStateLateralMovement(PlayerMovementController mc)
+        public void UpdateStateLateralMovement(PlayerController mc)
         {
             // add sideways slide force.
 
-            if (mc.raycast_grounded_slope_angle >= SLIDE_FORCE_ANGLE_MIN)
+            if (mc.raycastGroundedSlopeAngle >= SLIDE_FORCE_ANGLE_MIN)
             {
                 // input movement relative to camera.
 
-                var camera_relative_movement = Quaternion.Euler(0, mc.camera_object.transform.eulerAngles.y, 0) * mc.input_directional;
+                var camera_relative_movement = Quaternion.Euler(0, mc.cameraObject.transform.eulerAngles.y, 0) * mc.inputDirectional;
 
                 // camera movement relative to slope.
 
-                var slope_relative_movement = Vector3.ProjectOnPlane(camera_relative_movement, mc.raycast_grounded_slope_normal);
+                var slope_relative_movement = Vector3.ProjectOnPlane(camera_relative_movement, mc.raycastGroundedSlopeNormal);
 
                 // project movement relative to plane of slide direction.
 
-                slope_relative_movement = Vector3.ProjectOnPlane(slope_relative_movement, mc.slide_direction);
+                slope_relative_movement = Vector3.ProjectOnPlane(slope_relative_movement, mc.slideDirection);
 
                 // force.
 
@@ -120,61 +120,66 @@ namespace Assets.script
 
                 // do raycasts.
 
-                mc.is_movement_hit = Physics.SphereCast
-                    (mc.transform.position, GROUNDED_SPHERECAST_RADIUS, slope_relative_movement, out mc.movement_hit, MOVEMENT_SPHERECAST_DISTANCE);
+                mc.isMovementHit = Physics.SphereCast
+                    (mc.transform.position, GROUNDED_SPHERECAST_RADIUS, slope_relative_movement, out mc.movementHit, MOVEMENT_SPHERECAST_DISTANCE);
 
                 Debug.DrawRay(mc.transform.position, slope_relative_movement, Color.red);
 
                 // apply forces based on raycast hits.
 
-                if (!mc.is_movement_hit)
+                if (!mc.isMovementHit)
                 {
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
+                    mc.rigidBody.AddForce(force, ForceMode.VelocityChange);
                 }
             }
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             // recover, or continue sliding
             // based on current situation.
 
-            if (mc.raycast_grounded_slope_angle < SLIDE_ANGLE_RECOVERY_MAX
-                && mc.ground_type != GameConstants.GroundType.ground_slide
-                && mc.is_spherecast_grounded)
+            if (mc.raycastGroundedSlopeAngle < SLIDE_ANGLE_RECOVERY_MAX
+                && mc.groundType != GameConstants.GroundType.ground_slide
+                && mc.isSpherecastGrounded)
             {
                 // increase the slide resistance
-                mc.slide_resistance += SLIDE_RESISTANCE_RECOVERY;
+                mc.slideResistance += SLIDE_RESISTANCE_RECOVERY;
             }
             else
             {
-                mc.slide_resistance = 0.0f;
+                mc.slideResistance = 0.0f;
             }
 
-            mc.slide_resistance = Mathf.Clamp(mc.slide_resistance, 0.0f, SLIDE_RESISTANCE_MAX);
+            mc.slideResistance = Mathf.Clamp(mc.slideResistance, 0.0f, SLIDE_RESISTANCE_MAX);
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            if (mc.rigid_body.velocity.magnitude > MAX_SPEED_SLIDE)
+            if (mc.rigidBody.velocity.magnitude > MAX_SPEED_SLIDE)
             {
-                mc.rigid_body.velocity = Vector3.ClampMagnitude(mc.rigid_body.velocity, MAX_SPEED_GROUNDED);
+                mc.rigidBody.velocity = Vector3.ClampMagnitude(mc.rigidBody.velocity, MAX_SPEED_GROUNDED);
             }
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
-            mc.facing_direction = new Vector3(mc.slide_direction.x, 0, mc.slide_direction.z);
+            mc.facingDirection = new Vector3(mc.slideDirection.x, 0, mc.slideDirection.z);
 
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+            mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move our position a step closer to the target.
-            mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.state_jump.UpdateStateDragAndFriction(mc);
+            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
+        }
+
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerSlide;
         }
     }
 }

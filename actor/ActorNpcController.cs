@@ -19,8 +19,8 @@ namespace Assets.script.actor
 
         private void Start()
         {
-            master = GameMasterController.GetMasterController();
-            player_object = GameMasterController.GetPlayerObject();
+            master = GameMasterController.GlobalMasterController;
+            player_object = GameMasterController.GlobalPlayerObject;
             facing_controller = GetComponent<ActorFaceDirectionController>();
         }
 

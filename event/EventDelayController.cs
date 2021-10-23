@@ -16,7 +16,7 @@ public class EventDelayController : MonoBehaviour, IEventController
 
     void Start()
     {
-        master = GameMasterController.GetMasterController();
+        master = GameMasterController.GlobalMasterController;
     }
 
     public GameObject GetNextEventSource()

@@ -48,7 +48,7 @@ public class CameraController : MonoBehaviour
 
     // Fixed camera variables.
 
-    private GameConstants.CameraMode cameraMode;
+    private CameraMode cameraMode;
 
     private Transform fixedTransform = null;
     private float fixedTransition = 0f;
@@ -79,7 +79,7 @@ public class CameraController : MonoBehaviour
     {
         master = GameObject.FindObjectOfType<GameMasterController>();
 
-        cameraMode = GameConstants.CameraMode.camera_default;
+        cameraMode = CameraMode.camera_default;
 
         fixedStartPosition = this.transform.position;
         fixedStartRotation = this.transform.rotation;
@@ -90,7 +90,7 @@ public class CameraController : MonoBehaviour
         // set to default target (player).
 
         target = GameObject.FindGameObjectWithTag(GameConstants.TAG_PLAYER_CAMERA_TARGET).transform;
-        targetDirectionObject = GameObject.Find(PlayerConstants.PLAYER_DIRECTION_GAME_OBJECT_NAME);
+        targetDirectionObject = GameObject.Find(PlayerConstants.DIRECTION_OBJECT);
 
         Debug.Log("Camera Starting");
     }
@@ -121,14 +121,14 @@ public class CameraController : MonoBehaviour
     {
         // get input.
 
-        xInput = master.input_controller.actionAimHorizontal.ReadValue<float>();
-        yInput = master.input_controller.actionAimVertical.ReadValue<float>();
+        xInput = master.inputController.actionAimHorizontal.ReadValue<float>();
+        yInput = master.inputController.actionAimVertical.ReadValue<float>();
 
         xInput = Mathf.Clamp(xInput, -1, 1);
         yInput = Mathf.Clamp(yInput, -1, 1);
 
-        xSensitivity = master.input_controller.sensitivityCameraHorizontal;
-        ySensitivity = master.input_controller.sensitivityCameraVertical;
+        xSensitivity = master.inputController.sensitivityCameraHorizontal;
+        ySensitivity = master.inputController.sensitivityCameraVertical;
 
         // Get x and y offset from input.
 
@@ -137,7 +137,7 @@ public class CameraController : MonoBehaviour
 
         // if in auto rotation, gradually turn to be behind the target.
 
-        isManualAutoRotation = master.input_controller.isInputNegative2;
+        isManualAutoRotation = master.inputController.isInputNegative2;
         if (isAutoRotation || isManualAutoRotation)
         {
             autoX = targetDirectionObject.transform.rotation.eulerAngles.y;
@@ -164,8 +164,8 @@ public class CameraController : MonoBehaviour
 
         // Get max distance from input.
 
-        targetDistance += master.input_controller.actionAimZoom.ReadValue<float>()
-            * (ZOOM_SPEED * master.input_controller.sensitivityCameraZoom);
+        targetDistance += master.inputController.actionAimZoom.ReadValue<float>()
+            * (ZOOM_SPEED * master.inputController.sensitivityCameraZoom);
 
         if (targetDistance > MAX_DISTANCE_MAX) targetDistance = MAX_DISTANCE_MAX;
         if (targetDistance < MAX_DISTANCE_MIN) targetDistance = MAX_DISTANCE_MIN;
@@ -234,7 +234,7 @@ public class CameraController : MonoBehaviour
 
         RaycastHit hit;
         bool isHit = Physics.SphereCast(target.position, CAMERA_CLIPPING_RADIUS, transform.forward * -1, 
-            out hit, targetDistance, GameConstants.LAYER_MASK_ALL_BUT_ENTITIES);
+            out hit, targetDistance, GameConstants.MASK_PLAYER_IGNORES);
 
         if (isHit)
         {
@@ -275,15 +275,19 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            transform.rotation = rotation;
-
-            // TODO cool cinematic position lerping.
-            // this almost is perfect, but needs a little tweaking.
-
-            float lerpSpeed = Vector3.Distance(transform.position, position) * 8;
-            transform.position = Vector3.MoveTowards(transform.position,position, lerpSpeed * Time.deltaTime);
-
+            //transform.rotation = rotation;
             //transform.position = position;
+
+            // TODO make the horizontal movement instant,
+            // the vertical movement lerped by distance (and a little slow).
+
+            float rotateSpeed = Quaternion.Angle(transform.rotation, rotation) * 16;
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, rotateSpeed);
+
+            float lerpSpeed = Vector3.Distance(transform.position, position) * 16f;
+            transform.position = Vector3.MoveTowards(transform.position, position, lerpSpeed * Time.deltaTime); 
+
+
         }
     }
 
@@ -307,7 +311,7 @@ public class CameraController : MonoBehaviour
 
     public void UnsetCamera()
     {
-        cameraMode = GameConstants.CameraMode.camera_default;
+        cameraMode = CameraMode.camera_default;
 
         // Reset the transition.
 

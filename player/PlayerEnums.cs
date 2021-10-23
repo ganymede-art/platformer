@@ -6,22 +6,19 @@ using System.Threading.Tasks;
 
 namespace Assets.script
 {
-    public class PlayerEnums
+    public enum PlayerStateType
     {
-        public enum PlayerState
-        {
-            player_default,
-            player_jump,
-            player_water_default,
-            player_water_jump,
-            player_slide,
-            player_dive,
-            player_attack,
-            player_damage,
-            player_water_dive,
-            player_repel,
-            player_crouch,
-            player_crouch_jump
-        }
+        playerDefault,
+        playerJump,
+        playerWaterDefault,
+        playerWaterJump,
+        playerSlide,
+        playerDive,
+        playerAttack,
+        playerDamage,
+        playerWaterDive,
+        playerRepel,
+        playerCrouch,
+        playerCrouchJump
     }
 }

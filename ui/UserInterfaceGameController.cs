@@ -44,7 +44,7 @@ public class UserInterfaceGameController : MonoBehaviour
         // add event hooks.
 
         master.GameStateChange += ChangeGameState;
-        master.data_controller.GameItemChange += GameItemChange;
+        master.dataController.GameItemChange += GameItemChange;
 
         // scene description variables.
 
@@ -99,7 +99,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
         for (int i = 0; i < uiHealthObjects.Length; i++)
         {
-            uiHealthObjects[i].SetActive(master.player_controller.player_health > i);
+            uiHealthObjects[i].SetActive(master.playerController.health > i);
         }
 
         if (isDisplayingTitle)
@@ -139,7 +139,7 @@ public class UserInterfaceGameController : MonoBehaviour
     {
         uiObject.SetActive(true);
 
-        uiItemBasicCountText.text = master.data_controller.GetItemCountByType("basic").ToString();
+        uiItemBasicCountText.text = master.dataController.GetItemCountByType("basic").ToString();
     }
 
     private void UnsetMenu()
@@ -160,7 +160,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
     private void GameItemChange(object sender, EventArgs e)
     {
-        uiItemBasicCountText.text = master.data_controller.GetItemCountByType("basic").ToString();
+        uiItemBasicCountText.text = master.dataController.GetItemCountByType("basic").ToString();
     }
 
     public void SetSceneTitleDisplay(string sceneTitle, string sceneSubtitle)

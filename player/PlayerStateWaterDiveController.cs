@@ -4,145 +4,150 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateWaterDiveController : IPlayerStateController
+    public class PlayerStateWaterDiveController : MonoBehaviour, IPlayerStateController
     {
-        int update_count_water_dive = 0;
-        int update_count_interact_released = 0;
-        int update_count_positive_released = 0;
+        int updateCountWaterDive = 0;
+        int updateCountInteractReleased = 0;
+        int updateCountPositiveReleased = 0;
 
         float input_horizontal = 0f;
         float input_vertical = 0f;
 
         float turning_vertical = 0f;
 
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
-            update_count_water_dive = 0;
-            update_count_interact_released = 0;
-            update_count_positive_released = 0;
+            // set the animation.
+
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("water_dive");
+
+            updateCountWaterDive = 0;
+            updateCountInteractReleased = 0;
+            updateCountPositiveReleased = 0;
 
             // set camera to start auto rotation.
 
-            mc.camera_object.GetComponent<CameraController>().SetAutoRotation();
+            mc.cameraObject.GetComponent<CameraController>().SetAutoRotation();
 
             // set physics.
 
-            mc.is_under_gravity = false;
+            mc.isUnderGravity = false;
 
-            mc.audio_source.clip = mc.sfx_player_water_jump;
-            mc.audio_source.Play();
+            mc.audioSource.clip = mc.soundWaterJump;
+            mc.audioSource.Play();
 
-            mc.dive_direction = mc.player_renderer_object.transform.forward.normalized;
+            mc.diveDirection = mc.rendererObject.transform.forward.normalized;
 
             // zero out pitch, unless previous
             // state was also water dive.
 
-            if (mc.player_state_previous != PlayerState.player_water_dive)
+            if (mc.previousStateType != PlayerStateType.playerWaterDive)
                 turning_vertical = 0.0f;
 
             // zero out vertical velocity and add diving force.
 
-            mc.rigid_body.velocity = new Vector3
-                (mc.rigid_body.velocity.x, 0, mc.rigid_body.velocity.z);
+            mc.rigidBody.velocity = new Vector3
+                (mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
 
-            mc.rigid_body.AddForce(-Physics.gravity, ForceMode.Acceleration);
-            mc.rigid_body.AddForce(mc.dive_direction * (JUMP_FORCE_MULTIPLIER * 2), ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(-Physics.gravity, ForceMode.Acceleration);
+            mc.rigidBody.AddForce(mc.diveDirection * (JUMP_FORCE_MULTIPLIER * 2), ForceMode.VelocityChange);
 
             // enable the attack forward trigger.
 
-            mc.player_attack_forward_collider.enabled = true;
+            mc.attackForward1Collider.enabled = true;
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
-            update_count_water_dive++;
+            updateCountWaterDive++;
 
-            if (!mc.master.input_controller.isInputInteract)
-                update_count_interact_released++;
+            if (!mc.master.inputController.isInputInteract)
+                updateCountInteractReleased++;
             else
-                update_count_interact_released = 0;
+                updateCountInteractReleased = 0;
 
-            if (!mc.master.input_controller.isInputPositive)
-                update_count_positive_released++;
+            if (!mc.master.inputController.isInputPositive)
+                updateCountPositiveReleased++;
             else
-                update_count_positive_released = 0;
+                updateCountPositiveReleased = 0;
 
             // water dive again if button raised.
 
-            if (mc.is_raised_interact 
-                && update_count_water_dive >= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
+            if (mc.isRaisedInteract 
+                && updateCountWaterDive >= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_water_dive);
+                mc.ChangePlayerState(PlayerStateType.playerWaterDive);
                 return;
             }
 
             // stop diving if button released for a time.
 
-            if (update_count_interact_released >= UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN
-                && update_count_positive_released >= UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN)
+            if (updateCountInteractReleased >= UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN
+                && updateCountPositiveReleased >= UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_water_default);
+                mc.ChangePlayerState(PlayerStateType.playerWaterDefault);
                 return;
             }
 
             // stop diving if outside of water.
 
-            if (!mc.is_partial_submerged)
+            if (!mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_jump);
+                mc.ChangePlayerState(PlayerStateType.playerJump);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             // set camera to start auto rotation.
 
-            mc.camera_object.GetComponent<CameraController>().UnsetAutoRotation();
+            mc.cameraObject.GetComponent<CameraController>().UnsetAutoRotation();
 
             // set physics.
 
-            mc.is_under_gravity = true;
+            mc.isUnderGravity = true;
 
             // disable the attack forward trigger.
 
-            mc.player_attack_forward_collider.enabled = false;
+            mc.attackForward1Collider.enabled = false;
         }
 
 
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
             UpdateStateMovement(mc);
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
             // update the internal direction transform.
 
-            mc.facing_direction = new Vector3(mc.dive_direction.x, 0, mc.dive_direction.z);
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_direction_object.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+            mc.facingDirection = new Vector3(mc.diveDirection.x, 0, mc.diveDirection.z);
+            mc.facingDirectionDelta = Vector3.RotateTowards(mc.directionObject.transform.forward, mc.facingDirection, ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move direction transform a step closer to the target.
-            mc.player_direction_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
 
             // tilt the renderer to the swimming direction.
 
-            mc.facing_direction = mc.dive_direction;
-            mc.facing_direction_delta = Vector3.RotateTowards(mc.player_renderer_object.transform.forward, mc.facing_direction, ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER, 0.0f);
+            mc.facingDirection = mc.diveDirection;
+            mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER, 0.0f);
 
-            mc.player_renderer_object.transform.rotation = Quaternion.LookRotation(mc.facing_direction_delta);
+            mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
-        public void UpdateStateMovement(PlayerMovementController mc)
+        public void UpdateStateMovement(PlayerController mc)
         {
-            input_horizontal = mc.input_directional.x;
-            input_vertical = mc.input_directional.z;
+            input_horizontal = mc.inputDirectional.x;
+            input_vertical = mc.inputDirectional.z;
 
             float horizontal_turning_rate = input_horizontal * 0.075f;
             float vertical_turning_rate = input_vertical * 0.05f;
@@ -150,41 +155,46 @@ namespace Assets.script
             turning_vertical += vertical_turning_rate;
             turning_vertical = Mathf.Clamp(turning_vertical, -2, 2);
 
-            mc.dive_direction
-                = mc.player_direction_object.transform.forward
-                + mc.player_direction_object.transform.right * horizontal_turning_rate
-                + mc.player_direction_object.transform.up * turning_vertical;
+            mc.diveDirection
+                = mc.directionObject.transform.forward
+                + mc.directionObject.transform.right * horizontal_turning_rate
+                + mc.directionObject.transform.up * turning_vertical;
 
-            if (!mc.master.input_controller.isInputPositive)
+            if (!mc.master.inputController.isInputPositive)
                 return;
 
-            mc.rigid_body.AddForce(mc.dive_direction.normalized * 0.1f, ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(mc.diveDirection.normalized * 0.1f, ForceMode.VelocityChange);
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            if (update_count_water_dive <= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
+            if (updateCountWaterDive <= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
             {
-                if (mc.rigid_body.velocity.magnitude > MAX_SPEED_WATER*2)
-                    mc.rigid_body.velocity = mc.rigid_body.velocity.normalized * MAX_SPEED_WATER*2;
+                if (mc.rigidBody.velocity.magnitude > MAX_SPEED_WATER*2)
+                    mc.rigidBody.velocity = mc.rigidBody.velocity.normalized * MAX_SPEED_WATER*2;
             }
             else
             {
-                if (mc.rigid_body.velocity.magnitude > MAX_SPEED_WATER)
-                    mc.rigid_body.velocity = mc.rigid_body.velocity.normalized * MAX_SPEED_WATER;
+                if (mc.rigidBody.velocity.magnitude > MAX_SPEED_WATER)
+                    mc.rigidBody.velocity = mc.rigidBody.velocity.normalized * MAX_SPEED_WATER;
             }
 
             
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.state_jump.UpdateStateDragAndFriction(mc);
+            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
+        }
+
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerWaterDive;
         }
     }
 }

@@ -5,109 +5,110 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.AttributeDataClasses;
+using static Assets.script.GameConstants;
 
 namespace Assets.script
 {
     public class PlayerStaticMethods
     {
-        public static void Movement(PlayerMovementController mc, Vector3 direction, Vector3 force)
+        public static void Movement(PlayerController mc, Vector3 direction, Vector3 force)
         {
             // do raycasts.
 
-            mc.is_movement_hit = Physics.SphereCast
+            mc.isMovementHit = Physics.SphereCast
                 (mc.transform.position, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, direction, 
-                out mc.movement_hit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE,GameConstants.LAYER_MASK_ALL_BUT_ENTITIES);
+                out mc.movementHit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE,MASK_PLAYER_IGNORES);
 
             // apply forces based on raycast hits.
 
-            if (!mc.is_movement_hit)
+            if (!mc.isMovementHit)
             {
                 // no obstace directly ahead.
 
-                mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
+                mc.rigidBody.AddForce(force, ForceMode.VelocityChange);
             }
         }
 
-        public static void StepMovement(PlayerMovementController mc, Vector3 direction, Vector3 force)
+        public static void StepMovement(PlayerController mc, Vector3 direction, Vector3 force)
         {
             // do raycasts.
 
-            mc.is_movement_hit = Physics.SphereCast
+            mc.isMovementHit = Physics.SphereCast
                 (mc.transform.position, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, direction, 
-                out mc.movement_hit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE, GameConstants.LAYER_MASK_ALL_BUT_PLAYER);
+                out mc.movementHit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE, MASK_PLAYER_IGNORES);
 
             // apply forces based on raycast hits.
 
-            if (mc.is_movement_hit)
+            if (mc.isMovementHit)
             {
                 // initial step cast.
-                mc.is_step_movement_hit = Physics.SphereCast
-                    (mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, direction, out mc.step_movement_hit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE);
+                mc.isStepMovementHit = Physics.SphereCast
+                    (mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, direction, out mc.stepMovementHit, PlayerConstants.MOVEMENT_SPHERECAST_DISTANCE, MASK_PLAYER_IGNORES);
 
                 // addition step check for ceilings.
-                if (Physics.CheckSphere(mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, GameConstants.LAYER_MASK_ALL_BUT_PLAYER))
-                    mc.is_step_movement_hit = true;
+                if (Physics.CheckSphere(mc.transform.position + PlayerConstants.STEP_MOVEMENT_OFFSET, PlayerConstants.MOVEMENT_SPHERECAST_RADIUS, MASK_PLAYER_IGNORES))
+                    mc.isStepMovementHit = true;
 
-                if (!mc.is_step_movement_hit)
+                if (!mc.isStepMovementHit)
                 {
                     // step obstace, move up and move directly ahead.
-                    if (mc.rigid_body.velocity.y < PlayerConstants.STEP_MAX_VELOCITY)
-                        mc.rigid_body.AddForce(Vector3.up, ForceMode.VelocityChange);
+                    if (mc.rigidBody.velocity.y < PlayerConstants.STEP_MAX_VELOCITY)
+                        mc.rigidBody.AddForce(Vector3.up, ForceMode.VelocityChange);
 
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
+                    mc.rigidBody.AddForce(force, ForceMode.VelocityChange);
 
                     // force the sphere grounded status while moving up short steps.
-                    mc.is_spherecast_grounded = true;
+                    mc.isSpherecastGrounded = true;
                 }
                 else
                 {
                     // full obstacle, move on a plane to the collided surface.
 
-                    force = Vector3.ProjectOnPlane(force, mc.movement_hit.normal);
-                    mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
+                    force = Vector3.ProjectOnPlane(force, mc.movementHit.normal);
+                    mc.rigidBody.AddForce(force, ForceMode.VelocityChange);
                 }
             }
             else
             {
                 // no obstace directly ahead.
 
-                mc.rigid_body.AddForce(force, ForceMode.VelocityChange);
+                mc.rigidBody.AddForce(force, ForceMode.VelocityChange);
             }
         }
 
-        public static void HandleDamageObject(PlayerMovementController mc, GameObject damage_object, bool is_stay)
+        public static void HandleDamageObject(PlayerController mc, GameObject damage_object, bool is_stay)
         {
             // get the objects damage attributes (or default)
             // the handle moving into the damage state.
 
-            mc.damage_source = damage_object.gameObject;
-            mc.damage_type = damage_object.gameObject.GetComponent<AttributeDamageController>()?.data;
-            if (mc.damage_type == null)
-                mc.damage_type = AttributeDamageData.GetDefault();
+            mc.damageSourceObject = damage_object.gameObject;
+            mc.damageData = damage_object.gameObject.GetComponent<AttributeDamageController>()?.data;
+            if (mc.damageData == null)
+                mc.damageData = AttributeDamageData.GetDefault();
 
             // move to damage mode if not already in damage mode, or instant damage.
             // instant damage applied only if entering the trigger (not on stay).
 
-            if (!mc.isDamaged || (mc.damage_type.isDamageInstant && !is_stay))
+            if (!mc.isDamaged || (mc.damageData.isDamageInstant && !is_stay))
             {
-                mc.SetDamaged(mc.damage_type);
+                mc.SetDamaged(mc.damageData);
             }
         }
 
-        public static void HandleRepelObject(PlayerMovementController mc, GameObject repel_object)
+        public static void HandleRepelObject(PlayerController mc, GameObject repel_object)
         {
             // get the objects repel attributes (or default)
             // the handle moving into the repel state.
 
-            mc.repel_source = repel_object.gameObject;
-            mc.repel_type = repel_object.gameObject.GetComponent<AttributeRepelController>()?.data;
-            if (mc.repel_type == null)
-                mc.repel_type = AttributeDamageData.GetDefault();
+            mc.repelSourceObject = repel_object.gameObject;
+            mc.repelData = repel_object.gameObject.GetComponent<AttributeRepelController>()?.data;
+            if (mc.repelData == null)
+                mc.repelData = AttributeDamageData.GetDefault();
 
-            if (mc.player_state != PlayerState.player_repel)
-                mc.ChangePlayerState(PlayerState.player_repel);
+            if (mc.currentStateType != PlayerStateType.playerRepel)
+                mc.ChangePlayerState(PlayerStateType.playerRepel);
         }
     }
 

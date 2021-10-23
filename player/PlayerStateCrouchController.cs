@@ -5,78 +5,85 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateCrouchController : IPlayerStateController
+    public class PlayerStateCrouchController : MonoBehaviour, IPlayerStateController
     {
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
-            mc.player_animator.SetTrigger("anim_crouch");
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("crouch");
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
             // exit to default if no long grounded.
 
-            if(!mc.is_spherecast_grounded)
+            if(!mc.isSpherecastGrounded)
             {
-                mc.ChangePlayerState(PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
 
             // exit to default if crouch
             // button released.
 
-            if(!mc.master.input_controller.isInputPositive2)
+            if(!mc.master.inputController.isInputPositive2)
             {
-                mc.ChangePlayerState(PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
 
             // exit to crouch jump 
             // if jump putton pressed.
 
-            if(mc.is_raised_positive)
+            if(mc.isRaisedPositive
+                && mc.master.playerController.canCrouchJump)
             {
-                mc.ChangePlayerState(PlayerState.player_crouch_jump);
+                mc.ChangePlayerState(PlayerStateType.playerCrouchJump);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
-            mc.state_default.UpdateStateSpeed(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        public void UpdateStateAnimator(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.rigid_body.drag = DRAG_AIR;
-            mc.player_sphere_collider.material.dynamicFriction = 0.1f;
-            mc.player_sphere_collider.material.staticFriction = 0.1f;
-            mc.player_sphere_collider.material.frictionCombine = PhysicMaterialCombine.Minimum;
+            mc.rigidBody.drag = DRAG_AIR;
+            mc.rbCollider.material.dynamicFriction = 0.1f;
+            mc.rbCollider.material.staticFriction = 0.1f;
+            mc.rbCollider.material.frictionCombine = PhysicMaterialCombine.Minimum;
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
-            mc.state_default.UpdateStateSlide(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSlide(mc);
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            mc.state_default.UpdateStateSpeed(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
+        }
+
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerCrouch;
         }
     }
 }

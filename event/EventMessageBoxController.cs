@@ -66,7 +66,7 @@ namespace Assets.script.Event
 
         private void Start()
         {
-            master = GameMasterController.GetMasterController();
+            master = GameMasterController.GlobalMasterController;
             audioSource = this.gameObject.AddComponent<AudioSource>();
         }
 
@@ -92,7 +92,7 @@ namespace Assets.script.Event
             outputText = string.Empty;
             outputTextIndex = 0;
 
-            master.user_interface_controller.ui_controller_message_box.SetMessageBox(messageIcon);
+            master.userInterfaceController.ui_controller_message_box.SetMessageBox(messageIcon);
 
             gameCutsceneDelayProcessCount = 0;
 
@@ -148,7 +148,7 @@ namespace Assets.script.Event
                 gameCutsceneDelayProcessCount++;
             }
 
-            master.user_interface_controller.ui_controller_message_box.UpdateMessageBox(outputText);
+            master.userInterfaceController.ui_controller_message_box.UpdateMessageBox(outputText);
         }
 
         public bool GetIsEventComplete()
@@ -158,43 +158,43 @@ namespace Assets.script.Event
 
             if (isQuestion)
             {
-                if (!master.input_controller.wasInputPositive
-                    && master.input_controller.isInputPositive
+                if (!master.inputController.wasInputPositive
+                    && master.inputController.isInputPositive
                     && outputTextIndex == inputText.Length)
                 {
-                    audioSource.clip = master.audio_controller.a_message_box_positive;
+                    audioSource.clip = master.audioController.a_message_box_positive;
                     audioSource.pitch = 1.0f;
                     audioSource.Play();
 
-                    master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+                    master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
                     isQuestionAnsweredPositive = true;
                     return true;
                 }
 
-                if (!master.input_controller.wasInputNegative
-                    && master.input_controller.isInputNegative
+                if (!master.inputController.wasInputNegative
+                    && master.inputController.isInputNegative
                     && outputTextIndex == inputText.Length)
                 {
-                    audioSource.clip = master.audio_controller.a_message_box_negative;
+                    audioSource.clip = master.audioController.a_message_box_negative;
                     audioSource.pitch = 1.0f;
                     audioSource.Play();
 
-                    master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+                    master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
                     isQuestionAnsweredPositive = false;
                     return true;
                 }
             }
             else
             {
-                if (!master.input_controller.wasInputPositive
-                    && master.input_controller.isInputPositive
+                if (!master.inputController.wasInputPositive
+                    && master.inputController.isInputPositive
                     && outputTextIndex == inputText.Length)
                 {
-                    audioSource.clip = master.audio_controller.a_message_box_continue;
+                    audioSource.clip = master.audioController.a_message_box_continue;
                     audioSource.pitch = 1.0f;
                     audioSource.Play();
 
-                    master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+                    master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
                     isQuestionAnsweredPositive = true;
                     return true;
                 }
@@ -267,7 +267,7 @@ namespace Assets.script.Event
 
         public void FinishEvent()
         {
-            master.user_interface_controller.ui_controller_message_box.UnsetMessageBox();
+            master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
         }
     }
 }

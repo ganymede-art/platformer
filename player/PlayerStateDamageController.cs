@@ -5,73 +5,96 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.PlayerEnums;
+
 using static Assets.script.PlayerConstants;
 using Assets.script.attribute;
 
 namespace Assets.script
 {
-    public class PlayerStateDamageController : IPlayerStateController
+    public class PlayerStateDamageController : MonoBehaviour, IPlayerStateController
     {
         int update_count_damage = 0;
 
-        public void BeginState(PlayerMovementController mc)
+        public void BeginState(PlayerController mc)
         {
             update_count_damage = 0;
 
             // zero out velocities.
-            mc.rigid_body.velocity = Vector3.zero;
+            mc.rigidBody.velocity = Vector3.zero;
 
-            Vector3 damageVector = AttributeStaticMethods.GetAttributeDamageVector(mc.damage_type, mc.damage_source, mc.gameObject);
+            Vector3 damageVector = AttributeStaticMethods.GetAttributeDamageVector(mc.damageData, mc.damageSourceObject, mc.gameObject);
 
-            mc.rigid_body.AddForce(damageVector, ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(damageVector, ForceMode.VelocityChange);
 
             // play  damage sound if defined.
             // or player default damage sound.
 
-            mc.audio_source.clip = mc.damage_type.damageSound ?? mc.sfx_player_hurt_default;
-            mc.audio_source.Play();
+            mc.audioSource.clip = mc.damageData.damageSound ?? mc.soundHurt;
+            mc.audioSource.Play();
         }
 
-        public void CheckState(PlayerMovementController mc)
+        public void CheckState(PlayerController mc)
         {
             update_count_damage++;
 
             if (update_count_damage >= 100)
             {
-                mc.ChangePlayerState(PlayerEnums.PlayerState.player_default);
+                mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
             }
         }
 
-        public void FinishState(PlayerMovementController mc)
+        public void FinishState(PlayerController mc)
         {
             
         }
 
-        public void UpdateState(PlayerMovementController mc)
+        public void UpdateState(PlayerController mc)
         {
-            mc.state_jump.UpdateStateMovement(mc);
+            damageMovement(mc);
         }
 
-        public void UpdateStateAnimator(PlayerMovementController mc)
+        private void damageMovement(PlayerController mc)
+        {
+            if (mc.isSpherecastGrounded)
+                return;
+
+            // input movement relative to camera.
+
+            var camera_relative_movement = Quaternion.Euler(0, mc.cameraObject.transform.eulerAngles.y, 0) * mc.inputDirectional;
+
+            // force
+
+            var force = camera_relative_movement * PlayerConstants.ACCELERATION_AIR;
+
+            // move.
+
+            PlayerStaticMethods.Movement(mc, camera_relative_movement, force);
+        }
+
+        public void UpdateStateAnimator(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateDragAndFriction(PlayerMovementController mc)
+        public void UpdateStateDragAndFriction(PlayerController mc)
         {
-            mc.state_jump.UpdateStateDragAndFriction(mc);
+            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
         }
 
-        public void UpdateStateSlide(PlayerMovementController mc)
+        public void UpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateSpeed(PlayerMovementController mc)
+        public void UpdateStateSpeed(PlayerController mc)
         {
-            mc.state_default.UpdateStateSpeed(mc);
+            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
+        }
+
+        public PlayerStateType GetStateType()
+        {
+            return PlayerStateType.playerDamage;
         }
     }
 }

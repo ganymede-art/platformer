@@ -88,8 +88,8 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
 
         is_visible =
         (
-            (master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
-                || master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION)
+            (master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
+                || master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION)
             &&
             (master.gameState == GameState.Cutscene
                 || master.gameState == GameState.GameCutscene)
@@ -99,19 +99,19 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
 
         // set visible only if the current event type is message box.
 
-        if (master.cutscene_controller.currentEventSource == null)
+        if (master.cutsceneController.currentEventSource == null)
             return;
 
-        continue_object.SetActive(master.cutscene_controller.Is_Current_Event_Process_Complete
-            && master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
+        continue_object.SetActive(master.cutsceneController.Is_Current_Event_Process_Complete
+            && master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
             && master.gameState == GameState.Cutscene);
 
-        positive_object.SetActive(master.cutscene_controller.Is_Current_Event_Process_Complete
-            && master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
+        positive_object.SetActive(master.cutsceneController.Is_Current_Event_Process_Complete
+            && master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
             && master.gameState == GameState.Cutscene);
 
-        negative_object.SetActive(master.cutscene_controller.Is_Current_Event_Process_Complete
-            && master.cutscene_controller.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
+        negative_object.SetActive(master.cutsceneController.Is_Current_Event_Process_Complete
+            && master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
             && master.gameState == GameState.Cutscene);
     }
 

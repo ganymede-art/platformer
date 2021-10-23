@@ -13,7 +13,7 @@ public class EventSaveGameController : MonoBehaviour, IEventController
 
     private void Start()
     {
-        master = GameMasterController.GetMasterController();
+        master = GameMasterController.GlobalMasterController;
     }
 
     public GameObject GetNextEventSource()
@@ -30,7 +30,7 @@ public class EventSaveGameController : MonoBehaviour, IEventController
     {
         // save current data.
 
-        master.data_controller.SaveData(save_player_origin, save_camera_origin);
+        master.dataController.SaveData(save_player_origin, save_camera_origin);
     }
 
     public void ProcessEvent()
