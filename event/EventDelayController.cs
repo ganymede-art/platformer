@@ -6,6 +6,13 @@ using UnityEngine.Serialization;
 
 public class EventDelayController : MonoBehaviour, IEventController
 {
+    private GameEvent parentEvent;
+    public GameEvent ParentEvent
+    {
+        get => parentEvent;
+        set => parentEvent = value;
+    }
+
     private GameMasterController master;
     private float startTime = 0.0f;
 
@@ -29,33 +36,40 @@ public class EventDelayController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_DELAY;
     }
 
-    public void StartEvent()
+    public void StartEvent(GameEvent gameEvent)
     {
         startTime = Time.time;
     }
 
-    public void ProcessEvent()
+    public void ProcessEvent(GameEvent gameEvent)
     {
         return;
     }
 
-    public bool GetIsEventComplete()
+    public bool GetIsEventComplete(GameEvent gameEvent)
     {
         return (Time.time - startTime) >= delaySeconds;
     }
 
-    public bool GetIsGameEventComplete()
+    public bool GetIsGameEventComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public bool GetIsProcessComplete()
+    public bool GetIsProcessComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public void FinishEvent()
+    public void FinishEvent(GameEvent gameEvent)
     {
         return;
+    }
+
+    public void ResetEvent(GameEvent gameEvent) { }
+
+    private void OnDrawGizmos()
+    {
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
     }
 }

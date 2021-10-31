@@ -6,6 +6,13 @@ using UnityEngine.Serialization;
 
 public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
 {
+    private GameEvent parentEvent;
+    public GameEvent ParentEvent
+    {
+        get => parentEvent;
+        set => parentEvent = value;
+    }
+
     private GameMasterController master;
 
     [FormerlySerializedAs("next_event_source")]
@@ -27,35 +34,43 @@ public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_SET_PLAYER_ANIMATOR;
     }
 
-    public void StartEvent()
+    public void StartEvent(GameEvent gameEvent)
     {
         var player = GameMasterController.GlobalPlayerObject;
         var animator = player.GetComponentInChildren<Animator>();
+        animator.ResetAllAnimatorTriggers();
         animator.SetTrigger(trigger);
     }
 
-    public void ProcessEvent()
+    public void ProcessEvent(GameEvent gameEvent)
     {
         return;
     }
 
-    public bool GetIsEventComplete()
+    public bool GetIsEventComplete(GameEvent gameEvent)
     {
         return true;
     }
 
-    public bool GetIsProcessComplete()
+    public bool GetIsProcessComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public bool GetIsGameEventComplete()
+    public bool GetIsGameEventComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public void FinishEvent()
+    public void FinishEvent(GameEvent gameEvent)
     {
         return;
+    }
+
+    public void ResetEvent(GameEvent gameEvent) { }
+
+    private void OnDrawGizmos()
+    {
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
     }
 }

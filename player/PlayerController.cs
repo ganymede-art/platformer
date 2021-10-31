@@ -68,10 +68,12 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized] public RaycastHit raycastHitInfo;
     [NonSerialized] public bool isRaycastHit = false;
+    [NonSerialized] public bool wasRaycastGrounded = false;
     [NonSerialized] public bool isRaycastGrounded = false;
 
     [NonSerialized] public RaycastHit spherecastHitInfo;
     [NonSerialized] public bool isSpherecastHit = false;
+    [NonSerialized] public bool wasSpherecastGrounded = false;
     [NonSerialized] public bool isSpherecastGrounded = false;
     [NonSerialized] public bool isSpherecastGroundedSinceStateBegin = false;
 
@@ -259,8 +261,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (master.gameState == GameState.Game 
-            || master.gameState == GameState.GameCutscene)
+        if (master.gameState == GameState.Game)
         {
             UpdatePlayerInput();
             UpdateActorDataManager();
@@ -279,8 +280,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (master.gameState == GameState.Game 
-            || master.gameState == GameState.GameCutscene)
+        if (master.gameState == GameState.Game)
         {
             // run update if in game state.
 
@@ -334,7 +334,6 @@ public class PlayerController : MonoBehaviour
         // from a non-game state.
 
         if (master.gameStatePrevious != GameState.Game
-            && master.gameStatePrevious != GameState.GameCutscene
             && master.GameStateTime <= INPUT_GAME_STATE_DELAY)
             return;
 
@@ -403,6 +402,7 @@ public class PlayerController : MonoBehaviour
             raycastGroundedSlopeDirection = Vector3.Cross(temp, raycastHitInfo.normal);
 
             // set grounded, if under max distance.
+            wasRaycastGrounded = isRaycastGrounded;
             isRaycastGrounded = raycastHitInfo.distance <= groundedRaycastMaxDistance 
                 && raycastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
 
@@ -443,6 +443,7 @@ public class PlayerController : MonoBehaviour
                 ? Vector3.Angle(raycastHitInfo.normal, Vector3.up)
                 : raycastGroundedSlopeAngle;
 
+            wasSpherecastGrounded = isSpherecastGrounded;
             isSpherecastGrounded = spherecastHitInfo.distance <= groundedSpherecastMaxDistance
                 && spherecastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
 
@@ -493,11 +494,11 @@ public class PlayerController : MonoBehaviour
     private void UpdateAnimatorCutscene()
     {
 
-        if (master.cutsceneController.currentEventSource == null)
+        if (master.cutsceneController.orderedEvents.Count == 0)
             return;
 
         facingDirectionDelta = Vector3.RotateTowards(rendererObject.transform.forward,
-            master.cutsceneController.currentEventSource.transform.position - rendererObject.transform.position,
+            master.cutsceneController.orderedEvents[0].controllerSource.transform.position - rendererObject.transform.position,
             PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER,
             0.0f);
 
@@ -520,36 +521,35 @@ public class PlayerController : MonoBehaviour
 
     private void ChangeGameState(object sender, EventArgs e)
     {
+        Debug.Log("Game State Changed");
+
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        if (args.gameState == GameState.Game || master.gameState == GameState.GameCutscene)
+        if (master.gameState == GameState.Game)
             playerAnimator.runtimeAnimatorController = animatorGame;
-        else if (args.gameState == GameState.GameOver)
+        else if (master.gameState == GameState.GameOver)
             playerAnimator.runtimeAnimatorController = animatorGameOver;
-        else if (args.gameState == GameState.Cutscene)
+        else if (master.gameState == GameState.Cutscene)
             playerAnimator.runtimeAnimatorController = animatorCutscene;
         else
             playerAnimator.runtimeAnimatorController = animatorGame;
 
         // store, or restore, velocity when changing state.
 
-        if (args.gameState == GameState.Game
-            || args.gameState == GameState.GameCutscene)
+        if (master.gameState == GameState.Game)
         {
-            if(args.game_state_previous != GameState.Game 
-                && args.game_state_previous != GameState.GameCutscene)
+            if(master.gameStatePrevious != GameState.Game)
                 ResumeController(e);
         }
         else
         {
-            if (args.game_state_previous == GameState.Game
-                || args.game_state_previous == GameState.GameCutscene)
+            if (master.gameStatePrevious == GameState.Game)
                 PauseController(e);
         }
 
         // if not in a game state, clear the directional input.
 
-        if (args.gameState != GameState.Game && master.gameState != GameState.GameCutscene)
+        if (args.gameState != GameState.Game)
             inputDirectional = Vector3.zero;
     }
 
@@ -712,8 +712,7 @@ public class PlayerController : MonoBehaviour
 
     public ActorFootstepManager UpdateFootstepController()
     {
-        if (master.gameState != GameState.Game
-            && master.gameState != GameState.GameCutscene)
+        if (master.gameState != GameState.Game)
             return null;
 
         if(currentStateType == PlayerStateType.playerWaterDive)

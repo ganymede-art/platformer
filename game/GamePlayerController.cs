@@ -42,7 +42,7 @@ public class GamePlayerController : MonoBehaviour
 
     void Update()
     {
-        if (master.gameState == GameState.Game || master.gameState == GameState.GameCutscene)
+        if (master.gameState == GameState.Game)
         {
             // game over.
 

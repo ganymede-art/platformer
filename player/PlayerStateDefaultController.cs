@@ -175,6 +175,30 @@ namespace Assets.script
 
         public void UpdateStateAnimator(PlayerController mc)
         {
+            // update the animator.
+
+            if (mc.isSpherecastGrounded)
+            {
+                if(mc.isInputDirectional)
+                {
+                    mc.playerAnimator.ResetAllAnimatorTriggers();
+                    mc.playerAnimator.SetTrigger("move");
+                }
+                else
+                {
+                    mc.playerAnimator.ResetAllAnimatorTriggers();
+                    mc.playerAnimator.SetTrigger("idle");
+                }
+            }
+            else
+            {
+                if (mc.rigidBody.velocity.y < -3)
+                {
+                    mc.playerAnimator.ResetAllAnimatorTriggers();
+                    mc.playerAnimator.SetTrigger("jump_down");
+                }
+            }
+
             // update player facing direction.
 
             mc.facingDirection = Quaternion.Euler(0, mc.cameraObject.transform.rotation.eulerAngles.y, 0) * mc.inputDirectional;

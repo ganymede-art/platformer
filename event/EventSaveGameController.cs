@@ -2,14 +2,25 @@ using Assets.script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class EventSaveGameController : MonoBehaviour, IEventController
 {
+    private GameEvent parentEvent;
+    public GameEvent ParentEvent
+    {
+        get => parentEvent;
+        set => parentEvent = value;
+    }
+
     private GameMasterController master;
 
-    public GameObject next_event_source = null;
-    public string save_player_origin;
-    public string save_camera_origin;
+    [FormerlySerializedAs("next_event_source")]
+    public GameObject nextEventSource = null;
+    [FormerlySerializedAs("save_player_origin")]
+    public string savePlayerOrigin;
+    [FormerlySerializedAs("save_camera_origin")]
+    public string saveCameraOrigin;
 
     private void Start()
     {
@@ -18,7 +29,7 @@ public class EventSaveGameController : MonoBehaviour, IEventController
 
     public GameObject GetNextEventSource()
     {
-        return next_event_source;
+        return nextEventSource;
     }
 
     public string GetEventType()
@@ -26,35 +37,39 @@ public class EventSaveGameController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_SAVE_GAME;
     }
 
-    public void StartEvent()
+    public void StartEvent(GameEvent gameEvent)
     {
         // save current data.
 
-        master.dataController.SaveData(save_player_origin, save_camera_origin);
+        master.dataController.SaveData(savePlayerOrigin, saveCameraOrigin);
     }
 
-    public void ProcessEvent()
+    public void ProcessEvent(GameEvent gameEvent)
     {
         return;
     }
 
-    public bool GetIsProcessComplete()
+    public bool GetIsProcessComplete(GameEvent gameEvent)
     {
         return true;
     }
 
-    public bool GetIsEventComplete()
+    public bool GetIsEventComplete(GameEvent gameEvent)
     {
         return true;
     }
 
-    public bool GetIsGameEventComplete()
+    public bool GetIsGameEventComplete(GameEvent gameEvent)
     {
         return true;
     }
 
-    public void FinishEvent()
+    public void FinishEvent(GameEvent gameEvent) { }
+    public void ResetEvent(GameEvent gameEvent) { }
+
+    private void OnDrawGizmos()
     {
-        return;
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
     }
+
 }

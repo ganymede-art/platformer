@@ -12,8 +12,8 @@ namespace Assets.script.camera
     [ExecuteInEditMode]
     public class CameraResolutionController : MonoBehaviour
     {
-        public int w = 720;
-        int h;
+        private int w = 720;
+        public int h = 480;
         protected void Start()
         {
 
@@ -22,8 +22,8 @@ namespace Assets.script.camera
         void Update()
         {
 
-            float ratio = ((float)Camera.main.pixelHeight / (float)Camera.main.pixelWidth);
-            h = Mathf.RoundToInt(w * ratio);
+            float ratio = ((float)Camera.main.pixelWidth / (float)Camera.main.pixelHeight);
+            w = Mathf.RoundToInt(h * ratio);
 
         }
 

@@ -14,8 +14,7 @@ public enum GameState
     Game,
     Loading,
     GameOver,
-    Cutscene,
-    GameCutscene
+    Cutscene
 }
 
 public class GameMasterController : MonoBehaviour
@@ -149,7 +148,7 @@ public class GameMasterController : MonoBehaviour
     {
         gameStateTimer += Time.deltaTime;
 
-        if(gameState == GameState.Game || gameState == GameState.GameCutscene)
+        if(gameState == GameState.Game)
         {
             if(!inputController.wasInputStart && inputController.isInputStart)
             {

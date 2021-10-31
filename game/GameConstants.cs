@@ -66,6 +66,7 @@ namespace Assets.script
         public const string EVENT_TYPE_CONDITIONAL_INT = "conditional_int";
         public const string EVENT_TYPE_PLAY_MUSIC = "play_music";
         public const string EVENT_TYPE_SET_PLAYER_ABILITY = "set_player_ability";
+        public const string EVENT_TYPE_SET_OBJECT_ACTIVE = "set_object_active";
 
         public enum CameraMode
         {

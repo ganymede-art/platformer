@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
 using System;
+using UnityEngine.Serialization;
 
 public class MapInstantEventTrigger : MonoBehaviour
 {
@@ -10,10 +11,13 @@ public class MapInstantEventTrigger : MonoBehaviour
     private BoxCollider trigger;
     private bool is_triggered = false;
 
-    public GameObject event_source;
-    public bool is_one_shot = false;
-
-    public bool is_game_cutscene = false;
+    [FormerlySerializedAs("event_source")]
+    public GameObject eventSource;
+    [FormerlySerializedAs("is_one_shot")]
+    public bool isOneShot = false;
+    public GameState gameState = GameState.Cutscene;
+    public bool isOrdered;
+    public bool isPriority;
 
     private void Start()
     {
@@ -23,7 +27,7 @@ public class MapInstantEventTrigger : MonoBehaviour
 
     private void Update()
     {
-        if(is_triggered && !is_one_shot)
+        if(is_triggered && !isOneShot)
         {
             // unset trigger if player leaves trigger bounds.
 
@@ -43,7 +47,20 @@ public class MapInstantEventTrigger : MonoBehaviour
             if (!is_triggered)
             {
                 is_triggered = true;
-                master.cutsceneController.StartCutscene(event_source, is_game_cutscene);
+
+                var gameEvent = new GameEvent(gameState, eventSource);
+
+                if (isOrdered)
+                {
+                    if (isPriority)
+                        master.cutsceneController.InsertOrderedGameEvent(gameEvent);
+                    else
+                        master.cutsceneController.AddOrderedGameEvent(gameEvent);
+                }
+                else
+                {
+                    master.cutsceneController.AddGeneralGameEvent(gameEvent);
+                }
             }
         }
     }

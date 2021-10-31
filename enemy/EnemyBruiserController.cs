@@ -199,8 +199,7 @@ namespace Assets.script.enemy
 
         private void Update()
         {
-            if (master.gameState == GameState.Game
-                || master.gameState == GameState.GameCutscene)
+            if (master.gameState == GameState.Game)
             {
                 states[currentStateType].UpdateState(this);
                 states[currentStateType].UpdateStateAnimator(this);
@@ -243,8 +242,7 @@ namespace Assets.script.enemy
 
         private void FixedUpdate()
         {
-            if (master.gameState == GameState.Game
-                || master.gameState == GameState.GameCutscene)
+            if (master.gameState == GameState.Game)
             {
                 states[currentStateType].CheckState(this);
                 states[currentStateType].FixedUpdateState(this);

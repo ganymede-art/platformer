@@ -23,7 +23,7 @@ public class CameraController : MonoBehaviour
     const float MAX_DISTANCE_MIN = 1.0f;
     const float MAX_DISTANCE_MAX = 3.0f;
 
-    const float FIXED_TRANSITION_STEP = 2f;
+    const float TRANSITION_STEP = 2f;
 
     private GameObject targetDirectionObject;
 
@@ -52,6 +52,8 @@ public class CameraController : MonoBehaviour
 
     private Transform fixedTransform = null;
     private float fixedTransition = 0f;
+    private float transitionSpeed = 2f;
+
 
     private Vector3 fixedStartPosition;
     private Quaternion fixedStartRotation;
@@ -98,7 +100,6 @@ public class CameraController : MonoBehaviour
     void Update()
     {
         if (master.gameState == GameState.Game 
-            || master.gameState == GameState.GameCutscene
             || master.gameState == GameState.Cutscene)
         {
             if (cameraMode == GameConstants.CameraMode.camera_default)
@@ -179,11 +180,11 @@ public class CameraController : MonoBehaviour
     {
         // Get the transition speed.
 
-        float tran_speed = FIXED_TRANSITION_STEP * Time.deltaTime;
+        float transitionStep = transitionSpeed * Time.deltaTime;
 
         // Increment the transition amount (0 is none, 1 is complete).
 
-        fixedTransition += tran_speed;
+        fixedTransition += transitionStep;
         fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
 
         // Lerp between the start and end points.
@@ -203,11 +204,11 @@ public class CameraController : MonoBehaviour
     {
         // Get the transition speed.
 
-        float tran_speed = FIXED_TRANSITION_STEP * Time.deltaTime;
+        float transitionStep = transitionSpeed * Time.deltaTime;
 
         // Increment the transition amount (0 is none, 1 is complete).
 
-        fixedTransition += tran_speed;
+        fixedTransition += transitionStep;
         fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
 
         // Lerp between the start and end points.
@@ -261,11 +262,11 @@ public class CameraController : MonoBehaviour
         {
             // Get the transition speed.
 
-            float transitionSpeed = FIXED_TRANSITION_STEP * Time.deltaTime;
+            float transitionStep = transitionSpeed * Time.deltaTime;
 
             // Increment the transition amount (0 is none, 1 is complete).
 
-            fixedTransition += transitionSpeed;
+            fixedTransition += transitionStep;
             fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
 
             // Lerp between the start and end points.
@@ -291,7 +292,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    public void SetFixedCamera(Transform fixedTransform, bool isTracking, bool isInstant)
+    public void SetFixedCamera(Transform fixedTransform, bool isTracking, bool isInstant, float transitionSpeed)
     {
         cameraMode = (isTracking) 
             ? CameraMode.camera_fixed_tracking 
@@ -306,6 +307,7 @@ public class CameraController : MonoBehaviour
             : 0.0f;
 
         this.fixedTransform = fixedTransform;
+        this.transitionSpeed = transitionSpeed;
     }
 
 
@@ -318,6 +320,7 @@ public class CameraController : MonoBehaviour
         fixedStartPosition = this.transform.position;
         fixedStartRotation = this.transform.rotation;
         fixedTransition = 0.0f;
+        this.transitionSpeed = TRANSITION_STEP;
     }
 
     public void SetAutoRotation()

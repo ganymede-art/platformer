@@ -8,6 +8,13 @@ using UnityEngine.Serialization;
 
 public class EventConditionalIntController : MonoBehaviour, IEventController
 {
+    private GameEvent parentEvent;
+    public GameEvent ParentEvent
+    {
+        get => parentEvent;
+        set => parentEvent = value;
+    }
+
     private GameMasterController master;
     private IReplacerController replacerComponent;
     private object replacerRawValue;
@@ -24,7 +31,7 @@ public class EventConditionalIntController : MonoBehaviour, IEventController
     [Header("Value to compare against.")]
     public int conditionalValue = 0;
 
-    public void FinishEvent()
+    public void FinishEvent(GameEvent gameEvent)
     {
         return;
     }
@@ -34,17 +41,17 @@ public class EventConditionalIntController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_CONDITIONAL_INT;
     }
 
-    public bool GetIsEventComplete()
+    public bool GetIsEventComplete(GameEvent gameEvent)
     {
         return true;
     }
 
-    public bool GetIsGameEventComplete()
+    public bool GetIsGameEventComplete(GameEvent gameEvent)
     {
         return true;
     }
 
-    public bool GetIsProcessComplete()
+    public bool GetIsProcessComplete(GameEvent gameEvent)
     {
         return true;
     }
@@ -88,12 +95,12 @@ public class EventConditionalIntController : MonoBehaviour, IEventController
         return nextEventSource;
     }
 
-    public void ProcessEvent()
+    public void ProcessEvent(GameEvent gameEvent)
     {
         return;
     }
 
-    public void StartEvent()
+    public void StartEvent(GameEvent gameEvent)
     {
         replacerComponent = replacerObject.GetComponent<IReplacerController>();
 
@@ -118,7 +125,13 @@ public class EventConditionalIntController : MonoBehaviour, IEventController
         }
 
         replacerValue = Convert.ToInt32(replacerRawValue);
-
         isValidConditional = true;
+    }
+
+    public void ResetEvent(GameEvent gameEvent) { }
+
+    private void OnDrawGizmos()
+    {
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
     }
 }

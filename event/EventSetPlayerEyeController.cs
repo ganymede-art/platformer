@@ -13,27 +13,24 @@ namespace Assets.script
 
         public int eyeEmoteIndex;
 
-        public void FinishEvent()
-        {
-            
-        }
+        public void FinishEvent(GameEvent gameEvent) { }
 
         public string GetEventType()
         {
             return GameConstants.EVENT_TYPE_SET_PLAYER_EYE;
         }
 
-        public bool GetIsEventComplete()
+        public bool GetIsEventComplete(GameEvent gameEvent)
         {
             return true;
         }
 
-        public bool GetIsGameEventComplete()
+        public bool GetIsGameEventComplete(GameEvent gameEvent)
         {
             return true;
         }
 
-        public bool GetIsProcessComplete()
+        public bool GetIsProcessComplete(GameEvent gameEvent)
         {
             return true;
         }
@@ -43,12 +40,19 @@ namespace Assets.script
             return nextEventSource;
         }
 
-        public void ProcessEvent() { }
+        public void ProcessEvent(GameEvent gameEvent) { }
 
-        public void StartEvent()
+        public void StartEvent(GameEvent gameEvent)
         {
-            var component = GameMasterController.GlobalPlayerObject.GetComponent<ActorEyeController>();
+            var component = GameMasterController.GlobalPlayerObject.GetComponentInChildren<ActorEyeController>();
             component.SetEmote(eyeEmoteIndex);
+        }
+
+        public void ResetEvent(GameEvent gameEvent) { }
+
+        private void OnDrawGizmos()
+        {
+            EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
         }
     }
 }

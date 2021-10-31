@@ -13,13 +13,14 @@ public class MapLoadLevelTrigger : MonoBehaviour
 
     private void Start()
     {
-        master_controller = GameObject.FindObjectOfType<GameMasterController>();
+        master_controller = GameMasterController.GlobalMasterController;
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.tag == GameConstants.TAG_PLAYER)
         {
+            Debug.Log("Loading Level");
             master_controller.loadLevelController.StartLoadLevel(scene, player_start_transform, camera_start_transform);
         }
     }

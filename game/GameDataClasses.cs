@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
 using UnityEngine.Serialization;
+using static Assets.script.GameConstants;
 
 namespace Assets.script
 {
@@ -61,14 +62,45 @@ namespace Assets.script
     [System.Serializable]
     public struct GameMusicData
     {
-        [FormerlySerializedAs("code")]
-        public string code;
         [FormerlySerializedAs("audio_clip")]
         public AudioClip audioClip;
         [FormerlySerializedAs("is_loop")]
         public bool isLoop;
     }
 
+    [System.Serializable]
+    public class GameEvent
+    {
+        public GameState gameState;
+
+        public GameObject controllerSource;
+        public IEventController controller;
+
+        public GameObject previousControllerSource;
+        public IEventController previousController;
+
+        public bool isStarted;
+        public bool isFinished;
+
+        public float runningTimer;
+        public float processTimer;
+
+        public GameEvent(GameState gameState, GameObject controllerSource)
+        {
+            this.gameState = gameState;
+            this.controllerSource = controllerSource;
+            controller = controllerSource.GetComponent<IEventController>();
+
+            previousControllerSource = null;
+            previousController = null;
+
+            isStarted = false;
+            isFinished = false;
+
+            runningTimer = 0.0f;
+            processTimer = 0.0f;
+        }
+    }
 
 
 }

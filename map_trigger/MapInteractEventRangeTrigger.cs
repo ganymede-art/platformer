@@ -1,25 +1,34 @@
-﻿using System.Collections;
+﻿using Assets.script;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class MapInteractEventRangeTrigger : MonoBehaviour
 {
     private GameMasterController master;
-    private GameObject player_object;
-    private PlayerController player_controller;
+    private GameObject playerObject;
+    private PlayerController playerController;
 
-    public float interact_range = 1.0f;
+    private bool wasInRange = false;
+    private bool isInRange = false;
 
-    private bool was_in_range = false;
-    private bool is_in_range = false;
+    [Header("Interation Attributes")]
+    [FormerlySerializedAs("interact_range")]
+    public float interactRange = 1.0f;
 
-    public GameObject event_source;
+    [Header("Event Attributes")]
+    [FormerlySerializedAs("event_source")]
+    public GameObject eventSource;
+    public GameState gameState = GameState.Cutscene;
+    public bool isOrdered;
+    public bool isPriority;
 
     void Start()
     {
         master = GameMasterController.GlobalMasterController;
-        player_object = GameMasterController.GlobalPlayerObject;
-        player_controller = player_object.GetComponent<PlayerController>();
+        playerObject = GameMasterController.GlobalPlayerObject;
+        playerController = playerObject.GetComponent<PlayerController>();
     }
 
     void Update()
@@ -27,18 +36,30 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
         if (master.gameState != GameState.Game)
             return;
 
-        was_in_range = is_in_range;
+        wasInRange = isInRange;
 
-        is_in_range = Vector3.Distance(this.transform.position, player_object.transform.position) <= interact_range;
+        isInRange = Vector3.Distance(this.transform.position, playerObject.transform.position) <= interactRange;
 
-        if (!is_in_range)
+        if (!isInRange)
             return;
 
-        if (player_controller.isSpherecastGrounded
+        if (playerController.isSpherecastGrounded
             && !master.inputController.wasInputInteract
             && master.inputController.isInputInteract)
         {
-            master.cutsceneController.StartCutscene(event_source,false);
+            var gameEvent = new GameEvent(gameState,eventSource);
+
+            if (isOrdered)
+            {
+                if(isPriority)
+                    master.cutsceneController.InsertOrderedGameEvent(gameEvent);
+                else
+                    master.cutsceneController.AddOrderedGameEvent(gameEvent);
+            }
+            else
+            {
+                master.cutsceneController.AddGeneralGameEvent(gameEvent);
+            }
         }
     }
 }

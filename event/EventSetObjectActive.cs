@@ -6,19 +6,23 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.script
-{ 
-    public class EventPlayMusic : MonoBehaviour, IEventController
+{
+    class EventSetObjectActive : MonoBehaviour, IEventController
     {
-
         public GameObject nextEventSource;
+        public GameObject[] setObjects;
+        public bool isActive;
 
-        public GameMusicData musicData;
+        private void Start()
+        {
+
+        }
 
         public void FinishEvent(GameEvent gameEvent) { }
 
         public string GetEventType()
         {
-            return GameConstants.EVENT_TYPE_PLAY_MUSIC;
+            return GameConstants.EVENT_TYPE_SET_OBJECT_ACTIVE;
         }
 
         public bool GetIsEventComplete(GameEvent gameEvent)
@@ -45,7 +49,8 @@ namespace Assets.script
 
         public void StartEvent(GameEvent gameEvent)
         {
-            GameMasterController.GlobalMasterController.audioController.PlayMusic(musicData);
+            foreach (var setObject in setObjects)
+                setObject.SetActive(isActive);
         }
 
         public void ResetEvent(GameEvent gameEvent) { }
@@ -55,6 +60,4 @@ namespace Assets.script
             EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
         }
     }
-
-    
 }

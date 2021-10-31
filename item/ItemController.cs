@@ -19,21 +19,24 @@ public class ItemController : MonoBehaviour
     private GameObject pickupFxObject;
     private float pickupAudioPitch;
     private float pickupAudioVolume;
-    private GameObject item_pickup_event_source;
+    private GameObject itemPickupEventSource;
 
+    [Header("Item Attributes")]
     [FormerlySerializedAs("item_data")]
     public GameItemData itemData;
     [FormerlySerializedAs("item_pickup_fx_prefab")]
     public GameObject pickupFxPrefab;
     [FormerlySerializedAs("item_pickup_fx_origin")]
     public Transform pickupFxOrigin;
-    [FormerlySerializedAs("item_pickup_event_prefab")]
-    public GameObject pickupEventPrefab;
-    [FormerlySerializedAs("item_pickup_is_game_cutscene")]
-    public bool isPickupEventGameCutscene;
-
     [FormerlySerializedAs("item_pickup_audio_clip")]
     public AudioClip sfxItemPickup;
+
+    [Header("Event Attributes")]
+    public GameObject pickupEventPrefab;
+    public GameState pickupEventGameState;
+    public bool isPickupEventOrdered;
+    public bool isPickupEventPriority;
+    
 
     void Start()
     {
@@ -92,12 +95,20 @@ public class ItemController : MonoBehaviour
 
             if (pickupEventPrefab != null)
             {
-                item_pickup_event_source = Instantiate(
+                itemPickupEventSource = Instantiate(
                     pickupEventPrefab,
                     this.transform.position,
                     originalRotation);
 
-                master.cutsceneController.StartCutscene(item_pickup_event_source, isPickupEventGameCutscene);
+                var gameEvent = new GameEvent(GameState.Cutscene, itemPickupEventSource);
+
+                if(isPickupEventOrdered)
+                    if(isPickupEventPriority)
+                        master.cutsceneController.InsertOrderedGameEvent(gameEvent);
+                    else
+                        master.cutsceneController.AddOrderedGameEvent(gameEvent);
+                else
+                    master.cutsceneController.AddGeneralGameEvent(gameEvent);
             }
 
             // destroy the item.

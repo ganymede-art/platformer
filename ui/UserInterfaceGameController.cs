@@ -93,8 +93,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
     void Update()
     {
-        if (master.gameState != GameState.Game
-            && master.gameState != GameState.GameCutscene)
+        if (master.gameState != GameState.Game)
             return;
 
         for (int i = 0; i < uiHealthObjects.Length; i++)
@@ -151,8 +150,7 @@ public class UserInterfaceGameController : MonoBehaviour
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        if (args.gameState == GameState.Game
-            || args.gameState == GameState.GameCutscene)
+        if (args.gameState == GameState.Game)
             SetMenu();
         else
             UnsetMenu();

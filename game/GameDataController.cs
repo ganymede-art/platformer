@@ -254,11 +254,11 @@ public struct SaveData
     public int ammo;
     public int maxAmmo;
 
-    [NonSerialized] public bool canAttack;
-    [NonSerialized] public bool canCrouchJump;
-    [NonSerialized] public bool canDive;
-    [NonSerialized] public bool canWaterDive;
-    [NonSerialized] public bool canWaterJump;
+    public bool canAttack;
+    public bool canCrouchJump;
+    public bool canDive;
+    public bool canWaterDive;
+    public bool canWaterJump;
 }
 
 public class GameItemChangeEventArgs : EventArgs

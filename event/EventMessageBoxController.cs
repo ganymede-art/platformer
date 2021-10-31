@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 
 namespace Assets.script.Event
 {
@@ -86,13 +87,14 @@ namespace Assets.script.Event
             return GameConstants.EVENT_TYPE_MESSAGE_BOX;
         }
 
-        public void StartEvent()
+        public void StartEvent(GameEvent gameEvent)
         {
             inputText = messageText;
             outputText = string.Empty;
             outputTextIndex = 0;
 
-            master.userInterfaceController.ui_controller_message_box.SetMessageBox(messageIcon);
+            master.userInterfaceController.ui_controller_message_box.SetMessageBox
+                (messageIcon,isQuestion,gameEvent.gameState == GameState.Cutscene);
 
             gameCutsceneDelayProcessCount = 0;
 
@@ -105,7 +107,7 @@ namespace Assets.script.Event
             ProcessReplacements();
         }
 
-        public void ProcessEvent()
+        public void ProcessEvent(GameEvent gameEvent)
         {
             if (outputTextIndex < inputText.Length)
             {
@@ -148,10 +150,10 @@ namespace Assets.script.Event
                 gameCutsceneDelayProcessCount++;
             }
 
-            master.userInterfaceController.ui_controller_message_box.UpdateMessageBox(outputText);
+            master.userInterfaceController.ui_controller_message_box.UpdateMessageBox(outputText,GetIsProcessComplete(gameEvent));
         }
 
-        public bool GetIsEventComplete()
+        public bool GetIsEventComplete(GameEvent gameEvent)
         {
             // if the button is pressed, and
             // reached the end of the message.
@@ -254,20 +256,29 @@ namespace Assets.script.Event
             }
         }
 
-        public bool GetIsProcessComplete()
+        public bool GetIsProcessComplete(GameEvent gameEvent)
         {
             return (outputTextIndex == inputText.Length);
         }
 
-        public bool GetIsGameEventComplete()
+        public bool GetIsGameEventComplete(GameEvent gameEvent)
         {
             return (outputTextIndex == inputText.Length)
                 && (gameCutsceneDelayProcessCount >= outputText.Length * GAME_CUTSCENE_DELAY_MULTIPLIER);
         }
 
-        public void FinishEvent()
+        public void FinishEvent(GameEvent gameEvent)
         {
             master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
         }
+
+        public void ResetEvent(GameEvent gameEvent) { }
+
+        private void OnDrawGizmos()
+        {
+            EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
+        }
     }
+
+    
 }

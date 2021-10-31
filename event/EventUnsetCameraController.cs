@@ -6,6 +6,13 @@ using UnityEngine.Serialization;
 
 public class EventUnsetCameraController : MonoBehaviour, IEventController
 {
+    private GameEvent parentEvent;
+    public GameEvent ParentEvent
+    {
+        get => parentEvent;
+        set => parentEvent = value;
+    }
+
     private GameMasterController master;
 
     [FormerlySerializedAs("next_event_source")]
@@ -26,18 +33,13 @@ public class EventUnsetCameraController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_UNSET_CAMERA;
     }
 
-    public void StartEvent()
+    public void StartEvent(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
         player_camera_object.GetComponent<CameraController>().UnsetCamera();
     }
 
-    public void ProcessEvent()
-    {
-        return;
-    }
-
-    public bool GetIsEventComplete()
+    public bool GetIsEventComplete(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
         float fixed_transition = player_camera_object.GetComponent<CameraController>().Fixed_Transition;
@@ -45,18 +47,22 @@ public class EventUnsetCameraController : MonoBehaviour, IEventController
         return fixed_transition >= 1.0f;
     }
 
-    public bool GetIsProcessComplete()
+    public bool GetIsProcessComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public bool GetIsGameEventComplete()
+    public bool GetIsGameEventComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public void FinishEvent()
+    public void ProcessEvent(GameEvent gameEvent) { }
+    public void FinishEvent(GameEvent gameEvent) { }
+    public void ResetEvent(GameEvent gameEvent) { }
+
+    private void OnDrawGizmos()
     {
-        return;
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
     }
 }

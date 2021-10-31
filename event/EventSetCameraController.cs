@@ -6,6 +6,16 @@ using UnityEngine.Serialization;
 
 public class EventSetCameraController : MonoBehaviour, IEventController
 {
+    const float TRANSITION_SPEED_MIN = 0.01f;
+    const float TRANSITION_SPEED_DEFAULT = 2.0f;
+
+    private GameEvent parentEvent;
+    public GameEvent ParentEvent
+    {
+        get => parentEvent;
+        set => parentEvent = value;
+    }
+
     private GameMasterController master;
 
     [FormerlySerializedAs("next_event_source")]
@@ -13,11 +23,15 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
     public bool isTracking;
     public bool isInstant;
+    public float transitionSpeed;
     public Transform fixedTransform;
 
     void Start()
     {
         master = GameMasterController.GlobalMasterController;
+
+        if (transitionSpeed < TRANSITION_SPEED_MIN)
+            transitionSpeed = TRANSITION_SPEED_DEFAULT;
     }
 
     public GameObject GetNextEventSource()
@@ -30,20 +44,20 @@ public class EventSetCameraController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_SET_CAMERA;
     }
 
-    public void StartEvent()
+    public void StartEvent(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
 
         player_camera_object.GetComponent<CameraController>()
-            .SetFixedCamera(fixedTransform, isTracking, isInstant);
+            .SetFixedCamera(fixedTransform, isTracking, isInstant, transitionSpeed);
     }
 
-    public void ProcessEvent()
+    public void ProcessEvent(GameEvent gameEvent)
     {
         return;
     }
 
-    public bool GetIsEventComplete()
+    public bool GetIsEventComplete(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
         float fixed_transition = player_camera_object.GetComponent<CameraController>().Fixed_Transition;
@@ -51,18 +65,21 @@ public class EventSetCameraController : MonoBehaviour, IEventController
         return fixed_transition >= 1.0f;
     }
 
-    public bool GetIsProcessComplete()
+    public bool GetIsProcessComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public bool GetIsGameEventComplete()
+    public bool GetIsGameEventComplete(GameEvent gameEvent)
     {
-        return GetIsEventComplete();
+        return GetIsEventComplete(gameEvent);
     }
 
-    public void FinishEvent()
+    public void FinishEvent(GameEvent gameEvent) { }
+    public void ResetEvent(GameEvent gameEvent) { }
+
+    private void OnDrawGizmos()
     {
-        return;
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
     }
 }

@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 using static Assets.script.UserInterfaceConstants;
+using UnityEngine.SceneManagement;
 
 public class UserInterfaceMessageBoxController : MonoBehaviour
 {
@@ -13,27 +14,30 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
 
     // root.
 
-    bool is_active = false;
-    bool is_visible = false;
-    GameObject ui_object;
-    Canvas ui_canvas;
-    CanvasScaler ui_canvas_scaler;
+    bool isActive = false;
+    bool isVisible = false;
+    bool isComplete = false;
+    bool isQuestion = false;
+    bool isDisplayPrompts = false;
+    GameObject uiObject;
+    Canvas uiCanvas;
+    CanvasScaler uiCanvasScaler;
 
     // cutscene.
 
-    GameObject ui_message_box;
-    RectTransform ui_message_box_rect;
-    TextMeshProUGUI ui_message_box_text;
+    GameObject uiMessageBox;
+    RectTransform uiMessageBoxRect;
+    TextMeshProUGUI uiMessageBoxText;
 
-    GameObject frame_object;
+    GameObject frameObject;
 
-    GameObject vox_object;
-    Image vox_image;
-    Sprite vox_sprite;
+    GameObject voxObject;
+    Image voxImage;
+    Sprite voxSprite;
 
-    GameObject continue_object;
-    GameObject positive_object;
-    GameObject negative_object;
+    GameObject continueObject;
+    GameObject positiveObject;
+    GameObject negativeObject;
 
     // Start is called before the first frame update
     void Start()
@@ -43,10 +47,11 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
         // add event hooks.
 
         master.GameStateChange += ChangeGameState;
+        SceneManager.sceneLoaded += SceneLoaded;
 
         // load ui resources.
 
-        vox_sprite = Resources.Load<Sprite>("texture/vox/default");
+        voxSprite = Resources.Load<Sprite>("texture/vox/default");
 
         // initialise UI.
 
@@ -56,63 +61,50 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
     private void OnDestroy()
     {
         master.GameStateChange -= ChangeGameState;
+        SceneManager.sceneLoaded -= SceneLoaded;
     }
 
     void Initialise()
     {
         // create UI.
 
-        ui_object = this.gameObject;
+        uiObject = this.gameObject;
         
-        ui_message_box = ui_object.transform.Find("ui_message_box_text").gameObject;
-        ui_message_box_text = ui_message_box.GetComponent<TextMeshProUGUI>();
+        uiMessageBox = uiObject.transform.Find("ui_message_box_text").gameObject;
+        uiMessageBoxText = uiMessageBox.GetComponent<TextMeshProUGUI>();
 
-        frame_object = ui_object.transform.Find("ui_message_box_frame").gameObject;
+        frameObject = uiObject.transform.Find("ui_message_box_frame").gameObject;
 
-        vox_object = ui_object.transform.Find("ui_message_box_icon").gameObject;
-        vox_image = vox_object.GetComponent<Image>();
+        voxObject = uiObject.transform.Find("ui_message_box_icon").gameObject;
+        voxImage = voxObject.GetComponent<Image>();
 
-        continue_object = ui_object.transform.Find("ui_continue").gameObject;
-        positive_object = ui_object.transform.Find("ui_positive").gameObject;
-        negative_object = ui_object.transform.Find("ui_negative").gameObject;
+        continueObject = uiObject.transform.Find("ui_continue").gameObject;
+        positiveObject = uiObject.transform.Find("ui_positive").gameObject;
+        negativeObject = uiObject.transform.Find("ui_negative").gameObject;
 
-        ui_object.SetActive(false);
+        uiObject.SetActive(false);
     }
 
     void Update()
     {
-        if (!is_active)
+        if (!isActive)
             return;
 
         // set visible if active.
 
-        is_visible =
-        (
-            (master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
-                || master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION)
-            &&
-            (master.gameState == GameState.Cutscene
-                || master.gameState == GameState.GameCutscene)
-        );
-
-        ui_object.SetActive(is_visible);
-
         // set visible only if the current event type is message box.
 
-        if (master.cutsceneController.currentEventSource == null)
-            return;
+        continueObject.SetActive(isComplete
+            && !isQuestion
+            && isDisplayPrompts);
 
-        continue_object.SetActive(master.cutsceneController.Is_Current_Event_Process_Complete
-            && master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX
-            && master.gameState == GameState.Cutscene);
+        positiveObject.SetActive(isComplete
+            && isQuestion
+            && isDisplayPrompts);
 
-        positive_object.SetActive(master.cutsceneController.Is_Current_Event_Process_Complete
-            && master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
-            && master.gameState == GameState.Cutscene);
-
-        negative_object.SetActive(master.cutsceneController.Is_Current_Event_Process_Complete
-            && master.cutsceneController.Current_Event_Type == GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION
-            && master.gameState == GameState.Cutscene);
+        negativeObject.SetActive(isComplete
+            && isQuestion
+            && isDisplayPrompts);
     }
 
     private void ChangeGameState(object sender, EventArgs e)
@@ -120,27 +112,41 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
     }
 
-    public void SetMessageBox(Sprite message_icon)
+    private void SceneLoaded(Scene scene, LoadSceneMode load_scene_mode)
     {
-        is_active = true;
+        // unset the message box when a new
+        // scene is loaded.
 
-        ui_object.SetActive(true);
-
-        vox_image.sprite = message_icon;
+        UnsetMessageBox();
     }
 
-    public void UpdateMessageBox(string message_text)
+    public void SetMessageBox(Sprite message_icon, bool isQuestion, bool isDisplayPrompts)
     {
-        ui_message_box_text.text = message_text;
+        isActive = true;
+
+        uiObject.SetActive(true);
+
+        voxImage.sprite = message_icon;
+
+        this.isComplete = false;
+        this.isQuestion = isQuestion;
+        this.isDisplayPrompts = isDisplayPrompts;
+    }
+
+    public void UpdateMessageBox(string message_text, bool isComplete)
+    {
+        uiMessageBoxText.text = message_text;
+
+        this.isComplete = isComplete;
     }
 
     public void UnsetMessageBox()
     {
-        is_active = false;
+        isActive = false;
 
-        ui_object.SetActive(false);
+        uiObject.SetActive(false);
 
-        ui_message_box_text.text = string.Empty;
-        vox_image.sprite = vox_sprite;
+        uiMessageBoxText.text = string.Empty;
+        voxImage.sprite = voxSprite;
     }
 }

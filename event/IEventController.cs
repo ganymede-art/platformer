@@ -11,11 +11,12 @@ namespace Assets.script
     {
         GameObject GetNextEventSource();
         string GetEventType();
-        void StartEvent();
-        void ProcessEvent();
-        bool GetIsProcessComplete();
-        bool GetIsEventComplete();
-        bool GetIsGameEventComplete();
-        void FinishEvent();
+        void StartEvent(GameEvent gameEvent);
+        void ProcessEvent(GameEvent gameEvent);
+        bool GetIsProcessComplete(GameEvent gameEvent);
+        bool GetIsEventComplete(GameEvent gameEvent);
+        bool GetIsGameEventComplete(GameEvent gameEvent);
+        void FinishEvent(GameEvent gameEvent);
+        void ResetEvent(GameEvent gameEvent);
     }
 }

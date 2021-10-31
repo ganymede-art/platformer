@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
 using TMPro;
+using System;
 
 public class GameCutsceneController : MonoBehaviour
 {
@@ -11,141 +12,184 @@ public class GameCutsceneController : MonoBehaviour
 
     private GameMasterController master;
 
-    [System.NonSerialized] public GameObject currentEventSource;
-    [System.NonSerialized] public IEventController currentEvent;
-    [System.NonSerialized] public IEventController previousEvent;
-
-    float eventTimer = 0f;
-
-    float eventProcessTimer = 0f;
     float eventProcessInterval = 0.05f;
 
-    bool isCurrentEventStarted = false;
-    bool isCurrentEventFinished = false;
+    public List<GameEvent> orderedEvents;
+    public List<GameEvent> generalEvents;
 
     // properties.
 
-    public string Previous_Event_Type
-    {
-        get => (previousEvent == null) ? GameConstants.EVENT_TYPE_NULL : previousEvent.GetEventType();
-    }
-
-    public string Current_Event_Type
-    {
-        get => (currentEvent == null) ? GameConstants.EVENT_TYPE_NULL : currentEvent.GetEventType();
-    }
-
-    public bool Is_Current_Event_Process_Complete
-    {
-        get => (currentEvent == null) ? false : currentEvent.GetIsProcessComplete();
-    }
-
     void Start()
     {
-        master = this.GetComponentInParent<GameMasterController>();
+        master = GameMasterController.GlobalMasterController;
+
+        orderedEvents = new List<GameEvent>();
+        generalEvents = new List<GameEvent>();
     }
 
     void Update()
     {
-        if (master.gameState != GameState.Cutscene 
-            && master.gameState != GameState.GameCutscene)
-            return;
+        foreach(GameEvent orderedEvent in orderedEvents)
+        {
+            if (orderedEvent.gameState
+                != GameMasterController.GlobalMasterController.gameState)
+                continue;
 
-        if (currentEvent == null)
-            return;
+            if (!orderedEvent.isStarted)
+                StartGameEvent(orderedEvent);
 
-        // start event.
-        if (!isCurrentEventStarted)
-            StartEventItem();
+            CheckGameEvent(orderedEvent);
 
-        eventTimer += Time.deltaTime;
-        eventProcessTimer += Time.deltaTime;
+            if (orderedEvent.isFinished)
+            {
+                FinishGameEvent(orderedEvent);
+            }
+            else
+            {
+                ProcessGameEvent(orderedEvent);
+            }
+
+            break;
+        }
+
+        foreach(GameEvent generalEvent in generalEvents)
+        {
+            if (generalEvent.gameState 
+                != GameMasterController.GlobalMasterController.gameState)
+                continue;
+
+            if (!generalEvent.isStarted)
+                StartGameEvent(generalEvent);
+
+            CheckGameEvent(generalEvent);
+
+            if(generalEvent.isFinished)
+            {
+                FinishGameEvent(generalEvent);
+            }
+            else
+            {
+                ProcessGameEvent(generalEvent);
+            }
+        }
+
+        // remove any null events (i.e. they had no next events).
+        orderedEvents.RemoveAll(oe => oe.controllerSource == null);
+        generalEvents.RemoveAll(ge => ge.controllerSource == null);
+
+        // end cutscene if no more cutscene events.
+        if (GameMasterController.GlobalMasterController.gameState == GameState.Cutscene
+            && orderedEvents.FindAll(oe => oe.gameState == GameState.Cutscene).Count == 0
+            && generalEvents.FindAll(ge => ge.gameState == GameState.Cutscene).Count == 0)
+            EndCutscene();
+    }
+
+    private void StartGameEvent(GameEvent gameEvent)
+    {
+        gameEvent.isStarted = true;
+
+        gameEvent.runningTimer = 0.0f;
+        gameEvent.processTimer = 0.0f;
+
+        gameEvent.controller = gameEvent.controllerSource.GetComponent<IEventController>();
+        gameEvent.controller.StartEvent(gameEvent);
+    }
+
+    private void ProcessGameEvent(GameEvent gameEvent)
+    {
+        gameEvent.runningTimer += Time.deltaTime;
+        gameEvent.processTimer += Time.deltaTime;
 
         eventProcessInterval = (master.inputController.isInputInteract)
             ? EVENT_STEP_INTERVAL_FAST
             : EVENT_STEP_INTERVAL_DEFAULT;
 
-        if (eventProcessTimer >= eventProcessInterval)
+        if(gameEvent.processTimer >= eventProcessInterval)
         {
-            eventProcessTimer = 0.0f;
-
-            // continue event.
-            ProcessEventItem();
-        }
-
-        // finish event if possible.
-        FinishEventItem();
-
-        if(isCurrentEventFinished)
-        {
-            isCurrentEventStarted = false;
-            isCurrentEventFinished = false;
-
-            // move onto next event, or finish
-            // when meeting right criteria.
-
-            if (currentEvent.GetNextEventSource() == null)
-            {
-                // return to game if there are no more items.
-                EndCutscene();
-            }
-            else
-            {
-                // start the next cutscene event.
-
-                if(master.gameState == GameState.Cutscene)
-                    StartCutscene(currentEvent.GetNextEventSource(), false);
-                else if(master.gameState == GameState.GameCutscene)
-                    StartCutscene(currentEvent.GetNextEventSource(), true);
-            }
+            gameEvent.processTimer = 0.0f;
+            gameEvent.controller.ProcessEvent(gameEvent);
         }
     }
 
-    private void StartEventItem()
+    private void CheckGameEvent(GameEvent gameEvent)
     {
-        eventTimer = 0.0f;
-        eventProcessTimer = 0.0f;
-
-        isCurrentEventStarted = true;
-
-        currentEvent.StartEvent();
+        gameEvent.isFinished = gameEvent.gameState == GameState.Cutscene
+            ? gameEvent.controller.GetIsEventComplete(gameEvent)
+            : gameEvent.controller.GetIsGameEventComplete(gameEvent);
     }
 
-    private void ProcessEventItem()
+    private void FinishGameEvent(GameEvent gameEvent)
     {
-        // handle the current event item.
+        // reset the event.
 
-        currentEvent.ProcessEvent();
+        gameEvent.isStarted = false;
+        gameEvent.isFinished = false;
+
+        // run the finish method.
+
+        gameEvent.controller.FinishEvent(gameEvent);
+
+        // set the next event.
+
+        gameEvent.previousControllerSource = gameEvent.controllerSource;
+        gameEvent.previousController = gameEvent.controller;
+
+        gameEvent.controllerSource = gameEvent.controller.GetNextEventSource();
+        gameEvent.controller = null;
     }
-    
-    private void FinishEventItem()
-    {
-        if (currentEvent == null)
-            return;
 
-        isCurrentEventFinished = (master.gameState == GameState.Cutscene)
-            ? currentEvent.GetIsEventComplete()
-            : currentEvent.GetIsGameEventComplete();
+    private void ResetGameEvent(GameEvent gameEvent)
+    {
+        gameEvent.isStarted = false;
+        gameEvent.isFinished = false;
+
+        gameEvent.runningTimer = 0.0f;
+        gameEvent.processTimer = 0.0f;
+
+        gameEvent.controller.ResetEvent(gameEvent);
     }
 
-    public void StartCutscene(GameObject event_source, bool is_game_cutscene)
+    public void AddOrderedGameEvent(GameEvent newEvent)
     {
-        if (!is_game_cutscene)
-            master.ChangeState(GameState.Cutscene);
+        if (newEvent.gameState == GameState.Cutscene)
+            StartCutscene();
+
+        orderedEvents.Add(newEvent);
+    }
+
+    public void InsertOrderedGameEvent(GameEvent newEvent)
+    {
+        if (newEvent.gameState == GameState.Cutscene)
+            StartCutscene();
+
+        if (orderedEvents.Count == 0)
+        {
+            orderedEvents.Add(newEvent);
+        }
         else
-            master.ChangeState(GameState.GameCutscene);
+        {
+            ResetGameEvent(orderedEvents[0]);
+            orderedEvents.Insert(0, newEvent);
+        }
+    }
 
-        this.previousEvent = currentEvent;
+    public void AddGeneralGameEvent(GameEvent newEvent)
+    {
+        if (newEvent.gameState == GameState.Cutscene)
+            StartCutscene();
 
-        this.currentEventSource = event_source;
-        this.currentEvent = event_source.GetComponent<IEventController>();
+        generalEvents.Add(newEvent);
+    }
 
-        eventTimer = 0f;
-        eventProcessTimer = 0f;
+    public void StartCutscene()
+    {
+        if(master.gameState != GameState.Cutscene)
+            master.ChangeState(GameState.Cutscene);
     }
 
     public void EndCutscene()
     {
-        master.ChangeState(GameState.Game);
+        if(master.gameState != GameState.Game)
+            master.ChangeState(GameState.Game);
     }
 }

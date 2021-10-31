@@ -35,31 +35,39 @@ namespace Assets.script
             return GameConstants.EVENT_TYPE_SET_ACTOR_ANIMATOR;
         }
 
-        public void StartEvent()
+        public void StartEvent(GameEvent gameEvent)
         {
             if(actorAnimator == null)
                 actorAnimator = actorObject.GetComponentInChildren<Animator>();
 
+            actorAnimator.ResetAllAnimatorTriggers();
             actorAnimator.SetTrigger(trigger);
         }
 
-        public void ProcessEvent() { }
+        public void ProcessEvent(GameEvent gameEvent) { }
 
-        public bool GetIsEventComplete()
+        public bool GetIsEventComplete(GameEvent gameEvent)
         {
             return true;
         }
 
-        public bool GetIsProcessComplete()
+        public bool GetIsProcessComplete(GameEvent gameEvent)
         {
-            return GetIsEventComplete();
+            return GetIsEventComplete(gameEvent);
         }
 
-        public bool GetIsGameEventComplete()
+        public bool GetIsGameEventComplete(GameEvent gameEvent)
         {
-            return GetIsEventComplete();
+            return GetIsEventComplete(gameEvent);
         }
 
-        public void FinishEvent() { }
+        public void FinishEvent(GameEvent gameEvent) { }
+
+        public void ResetEvent(GameEvent gameEvent) { }
+
+        private void OnDrawGizmos()
+        {
+            EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
+        }
     }
 }
