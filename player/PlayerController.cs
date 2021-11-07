@@ -9,7 +9,6 @@ using static Assets.script.AttributeDataClasses;
 using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour
-    , IActorFootstepManager
     , IActorDataManager
 {
     // state variables.
@@ -84,7 +83,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public float spherecastGroundedSlopeAngle = 0.0f;
     [NonSerialized] public Vector3 spherecastGroundedSlopeNormal = Vector3.up;
 
-    [NonSerialized] public GameConstants.GroundType groundType;
+    [NonSerialized] public GroundType groundType;
 
     // movement variables.
 
@@ -146,6 +145,11 @@ public class PlayerController : MonoBehaviour
     public RuntimeAnimatorController animatorGameOver;
     public RuntimeAnimatorController animatorCutscene;
 
+    // cutscene variables.
+
+    [NonSerialized] public bool isCutsceneFaceDirection;
+    [NonSerialized] public GameObject cutsceneFaceDirectionTargetObject;
+
     // audio variables.
 
     [NonSerialized] public AudioSource audioSource;
@@ -160,8 +164,7 @@ public class PlayerController : MonoBehaviour
 
     // interface variables.
 
-    ActorFootstepManager footstepManager;
-    ActorDataManager adm;
+    ActorData adm;
 
     private void Start()
     {
@@ -223,10 +226,8 @@ public class PlayerController : MonoBehaviour
 
         // initialise interface.
 
-        footstepManager = new ActorFootstepManager();
-
-        adm = new ActorDataManager();
-        adm = ActorDataManager.GetDefault();
+        adm = new ActorData();
+        adm = ActorData.GetDefault();
 
         // setup.
 
@@ -450,11 +451,11 @@ public class PlayerController : MonoBehaviour
             if (isSpherecastGrounded)
             {
                 if (spherecastHitInfo.collider.gameObject
-                    .GetComponent<MapAttributeGroundType>() == null)
-                    groundType = GameConstants.GroundType.ground_default;
+                    .GetComponent<AttributeGroundType>() == null)
+                    groundType = GroundType.ground_default;
                 else
                     groundType = spherecastHitInfo.collider.gameObject
-                        .GetComponent<MapAttributeGroundType>().ground_type;
+                        .GetComponent<AttributeGroundType>().ground_type;
             }
         }
     }
@@ -494,18 +495,38 @@ public class PlayerController : MonoBehaviour
     private void UpdateAnimatorCutscene()
     {
 
-        if (master.cutsceneController.orderedEvents.Count == 0)
+        if (master.cutsceneController.orderedEvents.Count == 0 && !isCutsceneFaceDirection)
             return;
 
-        facingDirectionDelta = Vector3.RotateTowards(rendererObject.transform.forward,
+        if(isCutsceneFaceDirection)
+        {
+            if(cutsceneFaceDirectionTargetObject == null)
+            {
+                isCutsceneFaceDirection = false;
+                return;
+            }
+
+            facingDirectionDelta = Vector3.RotateTowards(rendererObject.transform.forward,
+            cutsceneFaceDirectionTargetObject.transform.position - rendererObject.transform.position,
+            PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER,
+            0.0f);
+        }
+        else
+        {
+            if (master.cutsceneController.orderedEvents.Count == 0)
+                return;
+
+            facingDirectionDelta = Vector3.RotateTowards(rendererObject.transform.forward,
             master.cutsceneController.orderedEvents[0].controllerSource.transform.position - rendererObject.transform.position,
             PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER,
             0.0f);
+        }
 
         facingDirectionDelta.y = 0.0f;
 
         // Move our position a step closer to the target.
         rendererObject.transform.rotation = Quaternion.LookRotation(facingDirectionDelta);
+
     }
 
     // clear raised inputs.
@@ -705,35 +726,13 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateActorDataManager()
     {
-        adm.is_in_water = isCollidingWaterObject;
-        adm.is_submerged = isFullSubmerged;
-        adm.water_y_level = waterYLevel;
+        adm.isInWater = isCollidingWaterObject;
+        adm.isSubmerged = isFullSubmerged;
+        adm.waterYLevel = waterYLevel;
+        adm.groundType = groundType;
     }
 
-    public ActorFootstepManager UpdateFootstepController()
-    {
-        if (master.gameState != GameState.Game)
-            return null;
-
-        if(currentStateType == PlayerStateType.playerWaterDive)
-        {
-            footstepManager.is_grounded = true;
-            footstepManager.ground_type = groundType;
-            footstepManager.velocity = rigidBody.velocity.magnitude;
-            footstepManager.is_in_water = true;
-            footstepManager.is_submerged = true;
-            return footstepManager;
-        }
-
-        footstepManager.is_grounded = isSpherecastGrounded;
-        footstepManager.ground_type = groundType;
-        footstepManager.velocity = rigidBody.velocity.magnitude;
-        footstepManager.is_in_water = isCollidingWaterObject;
-        footstepManager.is_submerged = isFullSubmerged;
-        return footstepManager;
-    }
-
-    public ActorDataManager? UpdateActorController()
+    public ActorData GetActorData()
     {
         return adm;
     }

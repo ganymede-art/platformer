@@ -11,6 +11,7 @@ namespace Assets.script
     {
         GameObject GetNextEventSource();
         string GetEventType();
+        string GetEventDescription();
         void StartEvent(GameEvent gameEvent);
         void ProcessEvent(GameEvent gameEvent);
         bool GetIsProcessComplete(GameEvent gameEvent);

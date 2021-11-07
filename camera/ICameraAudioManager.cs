@@ -9,6 +9,6 @@ namespace Assets.script
 {
     public interface ICameraAudioManager
     {
-        ActorDataManager? UpdateCameraAudioController();
+        ActorData UpdateCameraAudioController();
     }
 }

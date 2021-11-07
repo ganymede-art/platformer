@@ -85,7 +85,7 @@ namespace Assets.script
 
         public void UpdateStateAnimator(PlayerController mc)
         {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateAnimator(mc);
+            
         }
 
         public void UpdateStateSlide(PlayerController mc)

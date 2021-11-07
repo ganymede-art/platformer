@@ -10,15 +10,13 @@ public class CameraTintController : MonoBehaviour
     Texture2D underwaterTexture;
     Color underwaterColour = new Color(0.2f, 0.4f, 1.0f, 0.3f);
 
-    Rect screen_rectangle = new Rect(0, 0, 1920, 1080);//Screen.width, Screen.height);
+    Rect screen_rectangle = new Rect(0, 0, 4000, 4000);//Screen.width, Screen.height);
 
     private void Start()
     {
         underwaterTexture = new Texture2D(1, 1);
         underwaterTexture.SetPixel(0, 0, underwaterColour);
         underwaterTexture.Apply();
-
-
     }
 
     private void OnGUI()

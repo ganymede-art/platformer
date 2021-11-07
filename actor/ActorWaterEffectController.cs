@@ -8,7 +8,7 @@ public class ActorWaterEffectController : MonoBehaviour
 {
     private GameMasterController master;
     public IActorDataManager manager;
-    private ActorDataManager? manager_data;
+    private ActorData manager_data;
 
     public GameObject air_bubble_origin_object;
     public GameObject air_bubble_fx_prefab;
@@ -52,7 +52,7 @@ public class ActorWaterEffectController : MonoBehaviour
 
     void Update()
     {
-        manager_data = manager.UpdateActorController();
-        air_bubble_ps_em.enabled = manager_data.Value.is_submerged;
+        manager_data = manager.GetActorData();
+        air_bubble_ps_em.enabled = manager_data.isSubmerged;
     }
 }

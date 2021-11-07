@@ -6,8 +6,8 @@ using UnityEngine.Serialization;
 
 public class EventSetCameraController : MonoBehaviour, IEventController
 {
-    const float TRANSITION_SPEED_MIN = 0.01f;
-    const float TRANSITION_SPEED_DEFAULT = 2.0f;
+    const float TRANSITION_DURATION_MIN = 0.01f;
+    const float TRANSITION_DURATION_DEFAULT = 2.0f;
 
     private GameEvent parentEvent;
     public GameEvent ParentEvent
@@ -23,15 +23,16 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
     public bool isTracking;
     public bool isInstant;
-    public float transitionSpeed;
+    [FormerlySerializedAs("transitionSpeed")]
+    public float transitionDuration;
     public Transform fixedTransform;
 
     void Start()
     {
         master = GameMasterController.GlobalMasterController;
 
-        if (transitionSpeed < TRANSITION_SPEED_MIN)
-            transitionSpeed = TRANSITION_SPEED_DEFAULT;
+        if (transitionDuration < TRANSITION_DURATION_MIN)
+            transitionDuration = TRANSITION_DURATION_DEFAULT;
     }
 
     public GameObject GetNextEventSource()
@@ -44,12 +45,17 @@ public class EventSetCameraController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_SET_CAMERA;
     }
 
+    public string GetEventDescription()
+    {
+        return GameConstants.EVENT_TYPE_SET_CAMERA + ((fixedTransform == null) ? "_null" : "_" + fixedTransform.name);
+    }
+
     public void StartEvent(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
 
         player_camera_object.GetComponent<CameraController>()
-            .SetFixedCamera(fixedTransform, isTracking, isInstant, transitionSpeed);
+            .SetFixedCamera(fixedTransform, isTracking, isInstant, transitionDuration);
     }
 
     public void ProcessEvent(GameEvent gameEvent)
@@ -60,7 +66,7 @@ public class EventSetCameraController : MonoBehaviour, IEventController
     public bool GetIsEventComplete(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
-        float fixed_transition = player_camera_object.GetComponent<CameraController>().Fixed_Transition;
+        float fixed_transition = player_camera_object.GetComponent<CameraController>().transitionProgress;
 
         return fixed_transition >= 1.0f;
     }
@@ -80,6 +86,7 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
     private void OnDrawGizmos()
     {
-        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
+        EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource, 
+            optionalObject1: fixedTransform.gameObject, optionalColour1: Color.green, optionalIcon1: "ev_cam.png");
     }
 }

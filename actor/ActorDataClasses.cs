@@ -5,24 +5,26 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
+using static Assets.script.GameConstants;
 
 namespace Assets.script
 {
     [System.Serializable]
-    public struct ActorDataManager
+    public class ActorData
     {
-        public bool is_in_water;
-        public bool is_submerged;
-        public float water_y_level;
+        public bool isInWater;
+        public bool isSubmerged;
+        public float waterYLevel;
+        public GroundType groundType;
 
-        public static ActorDataManager GetDefault()
+        public static ActorData GetDefault()
         {
-            var adm = new ActorDataManager();
-            adm.is_in_water = false;
-            adm.is_submerged = false;
-            adm.water_y_level = 0f;
+            var adm = new ActorData();
+            adm.isInWater = false;
+            adm.isSubmerged = false;
+            adm.waterYLevel = 0f;
+            adm.groundType = GroundType.ground_default;
             return adm;
         }
     }
-
 }

@@ -35,6 +35,11 @@ namespace Assets.script
             return GameConstants.EVENT_TYPE_SET_ACTOR_ANIMATOR;
         }
 
+        public string GetEventDescription()
+        {
+            return GetEventType();
+        }
+
         public void StartEvent(GameEvent gameEvent)
         {
             if(actorAnimator == null)

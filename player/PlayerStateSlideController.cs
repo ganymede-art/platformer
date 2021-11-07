@@ -140,7 +140,7 @@ namespace Assets.script
             // based on current situation.
 
             if (mc.raycastGroundedSlopeAngle < SLIDE_ANGLE_RECOVERY_MAX
-                && mc.groundType != GameConstants.GroundType.ground_slide
+                && mc.groundType != GroundType.ground_slide
                 && mc.isSpherecastGrounded)
             {
                 // increase the slide resistance

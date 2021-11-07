@@ -20,7 +20,12 @@ namespace Assets.script.Event
 
         // core constants.
 
-        private int GAME_CUTSCENE_DELAY_MULTIPLIER = 4;
+        private const int GAME_CUTSCENE_DELAY_MULTIPLIER = 4;
+
+        // delay constants.
+
+        private const string DELAY_TAG = "<de>";
+        private const int DELAY_SKIP_AMOUNT = 10;
 
         // core variables.
 
@@ -31,7 +36,6 @@ namespace Assets.script.Event
         private int outputTextIndex = 0;
         private bool isQuestionAnsweredPositive = false;
         private int gameCutsceneDelayProcessCount = 0;
-        
 
         // audio variables.
 
@@ -39,6 +43,10 @@ namespace Assets.script.Event
         private AudioClip voxSound = null;
         private int voxSoundsIndex = 0;
         private int[] indicesToPlayVoxSound = new int[20];
+
+        // delay variables.
+
+        private int delayProcessCount = 0;
 
         // public vars.
 
@@ -87,6 +95,14 @@ namespace Assets.script.Event
             return GameConstants.EVENT_TYPE_MESSAGE_BOX;
         }
 
+        public string GetEventDescription()
+        {
+            if (isQuestion)
+                return GameConstants.EVENT_TYPE_MESSAGE_BOX_QUESTION;
+
+            return GameConstants.EVENT_TYPE_MESSAGE_BOX;
+        }
+
         public void StartEvent(GameEvent gameEvent)
         {
             inputText = messageText;
@@ -109,6 +125,13 @@ namespace Assets.script.Event
 
         public void ProcessEvent(GameEvent gameEvent)
         {
+            // delay the process step.
+            if(delayProcessCount > 0)
+            {
+                delayProcessCount -= 1;
+                return;
+            }
+
             if (outputTextIndex < inputText.Length)
             {
                 outputTextNextChar = inputText[outputTextIndex];
@@ -125,18 +148,25 @@ namespace Assets.script.Event
                         outputTextNextChar = inputText[outputTextIndex];
                         outputText += outputTextNextChar;
                     }
+
+                    // add a delay if the tag was a delay tag.
+                    if (outputText.EndsWith(DELAY_TAG))
+                    {
+                        outputText = outputText.Remove(outputText.Length - DELAY_TAG.Length);
+                        delayProcessCount += 10;
+                    }
                 }
                 else
                 {
                     // handle regular char.
 
                     outputText += outputTextNextChar;
-                }
 
-                if (indicesToPlayVoxSound.Contains(outputTextIndex))
-                {
-                    // play vox for every nth letter.
-                    PlayVox(inputText, outputTextIndex);
+                    if (indicesToPlayVoxSound.Contains(outputTextIndex))
+                    {
+                        // play vox for every nth letter.
+                        PlayVox(inputText, outputTextIndex);
+                    }
                 }
 
                 // increment to next character.

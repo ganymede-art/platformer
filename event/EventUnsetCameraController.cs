@@ -33,6 +33,11 @@ public class EventUnsetCameraController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_UNSET_CAMERA;
     }
 
+    public string GetEventDescription()
+    {
+        return GetEventType();
+    }
+
     public void StartEvent(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
@@ -42,7 +47,7 @@ public class EventUnsetCameraController : MonoBehaviour, IEventController
     public bool GetIsEventComplete(GameEvent gameEvent)
     {
         var player_camera_object = GameMasterController.GlobalCameraObject;
-        float fixed_transition = player_camera_object.GetComponent<CameraController>().Fixed_Transition;
+        float fixed_transition = player_camera_object.GetComponent<CameraController>().transitionProgress;
 
         return fixed_transition >= 1.0f;
     }

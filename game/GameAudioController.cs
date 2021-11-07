@@ -8,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public class GameAudioController : MonoBehaviour
 {
     [System.NonSerialized] public float volumeMusic = 1.0f;
-    [System.NonSerialized] public float volumeFootstep = 1.0f;
+    [System.NonSerialized] public float volumeFootstep = 0.4f;
     [System.NonSerialized] public float volumeObject = 1.0f;
     [System.NonSerialized] public float volumeItem = 1.0f;
 

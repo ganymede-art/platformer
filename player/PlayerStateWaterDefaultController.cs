@@ -96,7 +96,39 @@ namespace Assets.script
 
         public void UpdateStateAnimator(PlayerController mc)
         {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateAnimator(mc);
+            // update the animator.
+
+            if (mc.isSpherecastGrounded)
+            {
+                if (mc.isInputDirectional)
+                {
+                    mc.playerAnimator.ResetAllAnimatorTriggers();
+                    mc.playerAnimator.SetTrigger("water_move");
+                }
+                else
+                {
+                    mc.playerAnimator.ResetAllAnimatorTriggers();
+                    mc.playerAnimator.SetTrigger("water_idle");
+                }
+            }
+            else
+            {
+                if (mc.rigidBody.velocity.y < -0.5f)
+                {
+                    mc.playerAnimator.ResetAllAnimatorTriggers();
+                    mc.playerAnimator.SetTrigger("water_jump_down");
+                }
+            }
+
+            // update player facing direction.
+
+            mc.facingDirection = Quaternion.Euler(0, mc.cameraObject.transform.rotation.eulerAngles.y, 0) * mc.inputDirectional;
+
+            mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+
+            // Move our position a step closer to the target.
+            mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
+            mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
         public void UpdateStateSlide(PlayerController mc)

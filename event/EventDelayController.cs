@@ -36,6 +36,11 @@ public class EventDelayController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_DELAY;
     }
 
+    public string GetEventDescription()
+    {
+        return GameConstants.EVENT_TYPE_DELAY + "_" + delaySeconds + "s";
+    }
+
     public void StartEvent(GameEvent gameEvent)
     {
         startTime = Time.time;

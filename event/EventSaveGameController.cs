@@ -37,6 +37,11 @@ public class EventSaveGameController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_SAVE_GAME;
     }
 
+    public string GetEventDescription()
+    {
+        return GetEventType();
+    }
+
     public void StartEvent(GameEvent gameEvent)
     {
         // save current data.

@@ -20,6 +20,11 @@ namespace Assets.script
             return GameConstants.EVENT_TYPE_SET_PLAYER_EYE;
         }
 
+        public string GetEventDescription()
+        {
+            return GetEventType();
+        }
+
         public bool GetIsEventComplete(GameEvent gameEvent)
         {
             return true;

@@ -25,6 +25,11 @@ namespace Assets.script
             return GameConstants.EVENT_TYPE_SET_OBJECT_ACTIVE;
         }
 
+        public string GetEventDescription()
+        {
+            return GetEventType();
+        }
+
         public bool GetIsEventComplete(GameEvent gameEvent)
         {
             return true;

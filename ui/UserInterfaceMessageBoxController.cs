@@ -125,6 +125,9 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
         isActive = true;
 
         uiObject.SetActive(true);
+        continueObject.SetActive(false);
+        positiveObject.SetActive(false);
+        negativeObject.SetActive(false);
 
         voxImage.sprite = message_icon;
 

@@ -8,7 +8,7 @@ public class CameraAudioController : MonoBehaviour
     [FormerlySerializedAs("manager_game_object")]
     public GameObject managerObject;
     private IActorDataManager manager;
-    private ActorDataManager? managerData;
+    private ActorData managerData;
 
     AudioLowPassFilter audioLowPassFilter;
 
@@ -34,11 +34,11 @@ public class CameraAudioController : MonoBehaviour
                 return;
         }
 
-        managerData = manager.UpdateActorController();
+        managerData = manager.GetActorData();
 
         if (managerData == null)
             return;
 
-        audioLowPassFilter.enabled = managerData.Value.is_submerged;
+        audioLowPassFilter.enabled = managerData.isSubmerged;
     }
 }

@@ -27,7 +27,12 @@ namespace Assets.script
 
         public string GetEventType()
         {
-            return GameConstants.EVENT_TYPE_PLAY_MUSIC;
+            return GameConstants.EVENT_TYPE_PLAY_SOUND;
+        }
+
+        public string GetEventDescription()
+        {
+            return GameConstants.EVENT_TYPE_PLAY_SOUND + ((sound == null) ? "_null" : "_" + sound.name);
         }
 
         public bool GetIsEventComplete(GameEvent gameEvent)

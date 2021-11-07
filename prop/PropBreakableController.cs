@@ -36,8 +36,10 @@ public class PropBreakableController : MonoBehaviour
     public float damageRepelForceMultiplier;
 
     [Header("Sound Effects")]
-    public AudioClip sfxDestroy;
-    public AudioClip sfxDamage;
+    [FormerlySerializedAs("sfxDestroy")]
+    public AudioClip destroySound;
+    [FormerlySerializedAs("sfxDamage")]
+    public AudioClip damageSound;
 
     void Start()
     {
@@ -76,8 +78,8 @@ public class PropBreakableController : MonoBehaviour
         if (damageRepelForceMultiplier < PROP_REPEL_FORCE_MIN)
             damageRepelForceMultiplier = PROP_REPEL_FORCE_MIN;
 
-        if (sfxDamage == null)
-            sfxDamage = sfxDestroy;
+        if (damageSound == null)
+            damageSound = destroySound;
     }
     
     private void OnTriggerEnter(Collider other)
@@ -111,7 +113,7 @@ public class PropBreakableController : MonoBehaviour
                 destroyFxOrigin.rotation);
 
             destroyAudioSource = destroyFxObject.AddComponent<AudioSource>();
-            destroyAudioSource.clip = sfxDestroy;
+            destroyAudioSource.clip = destroySound;
             destroyAudioSource.pitch = pickupAudioPitch;
             destroyAudioSource.volume = pickupAudioVolume;
             destroyAudioSource.Play();
@@ -135,7 +137,7 @@ public class PropBreakableController : MonoBehaviour
                 damageFxOrigin.rotation);
 
             destroyAudioSource = destroyFxObject.AddComponent<AudioSource>();
-            destroyAudioSource.clip = sfxDamage;
+            destroyAudioSource.clip = damageSound;
             destroyAudioSource.pitch = pickupAudioPitch;
             destroyAudioSource.volume = pickupAudioVolume;
             destroyAudioSource.Play();

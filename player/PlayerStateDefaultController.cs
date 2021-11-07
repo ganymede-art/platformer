@@ -118,7 +118,7 @@ namespace Assets.script
             // if the right criteria are met.
 
             if (mc.raycastGroundedSlopeAngle > SLIDE_ANGLE_MIN
-                || mc.groundType == GameConstants.GroundType.ground_slide)
+                || mc.groundType == GroundType.ground_slide)
             {
                 // reduce the slide resistance
                 mc.slideResistance -= (mc.raycastGroundedSlopeAngle * SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER);

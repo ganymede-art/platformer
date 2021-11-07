@@ -41,6 +41,11 @@ public class EventConditionalIntController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_CONDITIONAL_INT;
     }
 
+    public string GetEventDescription()
+    {
+        return GetEventType();
+    }
+
     public bool GetIsEventComplete(GameEvent gameEvent)
     {
         return true;

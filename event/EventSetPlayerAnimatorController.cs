@@ -34,6 +34,11 @@ public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
         return GameConstants.EVENT_TYPE_SET_PLAYER_ANIMATOR;
     }
 
+    public string GetEventDescription()
+    {
+        return GetEventType();
+    }
+
     public void StartEvent(GameEvent gameEvent)
     {
         var player = GameMasterController.GlobalPlayerObject;

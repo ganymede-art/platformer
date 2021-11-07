@@ -23,7 +23,7 @@ public class CameraController : MonoBehaviour
     const float MAX_DISTANCE_MIN = 1.0f;
     const float MAX_DISTANCE_MAX = 3.0f;
 
-    const float TRANSITION_STEP = 2f;
+    const float EXIT_FIXED_TRANSITION_DURATION = 1f;
 
     private GameObject targetDirectionObject;
 
@@ -51,9 +51,8 @@ public class CameraController : MonoBehaviour
     private CameraMode cameraMode;
 
     private Transform fixedTransform = null;
-    private float fixedTransition = 0f;
-    private float transitionSpeed = 2f;
-
+    private float transitionTimer = 0f;
+    private float transitionDuration = 2f;
 
     private Vector3 fixedStartPosition;
     private Quaternion fixedStartRotation;
@@ -68,14 +67,7 @@ public class CameraController : MonoBehaviour
     [FormerlySerializedAs("target_distance")]
     public float targetDistance;
     public float distance;
-
-    // properties.
-
-    public float Fixed_Transition
-    {
-        get { return fixedTransition; }
-    }
-
+    [System.NonSerialized] public float transitionProgress = 0f;
 
     void Start()
     {
@@ -87,7 +79,7 @@ public class CameraController : MonoBehaviour
         fixedStartRotation = this.transform.rotation;
 
         fixedTransform = this.transform;
-        fixedTransition = 1.0f;
+        transitionTimer = 1.0f;
 
         // set to default target (player).
 
@@ -178,19 +170,28 @@ public class CameraController : MonoBehaviour
 
     private void UpdateCameraFixed()
     {
-        // Get the transition speed.
+        if (transitionProgress < 1)
+        {
+            // Increment the transition amount (0 is none, 1 is complete).
 
-        float transitionStep = transitionSpeed * Time.deltaTime;
+            transitionTimer += Time.deltaTime;
+            transitionProgress = Mathf.InverseLerp(0, transitionDuration, transitionTimer);
 
-        // Increment the transition amount (0 is none, 1 is complete).
+            float t = transitionTimer / transitionDuration;
+            t = t * t * (3f - 2f * t);
+            t = Mathf.Clamp(t, 0, 1);
 
-        fixedTransition += transitionStep;
-        fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
+            // Lerp between the start and end points.
 
-        // Lerp between the start and end points.
-
-        transform.position = Vector3.Lerp(fixedStartPosition, fixedTransform.position, fixedTransition);
-        transform.rotation = Quaternion.Lerp(fixedStartRotation, fixedTransform.rotation, fixedTransition);
+            transform.position = Vector3.Lerp(fixedStartPosition, fixedTransform.position, t);
+            transform.rotation = Quaternion.Lerp(fixedStartRotation, fixedTransform.rotation, t);
+        }
+        else
+        {
+            transitionProgress = 1.0f;
+            transform.position = fixedTransform.position;
+            transform.rotation = fixedTransform.rotation;
+        }
 
         // Set the X and Y rotation to the current rotation.
         // So the dynamic camera is in the same position when
@@ -202,19 +203,28 @@ public class CameraController : MonoBehaviour
 
     private void UpdateCameraFixedTracking()
     {
-        // Get the transition speed.
+        if (transitionProgress < 1)
+        {
+            // Increment the transition amount (0 is none, 1 is complete).
 
-        float transitionStep = transitionSpeed * Time.deltaTime;
+            transitionTimer += Time.deltaTime;
+            transitionProgress = Mathf.InverseLerp(0, transitionDuration, transitionTimer);
 
-        // Increment the transition amount (0 is none, 1 is complete).
+            float t = transitionTimer / transitionDuration;
+            t = t * t * (3f - 2f * t);
+            t = Mathf.Clamp(t, 0, 1);
+            
+            // Lerp between the start and end points.
 
-        fixedTransition += transitionStep;
-        fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
-
-        // Lerp between the start and end points.
-
-        transform.position = Vector3.Lerp(fixedStartPosition, fixedTransform.position, fixedTransition);
-        transform.LookAt(target.position);
+            transform.position = Vector3.Lerp(fixedStartPosition, fixedTransform.position, t);
+            transform.LookAt(target.position);
+        }
+        else
+        {
+            transitionProgress = 1.0f;
+            transform.position = fixedTransform.position;
+            transform.LookAt(target.position);
+        }
 
         // Set the X and Y rotation to the current rotation.
         // So the dynamic camera is in the same position when
@@ -258,41 +268,36 @@ public class CameraController : MonoBehaviour
 
         // Apply the position and rotation to the camera.
 
-        if (fixedTransition < 1.0f)
+        if (transitionProgress < 1)
         {
-            // Get the transition speed.
-
-            float transitionStep = transitionSpeed * Time.deltaTime;
-
             // Increment the transition amount (0 is none, 1 is complete).
 
-            fixedTransition += transitionStep;
-            fixedTransition = Mathf.Clamp(fixedTransition, 0, 1);
+            transitionTimer += Time.deltaTime;
+            transitionProgress = Mathf.InverseLerp(0, transitionDuration, transitionTimer);
+
+            float t = transitionTimer / transitionDuration;
+            t = t * t * (3f - 2f * t);
+            t = Mathf.Clamp(t, 0, 1);
 
             // Lerp between the start and end points.
 
-            transform.position = Vector3.Lerp(fixedStartPosition, position, fixedTransition);
-            transform.rotation = Quaternion.Lerp(fixedStartRotation, rotation, fixedTransition);
+            transform.position = Vector3.Lerp(fixedStartPosition, position, t);
+            transform.rotation = Quaternion.Lerp(fixedStartRotation, rotation, t);
         }
         else
         {
             //transform.rotation = rotation;
             //transform.position = position;
 
-            // TODO make the horizontal movement instant,
-            // the vertical movement lerped by distance (and a little slow).
-
             float rotateSpeed = Quaternion.Angle(transform.rotation, rotation) * 16;
             transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, rotateSpeed);
 
             float lerpSpeed = Vector3.Distance(transform.position, position) * 16f;
             transform.position = Vector3.MoveTowards(transform.position, position, lerpSpeed * Time.deltaTime); 
-
-
         }
     }
 
-    public void SetFixedCamera(Transform fixedTransform, bool isTracking, bool isInstant, float transitionSpeed)
+    public void SetFixedCamera(Transform fixedTransform, bool isTracking, bool isInstant, float transitionDuration)
     {
         cameraMode = (isTracking) 
             ? CameraMode.camera_fixed_tracking 
@@ -302,12 +307,13 @@ public class CameraController : MonoBehaviour
 
         fixedStartPosition = this.transform.position;
         fixedStartRotation = this.transform.rotation;
-        fixedTransition = (isInstant)
-            ? 1.0f
+        transitionTimer = (isInstant)
+            ? transitionDuration
             : 0.0f;
+        transitionProgress = 0.0f;
 
         this.fixedTransform = fixedTransform;
-        this.transitionSpeed = transitionSpeed;
+        this.transitionDuration = transitionDuration;
     }
 
 
@@ -319,8 +325,9 @@ public class CameraController : MonoBehaviour
 
         fixedStartPosition = this.transform.position;
         fixedStartRotation = this.transform.rotation;
-        fixedTransition = 0.0f;
-        this.transitionSpeed = TRANSITION_STEP;
+        transitionTimer = 0.0f;
+        transitionProgress = 0.0f;
+        this.transitionDuration = EXIT_FIXED_TRANSITION_DURATION;
     }
 
     public void SetAutoRotation()

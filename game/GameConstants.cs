@@ -65,8 +65,12 @@ namespace Assets.script
         public const string EVENT_TYPE_SAVE_GAME = "save_game";
         public const string EVENT_TYPE_CONDITIONAL_INT = "conditional_int";
         public const string EVENT_TYPE_PLAY_MUSIC = "play_music";
+        public const string EVENT_TYPE_PLAY_SOUND = "play_sound";
         public const string EVENT_TYPE_SET_PLAYER_ABILITY = "set_player_ability";
         public const string EVENT_TYPE_SET_OBJECT_ACTIVE = "set_object_active";
+        public const string EVENT_TYPE_SET_PLAYER_FACE_DIRECTION = "set_player_face_direction";
+        public const string EVENT_TYPE_UNSET_PLAYER_FACE_DIRECTION = "unset_player_face_direction";
+        public const string EVENT_TYPE_SET_GAME_VAR_BOOL = "set_game_var_bool";
 
         public enum CameraMode
         {
@@ -74,40 +78,6 @@ namespace Assets.script
             camera_fixed,
             camera_fixed_tracking
         }
-
-        public enum DamageSourceType
-        {
-            type_static,
-            type_actor
-        }
-
-        public enum DamageEffectType
-        {
-            type_default,
-            type_fire
-        }
-
-        public enum DamageDirectionType
-        {
-            type_up,
-            type_down,
-            type_push
-        }
-
-        public enum GroundType
-        {
-            ground_default,
-            ground_slide,
-            ground_water,
-            ground_grass,
-            ground_sand,
-            ground_stone,
-            ground_wood,
-            ground_mud,
-            ground_metal,
-            ground_foliage,
-        }
-
     }
 
     

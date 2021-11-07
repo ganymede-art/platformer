@@ -9,6 +9,6 @@ namespace Assets.script
 {
     public interface IActorDataManager
     {
-        ActorDataManager? UpdateActorController();
+        ActorData GetActorData();
     }
 }
