@@ -6,7 +6,18 @@ using Assets.script;
 using System;
 public class GameLoadLevelController : MonoBehaviour
 {
-    public GameMasterController master;
+    private static GameLoadLevelController global;
+    public static GameLoadLevelController Global
+    {
+        get
+        {
+            if (global == null)
+            {
+                global = GameMasterController.Global.loadLevelController;
+            }
+            return global;
+        }
+    }
 
     // load constants.
 
@@ -29,7 +40,6 @@ public class GameLoadLevelController : MonoBehaviour
 
     private void Start()
     {
-        master = this.GetComponentInParent<GameMasterController>();
         SceneManager.sceneLoaded += EndLoadLevel;
 
         // initialise transition variables.
@@ -66,12 +76,12 @@ public class GameLoadLevelController : MonoBehaviour
         SceneManager.sceneLoaded -= EndLoadLevel;
     }
 
-    public void StartLoadLevel(string scene_name, string player_start_transform_name, string camera_start_transform_name)
+    public void StartLoadLevel(string scene_name, string player_start_transform_name, string camera_start_transform_name, UserInterfaceTransitionData transitionData = null)
     {
         // Begin loading a level.
 
-        master.ChangeState(GameState.Loading);
-
+        GameMasterController.Global.ChangeState(GameState.Loading);
+       
         isLoading = true;
 
         load_timer = 0.0f;
@@ -79,6 +89,10 @@ public class GameLoadLevelController : MonoBehaviour
         loadSceneName = scene_name;
         loadPlayerStartTransformName = player_start_transform_name;
         loadCameraStartTransformName = camera_start_transform_name;
+
+        // set the transition ui.
+
+        GameUserInterfaceController.Global.uiControllerTransition.SetMenu(transitionData);
     }
 
     private void DoLoadLevel()
@@ -98,8 +112,8 @@ public class GameLoadLevelController : MonoBehaviour
 
         // initialise the player and camera.
 
-        var player_prefab = master.playerPrefab;
-        var camera_prefab = master.cameraPrefab;
+        var player_prefab = GameMasterController.Global.playerPrefab;
+        var camera_prefab = GameMasterController.Global.cameraPrefab;
 
         var player = Instantiate(player_prefab, 
             player_start_transform.position, 
@@ -115,28 +129,16 @@ public class GameLoadLevelController : MonoBehaviour
 
         // reset after loading.
 
-        master.ChangeState(GameState.Game);
+        GameMasterController.Global.ChangeState(GameState.Game);
 
         isLoading = false;
 
         loadSceneName = string.Empty;
         loadPlayerStartTransformName = string.Empty;
         loadCameraStartTransformName = string.Empty;
-    }
 
-    private void OnGUI()
-    {
-        if (load_timer > 0.0f)
-        {
-            transitionColour.a = load_timer;
-            transitionTexture.SetPixel(0, 0, transitionColour);
-            transitionTexture.Apply();
-            GUI.DrawTexture(transitionRectangle, transitionTexture);
-        }
+        // unset the transition ui.
 
-        if (!Application.isEditor)
-            return;
-    }
-
-    
+        GameUserInterfaceController.Global.uiControllerTransition.UnsetMenu();
+    }   
 }

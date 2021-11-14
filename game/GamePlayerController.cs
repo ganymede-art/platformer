@@ -8,6 +8,19 @@ using System;
 
 public class GamePlayerController : MonoBehaviour
 {
+    private static GamePlayerController global;
+    public static GamePlayerController Global
+    {
+        get
+        {
+            if (global == null)
+            {
+                global = GameMasterController.Global.playerController;
+            }
+            return global;
+        }
+    }
+
     // game over constants.
 
     const float GAME_OVER_TIMER_INTERVAL = 4f;
@@ -34,6 +47,7 @@ public class GamePlayerController : MonoBehaviour
     [NonSerialized] public bool canDive = false;
     [NonSerialized] public bool canWaterDive = false;
     [NonSerialized] public bool canWaterJump = false;
+    [NonSerialized] public bool canDoubleJump = false;
 
     void Start()
     {

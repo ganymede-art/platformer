@@ -79,6 +79,20 @@ namespace Assets.script
                 mc.ChangePlayerState(PlayerStateType.playerDive);
                 return;
             }
+
+            // exit to diving state, if previous state was jump,
+            // if not grounded since entering this state, 
+            // jump is pressed, and in air.
+
+            if (mc.isRaisedPositive
+                && mc.previousStateType == PlayerStateType.playerJump
+                && !mc.isSpherecastGroundedSinceStateBegin
+                && !mc.isSpherecastGrounded
+                && mc.master.playerController.canDoubleJump)
+            {
+                mc.ChangePlayerState(PlayerStateType.PlayerDoubleJump);
+                return;
+            }
         }
 
         public void FinishState(PlayerController mc)

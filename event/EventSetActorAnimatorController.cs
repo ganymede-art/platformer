@@ -22,7 +22,7 @@ namespace Assets.script
 
         void Start()
         {
-            master = GameMasterController.GlobalMasterController;
+            master = GameMasterController.Global;
         }
 
         public GameObject GetNextEventSource()

@@ -6,6 +6,19 @@ using System;
 
 public class GameInputController : MonoBehaviour
 {
+    private static GameInputController global;
+    public static GameInputController Global
+    {
+        get
+        {
+            if (global == null)
+            {
+                global = GameMasterController.Global.inputController;
+            }
+            return global;
+        }
+    }
+
     public InputActionAsset controls;
     InputActionMap actionMap;
 

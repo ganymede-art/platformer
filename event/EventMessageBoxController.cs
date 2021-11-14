@@ -75,7 +75,7 @@ namespace Assets.script.Event
 
         private void Start()
         {
-            master = GameMasterController.GlobalMasterController;
+            master = GameMasterController.Global;
             audioSource = this.gameObject.AddComponent<AudioSource>();
         }
 
@@ -109,7 +109,7 @@ namespace Assets.script.Event
             outputText = string.Empty;
             outputTextIndex = 0;
 
-            master.userInterfaceController.ui_controller_message_box.SetMessageBox
+            master.userInterfaceController.uiControllerMessageBox.SetMessageBox
                 (messageIcon,isQuestion,gameEvent.gameState == GameState.Cutscene);
 
             gameCutsceneDelayProcessCount = 0;
@@ -180,7 +180,7 @@ namespace Assets.script.Event
                 gameCutsceneDelayProcessCount++;
             }
 
-            master.userInterfaceController.ui_controller_message_box.UpdateMessageBox(outputText,GetIsProcessComplete(gameEvent));
+            master.userInterfaceController.uiControllerMessageBox.UpdateMessageBox(outputText,GetIsProcessComplete(gameEvent));
         }
 
         public bool GetIsEventComplete(GameEvent gameEvent)
@@ -198,7 +198,7 @@ namespace Assets.script.Event
                     audioSource.pitch = 1.0f;
                     audioSource.Play();
 
-                    master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
+                    master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
                     isQuestionAnsweredPositive = true;
                     return true;
                 }
@@ -211,7 +211,7 @@ namespace Assets.script.Event
                     audioSource.pitch = 1.0f;
                     audioSource.Play();
 
-                    master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
+                    master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
                     isQuestionAnsweredPositive = false;
                     return true;
                 }
@@ -226,7 +226,7 @@ namespace Assets.script.Event
                     audioSource.pitch = 1.0f;
                     audioSource.Play();
 
-                    master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
+                    master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
                     isQuestionAnsweredPositive = true;
                     return true;
                 }
@@ -299,7 +299,7 @@ namespace Assets.script.Event
 
         public void FinishEvent(GameEvent gameEvent)
         {
-            master.userInterfaceController.ui_controller_message_box.UnsetMessageBox();
+            master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
         }
 
         public void ResetEvent(GameEvent gameEvent) { }

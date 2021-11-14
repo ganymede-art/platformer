@@ -6,19 +6,23 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.script
-{ 
-    public class EventPlayMusic : MonoBehaviour, IEventController
+{
+    class EventSetPlayerAbility : MonoBehaviour, IEventController
     {
-
         public GameObject nextEventSource;
 
-        public GameMusicData musicData;
+        public bool canNowAttack;
+        public bool canNowCrouchJump;
+        public bool canNowDive;
+        public bool canNowWaterDive;
+        public bool canNowWaterJump;
+        public bool canNowDoubleJump;
 
         public void FinishEvent(GameEvent gameEvent) { }
 
         public string GetEventType()
         {
-            return GameConstants.EVENT_TYPE_PLAY_MUSIC;
+            return GameConstants.EVENT_TYPE_SET_PLAYER_ABILITY;
         }
 
         public string GetEventDescription()
@@ -50,7 +54,23 @@ namespace Assets.script
 
         public void StartEvent(GameEvent gameEvent)
         {
-            GameMasterController.Global.audioController.PlayMusic(musicData);
+            if (canNowAttack)
+                GameMasterController.Global.playerController.canAttack = true;
+
+            if (canNowCrouchJump)
+                GameMasterController.Global.playerController.canCrouchJump = true;
+
+            if (canNowDive)
+                GameMasterController.Global.playerController.canDive = true;
+
+            if(canNowWaterDive)
+                GameMasterController.Global.playerController.canWaterDive = true;
+
+            if (canNowWaterJump)
+                GameMasterController.Global.playerController.canWaterJump = true;
+
+            if (canNowDoubleJump)
+                GameMasterController.Global.playerController.canDoubleJump = true;
         }
 
         public void ResetEvent(GameEvent gameEvent) { }
@@ -60,6 +80,4 @@ namespace Assets.script
             EventStaticMethods.DrawEventGizmo(this, this.gameObject, nextEventSource);
         }
     }
-
-    
 }

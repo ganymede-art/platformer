@@ -7,6 +7,19 @@ using System;
 
 public class GameCutsceneController : MonoBehaviour
 {
+    private static GameCutsceneController global;
+    public static GameCutsceneController Global
+    {
+        get
+        {
+            if (global == null)
+            {
+                global = GameMasterController.Global.cutsceneController;
+            }
+            return global;
+        }
+    }
+
     const float EVENT_STEP_INTERVAL_DEFAULT = 0.04f;
     const float EVENT_STEP_INTERVAL_FAST = 0.02f;
 
@@ -21,7 +34,7 @@ public class GameCutsceneController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
 
         orderedEvents = new List<GameEvent>();
         generalEvents = new List<GameEvent>();
@@ -32,7 +45,7 @@ public class GameCutsceneController : MonoBehaviour
         foreach(GameEvent orderedEvent in orderedEvents)
         {
             if (orderedEvent.gameState
-                != GameMasterController.GlobalMasterController.gameState)
+                != GameMasterController.Global.gameState)
                 continue;
 
             if (!orderedEvent.isStarted)
@@ -55,7 +68,7 @@ public class GameCutsceneController : MonoBehaviour
         foreach(GameEvent generalEvent in generalEvents)
         {
             if (generalEvent.gameState 
-                != GameMasterController.GlobalMasterController.gameState)
+                != GameMasterController.Global.gameState)
                 continue;
 
             if (!generalEvent.isStarted)
@@ -78,7 +91,7 @@ public class GameCutsceneController : MonoBehaviour
         generalEvents.RemoveAll(ge => ge.controllerSource == null);
 
         // end cutscene if no more cutscene events.
-        if (GameMasterController.GlobalMasterController.gameState == GameState.Cutscene
+        if (GameMasterController.Global.gameState == GameState.Cutscene
             && orderedEvents.FindAll(oe => oe.gameState == GameState.Cutscene).Count == 0
             && generalEvents.FindAll(ge => ge.gameState == GameState.Cutscene).Count == 0)
             EndCutscene();

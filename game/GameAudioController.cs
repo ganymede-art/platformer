@@ -7,11 +7,23 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class GameAudioController : MonoBehaviour
 {
-    [System.NonSerialized] public float volumeMusic = 1.0f;
+    private static GameAudioController global;
+    public static GameAudioController Global
+    {
+        get
+        {
+            if(global == null)
+            {
+                global = GameMasterController.Global.audioController;
+            }
+            return global;
+        }
+    }
+
+    [System.NonSerialized] public float volumeMusic = 0.4f;
     [System.NonSerialized] public float volumeFootstep = 0.4f;
     [System.NonSerialized] public float volumeObject = 1.0f;
     [System.NonSerialized] public float volumeItem = 1.0f;
-
 
     // null sound.
 

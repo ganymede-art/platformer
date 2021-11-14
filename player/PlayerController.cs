@@ -161,6 +161,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip soundCrouchJump;
     public AudioClip soundSlide;
     public AudioClip soundWaterJump;
+    public AudioClip soundDoubleJump;
 
     // interface variables.
 
@@ -168,7 +169,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
 
         // initialise state controllers.
 

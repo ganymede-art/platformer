@@ -8,6 +8,19 @@ using System;
 
 public class GameUserInterfaceController : MonoBehaviour
 {
+    private static GameUserInterfaceController global;
+    public static GameUserInterfaceController Global
+    {
+        get
+        {
+            if (global == null)
+            {
+                global = GameMasterController.Global.userInterfaceController;
+            }
+            return global;
+        }
+    }
+
     // ui constants.
 
     const float MESSAGE_BOX_FONT_SIZE = 24f;
@@ -19,17 +32,20 @@ public class GameUserInterfaceController : MonoBehaviour
 
     // ui controllers.
 
-    [NonSerialized] public UserInterfaceMessageBoxController ui_controller_message_box;
-    [NonSerialized] public UserInterfaceGameController ui_controller_game;
-    [NonSerialized] public UserInterfaceMenuController ui_controller_menu;
+    [NonSerialized] public UserInterfaceMessageBoxController uiControllerMessageBox;
+    [NonSerialized] public UserInterfaceGameController uiControllerGame;
+    [NonSerialized] public UserInterfaceMenuController uiControllerMenu;
+    [NonSerialized] public UserInterfaceTransitionController uiControllerTransition;
 
     [NonSerialized] public GameObject uiMessageBoxObject;
     [NonSerialized] public GameObject uiGameObject;
     [NonSerialized] public GameObject uiMenuObject;
+    [NonSerialized] public GameObject uiTransitionObject;
 
     public GameObject uiMessageBoxPrefab;
     public GameObject uiGamePrefab;
     public GameObject uiMenuPrefab;
+    public GameObject uiTransitionPrefab;
 
     // ui figures.
 
@@ -54,17 +70,22 @@ public class GameUserInterfaceController : MonoBehaviour
         // init message box.
 
         uiMessageBoxObject = Instantiate(uiMessageBoxPrefab, this.transform);
-        ui_controller_message_box = uiMessageBoxObject.GetComponent<UserInterfaceMessageBoxController>();
+        uiControllerMessageBox = uiMessageBoxObject.GetComponent<UserInterfaceMessageBoxController>();
 
         // init game.
 
         uiGameObject = Instantiate(uiGamePrefab, this.transform);
-        ui_controller_game = uiGameObject.GetComponent<UserInterfaceGameController>();
+        uiControllerGame = uiGameObject.GetComponent<UserInterfaceGameController>();
 
         // init menu.
 
         uiMenuObject = Instantiate(uiMenuPrefab,this.transform);
-        ui_controller_menu = uiMenuObject.GetComponent<UserInterfaceMenuController>();
+        uiControllerMenu = uiMenuObject.GetComponent<UserInterfaceMenuController>();
+
+        // init tran.
+
+        uiTransitionObject = Instantiate(uiTransitionPrefab, this.transform);
+        uiControllerTransition = uiTransitionObject.GetComponent<UserInterfaceTransitionController>();
 
         // initialise UI.
 

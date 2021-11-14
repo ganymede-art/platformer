@@ -29,7 +29,7 @@ public class EventSetCameraController : MonoBehaviour, IEventController
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
 
         if (transitionDuration < TRANSITION_DURATION_MIN)
             transitionDuration = TRANSITION_DURATION_DEFAULT;

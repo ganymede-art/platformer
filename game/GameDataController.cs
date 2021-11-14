@@ -10,6 +10,19 @@ using Newtonsoft.Json;
 
 public class GameDataController : MonoBehaviour
 {
+    private static GameDataController global;
+    public static GameDataController Global
+    {
+        get
+        {
+            if (global == null)
+            {
+                global = GameMasterController.Global.dataController;
+            }
+            return global;
+        }
+    }
+
     public GameMasterController master;
 
     private Dictionary<string, bool> gameVarBool;
@@ -181,6 +194,7 @@ public class GameDataController : MonoBehaviour
         saveData.canDive = master.playerController.canDive;
         saveData.canWaterDive = master.playerController.canWaterDive;
         saveData.canWaterJump = master.playerController.canWaterJump;
+        saveData.canDoubleJump = master.playerController.canDoubleJump;
 
 
         Debug.Log("Saving data to: " + jsonSavePath);
@@ -224,6 +238,7 @@ public class GameDataController : MonoBehaviour
          master.playerController.canDive = saveData.canDive;
          master.playerController.canWaterDive = saveData.canWaterDive;
          master.playerController.canWaterJump = saveData.canWaterJump;
+        master.playerController.canDoubleJump = saveData.canDoubleJump;
 
         master.loadLevelController.StartLoadLevel(
             saveData.loadSceneName, 
@@ -259,6 +274,7 @@ public struct SaveData
     public bool canDive;
     public bool canWaterDive;
     public bool canWaterJump;
+    public bool canDoubleJump;
 }
 
 public class GameItemChangeEventArgs : EventArgs

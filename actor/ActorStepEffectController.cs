@@ -29,7 +29,7 @@ public class ActorStepEffectController : MonoBehaviour
     {
         audioSource = this.gameObject.AddComponent<AudioSource>();
         audioSource.spatialBlend = 1;
-        audioSource.volume = GameMasterController.GlobalMasterController.audioController.volumeFootstep;
+        audioSource.volume = GameMasterController.Global.audioController.volumeFootstep;
 
         stepSounds = new Dictionary<GroundType, AudioClip>();
         stepSounds.Add(GroundType.ground_default, defaultStepSound);

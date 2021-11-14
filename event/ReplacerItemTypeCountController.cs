@@ -22,7 +22,7 @@ public class ReplacerItemTypeCountController : MonoBehaviour, IReplacerControlle
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
     }
 
     

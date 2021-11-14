@@ -19,6 +19,7 @@ namespace Assets.script
         playerWaterDive,
         playerRepel,
         playerCrouch,
-        playerCrouchJump
+        playerCrouchJump,
+        PlayerDoubleJump
     }
 }

@@ -24,11 +24,12 @@ public class MapAutoCutscene : MonoBehaviour
 
         if(isOneShot)
         {
-            bool isSet = GameMasterController.GlobalMasterController
-                .dataController.GetGameVarBool(oneShotVariableName);
+            
+            bool isSet = GameDataController.Global.GetGameVarBool(oneShotVariableName);
 
             if (isSet)
             {
+                Debug.Log(oneShotVariableName + " was set, deleting.");
                 GameObject.Destroy(gameObject);
                 return;
             }
@@ -41,20 +42,20 @@ public class MapAutoCutscene : MonoBehaviour
         if (isOrdered)
         {
             if (isPriority)
-                GameMasterController.GlobalMasterController
+                GameMasterController.Global
                     .cutsceneController.InsertOrderedGameEvent(gameEvent);
             else
-                GameMasterController.GlobalMasterController
+                GameMasterController.Global
                     .cutsceneController.AddOrderedGameEvent(gameEvent);
         }
         else
         {
-            GameMasterController.GlobalMasterController
+            GameMasterController.Global
                 .cutsceneController.AddGeneralGameEvent(gameEvent);
         }
 
         if (isOneShot)
-            GameMasterController.GlobalMasterController
+            GameMasterController.Global
                 .dataController.UpdateGameVar(oneShotVariableName, true);
     }
 }

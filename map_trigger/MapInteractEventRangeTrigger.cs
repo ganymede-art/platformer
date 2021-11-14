@@ -26,7 +26,7 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
         playerObject = GameMasterController.GlobalPlayerObject;
         playerController = playerObject.GetComponent<PlayerController>();
     }

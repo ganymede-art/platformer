@@ -58,7 +58,7 @@ namespace Assets.script
 
             update_count_jump++;
 
-            // enter default state if right criteria are met.
+            // exit to default state if right criteria are met.
 
             if (mc.rigidBody.velocity.y <= 0)
             {
@@ -66,7 +66,7 @@ namespace Assets.script
                 return;
             }
 
-            // enter default state if grounded.
+            // exit to default state if grounded.
 
             if (update_count_jump >= PlayerConstants.UPDATE_COUNT_JUMP_RECOVERY_MIN
                 && (mc.isRaycastGrounded || mc.isSpherecastGrounded))
@@ -75,12 +75,21 @@ namespace Assets.script
                 return;
             }
 
-            // enter dive state.
+            // exit to dive state.
 
             if (mc.isRaisedInteract 
                 && mc.master.playerController.canDive)
             {
                 mc.ChangePlayerState(PlayerStateType.playerDive);
+                return;
+            }
+
+            // exit to double jump state.
+
+            if(mc.isRaisedPositive
+                && mc.master.playerController.canDoubleJump)
+            {
+                mc.ChangePlayerState(PlayerStateType.PlayerDoubleJump);
                 return;
             }
         }

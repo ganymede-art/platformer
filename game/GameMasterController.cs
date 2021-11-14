@@ -57,7 +57,7 @@ public class GameMasterController : MonoBehaviour
     private static GameObject globalPlayerObject;
     private static PlayerController globalPlayerController;
 
-    public static GameMasterController GlobalMasterController
+    public static GameMasterController Global
     {
         get
         {

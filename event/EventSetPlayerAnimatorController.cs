@@ -21,7 +21,7 @@ public class EventSetPlayerAnimatorController : MonoBehaviour, IEventController
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
     }
 
     public GameObject GetNextEventSource()

@@ -24,7 +24,7 @@ public class EventSaveGameController : MonoBehaviour, IEventController
 
     private void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
     }
 
     public GameObject GetNextEventSource()

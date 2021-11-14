@@ -71,7 +71,7 @@ namespace Assets.script.enemy
 
         private void Start()
         {
-            master = GameMasterController.GlobalMasterController;
+            master = GameMasterController.Global;
             data = new EnemyCoreData();
 
             // get components in objects.

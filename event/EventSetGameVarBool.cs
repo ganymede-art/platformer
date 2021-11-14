@@ -20,11 +20,6 @@ public class EventSetGameVarBool : MonoBehaviour, IEventController
     public bool variableValue;
 
 
-    void Start()
-    {
-        GameMasterController.GlobalMasterController.dataController.UpdateGameVar(variableName, variableValue);
-    }
-
     public GameObject GetNextEventSource()
     {
         return nextEventSource;
@@ -42,7 +37,7 @@ public class EventSetGameVarBool : MonoBehaviour, IEventController
 
     public void StartEvent(GameEvent gameEvent)
     {
-        
+        GameMasterController.Global.dataController.UpdateGameVar(variableName, variableValue);
     }
 
     public void ProcessEvent(GameEvent gameEvent)

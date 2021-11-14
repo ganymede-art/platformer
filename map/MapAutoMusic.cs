@@ -12,7 +12,7 @@ public class MapAutoMusic : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
         master.audioController.PlayMusic(musicData);
         GameObject.Destroy(this);
     }

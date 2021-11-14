@@ -43,7 +43,7 @@ public class PropBreakableController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
 
         // destroy if already saved as destroyed.
 

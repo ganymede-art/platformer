@@ -40,7 +40,7 @@ public class ItemController : MonoBehaviour
 
     void Start()
     {
-        master = GameMasterController.GlobalMasterController;
+        master = GameMasterController.Global;
         playerObject = GameMasterController.GlobalPlayerObject;
 
         // give item data default values if not set.
