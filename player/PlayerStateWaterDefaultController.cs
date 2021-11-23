@@ -33,7 +33,7 @@ namespace Assets.script
 
             // exit to water dive if pressing interact.
 
-            if (mc.isRaisedInteract
+            if (mc.isRaisedWest
                 && mc.master.playerController.canDive)
             {
                 mc.ChangePlayerState(PlayerStateType.playerWaterDive);
@@ -45,7 +45,7 @@ namespace Assets.script
 
             if
             (
-                mc.isRaisedPositive
+                mc.isRaisedSouth
                 && (mc.isSpherecastGrounded || mc.rigidBody.velocity.y <= MINIMUM_WATER_JUMP_Y_SPEED)
             )
             {

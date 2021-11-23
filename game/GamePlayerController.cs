@@ -36,11 +36,11 @@ public class GamePlayerController : MonoBehaviour
 
     // player variables.
 
-    [NonSerialized] public int health = 3;
-    [NonSerialized] public int maxHealth = 3;
+    [NonSerialized] public int health = 6;
+    [NonSerialized] public int maxHealth = 6;
 
-    [NonSerialized] public int ammo = 0;
-    [NonSerialized] public int maxAmmo = 0;
+    [NonSerialized] public int ammo = 10;
+    [NonSerialized] public int maxAmmo = 10;
 
     [NonSerialized] public bool canAttack = false;
     [NonSerialized] public bool canCrouchJump = false;

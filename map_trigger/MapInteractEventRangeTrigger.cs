@@ -18,11 +18,7 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
     public float interactRange = 1.0f;
 
     [Header("Event Attributes")]
-    [FormerlySerializedAs("event_source")]
-    public GameObject eventSource;
-    public GameState gameState = GameState.Cutscene;
-    public bool isOrdered;
-    public bool isPriority;
+    public GameObject gameEventTriggerObject;
 
     void Start()
     {
@@ -44,22 +40,25 @@ public class MapInteractEventRangeTrigger : MonoBehaviour
             return;
 
         if (playerController.isSpherecastGrounded
-            && !master.inputController.wasInputInteract
-            && master.inputController.isInputInteract)
+            && !master.inputController.wasInputWest
+            && master.inputController.inInputWest)
         {
-            var gameEvent = new GameEvent(gameState,eventSource);
+            if (gameEventTriggerObject == null)
+            {
+                Debug.LogError("Missing event trigger object.");
+                return;
+            }
 
-            if (isOrdered)
+            var triggerComponent = gameEventTriggerObject
+                .GetComponent<GameEventTrigger>();
+
+            if(triggerComponent == null)
             {
-                if(isPriority)
-                    master.cutsceneController.InsertOrderedGameEvent(gameEvent);
-                else
-                    master.cutsceneController.AddOrderedGameEvent(gameEvent);
+                Debug.LogError("Missing event trigger component.");
+                return;
             }
-            else
-            {
-                master.cutsceneController.AddGeneralGameEvent(gameEvent);
-            }
+
+            triggerComponent.StartGameEvent();
         }
     }
 }

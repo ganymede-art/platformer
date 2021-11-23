@@ -17,6 +17,9 @@ namespace Assets.script
 
         private float doubleJumpPersistPercentage = 1.0f;
         private float doubleJumpAnimationSpeed = 1.0f;
+
+        private float soundTimer = 0.0f;
+        private float soundInterval = 0.2f;
         
 
         public void BeginState(PlayerController mc)
@@ -40,6 +43,10 @@ namespace Assets.script
 
             mc.audioSource.clip = mc.soundDoubleJump;
             mc.audioSource.Play();
+
+            // set the sound timer.
+
+            soundTimer = 0.0f;
         }
 
         public void CheckState(PlayerController mc)
@@ -68,7 +75,7 @@ namespace Assets.script
             doubleJumpPersistPercentage = Mathf.InverseLerp
                 (0, DOUBLE_JUMP_PERSIST_ENERGY_MAX, doubleJumpPersistEnergy);
 
-            if (GameInputController.Global.isInputPositive)
+            if (GameInputController.Global.isInputSouth)
             {
                 doubleJumpPersistEnergy--;
 
@@ -111,6 +118,16 @@ namespace Assets.script
             // Move our position a step closer to the target.
             mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
             mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
+
+            // play sound.
+
+            soundTimer += Time.deltaTime;
+            if (soundTimer >= soundInterval)
+            {
+                soundTimer = 0.0f;
+                mc.audioSource.clip = mc.soundDoubleJump;
+                mc.audioSource.Play();
+            }
         }
 
         public void UpdateStateDragAndFriction(PlayerController mc)

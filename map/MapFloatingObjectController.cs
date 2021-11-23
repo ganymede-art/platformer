@@ -33,6 +33,9 @@ public class MapFloatingObjectController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (GameMasterController.Global.gameState != GameState.Game)
+            return;
+
         if (isWeighedDown && sinkingTimer < 1)
         {
             sinkingTimer += 1f * Time.deltaTime;

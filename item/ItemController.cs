@@ -33,9 +33,6 @@ public class ItemController : MonoBehaviour
 
     [Header("Event Attributes")]
     public GameObject pickupEventPrefab;
-    public GameState pickupEventGameState;
-    public bool isPickupEventOrdered;
-    public bool isPickupEventPriority;
     
 
     void Start()
@@ -100,15 +97,12 @@ public class ItemController : MonoBehaviour
                     this.transform.position,
                     originalRotation);
 
-                var gameEvent = new GameEvent(GameState.Cutscene, itemPickupEventSource);
+                var gameEventTrigger = itemPickupEventSource.GetComponent<GameEventTrigger>();
 
-                if(isPickupEventOrdered)
-                    if(isPickupEventPriority)
-                        master.cutsceneController.InsertOrderedGameEvent(gameEvent);
-                    else
-                        master.cutsceneController.AddOrderedGameEvent(gameEvent);
-                else
-                    master.cutsceneController.AddGeneralGameEvent(gameEvent);
+                if (gameEventTrigger == null)
+                    return;
+
+                gameEventTrigger.StartGameEvent();
             }
 
             // destroy the item.

@@ -13,10 +13,9 @@ namespace Assets.script
         string GetEventType();
         string GetEventDescription();
         void StartEvent(GameEvent gameEvent);
-        void ProcessEvent(GameEvent gameEvent);
-        bool GetIsProcessComplete(GameEvent gameEvent);
+        void UpdateEvent(GameEvent gameEvent);
+        bool GetIsUpdateComplete(GameEvent gameEvent);
         bool GetIsEventComplete(GameEvent gameEvent);
-        bool GetIsGameEventComplete(GameEvent gameEvent);
         void FinishEvent(GameEvent gameEvent);
         void ResetEvent(GameEvent gameEvent);
     }

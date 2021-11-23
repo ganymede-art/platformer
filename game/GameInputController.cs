@@ -22,39 +22,46 @@ public class GameInputController : MonoBehaviour
     public InputActionAsset controls;
     InputActionMap actionMap;
 
-    [NonSerialized] public InputAction actionPositive;
-    [NonSerialized] public InputAction actionNegative;
-    [NonSerialized] public InputAction actionHorizontal;
-    [NonSerialized] public InputAction actionVertical;
-    [NonSerialized] public InputAction actionInteract;
-    [NonSerialized] public InputAction actionInspect;
-    [NonSerialized] public InputAction actionStart;
-    [NonSerialized] public InputAction actionSelect;
-    [NonSerialized] public InputAction actionAimHorizontal;
-    [NonSerialized] public InputAction actionAimVertical;
-    [NonSerialized] public InputAction actionAimZoom;
-    [NonSerialized] public InputAction actionPositive2;
-    [NonSerialized] public InputAction actionNegative2;
+    [NonSerialized] public InputAction buttonNorth;
+    [NonSerialized] public InputAction buttonEast;
+    [NonSerialized] public InputAction buttonSouth;
+    [NonSerialized] public InputAction buttonWest;
+
+    [NonSerialized] public InputAction buttonWestExtra;
+    [NonSerialized] public InputAction buttonEastExtra;
+
+    [NonSerialized] public InputAction axisMoveHorizontal;
+    [NonSerialized] public InputAction axisMoveVertical;
+
+    [NonSerialized] public InputAction axisAimHorizontal;
+    [NonSerialized] public InputAction axisAimVertical;
+
+    [NonSerialized] public InputAction buttonStart;
+    [NonSerialized] public InputAction buttonSelect;
+
+    [NonSerialized] public InputAction axisZoom;
 
     [NonSerialized] public float sensitivityCameraZoom = 0.05f;
     [NonSerialized] public float sensitivityCameraHorizontal = 0.7f;
     [NonSerialized] public float sensitivityCameraVertical = 0.7f;
 
-    [System.NonSerialized] public bool wasInputPositive = false;
-    [System.NonSerialized] public bool wasInputNegative = false;
-    [System.NonSerialized] public bool wasInputInteract = false;
-    [System.NonSerialized] public bool wasInputInspect = false;
-    [System.NonSerialized] public bool wasInputPositive2 = false;
-    [System.NonSerialized] public bool wasInputNegative2 = false;
+    [System.NonSerialized] public bool wasInputNorth = false;
+    [System.NonSerialized] public bool wasInputEast = false;
+    [System.NonSerialized] public bool wasInputSouth = false;
+    [System.NonSerialized] public bool wasInputWest = false;
+    
+    [System.NonSerialized] public bool wasInputEastExtra = false;
+    [System.NonSerialized] public bool wasInputWestExtra = false;
 
     [System.NonSerialized] public bool wasInputStart = false;
 
-    [System.NonSerialized] public bool isInputPositive = false;
-    [System.NonSerialized] public bool isInputNegative = false;
-    [System.NonSerialized] public bool isInputInteract = false;
-    [System.NonSerialized] public bool isInputInspect = false;
-    [System.NonSerialized] public bool isInputPositive2 = false;
-    [System.NonSerialized] public bool isInputNegative2 = false;
+    [System.NonSerialized] public bool inInputNorth = false;
+    [System.NonSerialized] public bool isInputEast = false;
+    [System.NonSerialized] public bool isInputSouth = false;
+    [System.NonSerialized] public bool inInputWest = false;
+    
+    [System.NonSerialized] public bool isInputEastExtra = false;
+    [System.NonSerialized] public bool isInputWestExtra = false;
 
     [System.NonSerialized] public bool isInputStart = false;
 
@@ -62,53 +69,64 @@ public class GameInputController : MonoBehaviour
     {
         actionMap = controls.FindActionMap("action_map");
 
-        actionPositive = actionMap.FindAction("positive");
-        actionNegative = actionMap.FindAction("negative");
-        actionHorizontal = actionMap.FindAction("horizontal");
-        actionVertical = actionMap.FindAction("vertical");
-        actionInteract = actionMap.FindAction("interact");
-        actionInspect = actionMap.FindAction("inspect");
-        actionStart = actionMap.FindAction("start");
-        actionSelect = actionMap.FindAction("select");
-        actionAimHorizontal = actionMap.FindAction("aim_horizontal");
-        actionAimVertical = actionMap.FindAction("aim_vertical");
-        actionAimZoom = actionMap.FindAction("aim_zoom");
-        actionPositive2 = actionMap.FindAction("positive_2");
-        actionNegative2 = actionMap.FindAction("negative_2");
+        buttonNorth = actionMap.FindAction("north");
+        buttonEast = actionMap.FindAction("east");
+        buttonSouth = actionMap.FindAction("south");
+        buttonWest = actionMap.FindAction("west");
 
-        actionPositive.Enable();
-        actionNegative.Enable();
-        actionHorizontal.Enable();
-        actionVertical.Enable();
-        actionInteract.Enable();
-        actionInspect.Enable();
-        actionStart.Enable();
-        actionSelect.Enable();
-        actionAimHorizontal.Enable();
-        actionAimVertical.Enable();
-        actionAimZoom.Enable();
+        buttonEastExtra = actionMap.FindAction("east_extra");
+        buttonWestExtra = actionMap.FindAction("west_extra");
 
-        actionPositive2.Enable();
-        actionNegative2.Enable();
+        axisMoveHorizontal = actionMap.FindAction("move_horizontal");
+        axisMoveVertical = actionMap.FindAction("move_vertical");
+        axisAimHorizontal = actionMap.FindAction("aim_horizontal");
+        axisAimVertical = actionMap.FindAction("aim_vertical");
+
+        buttonStart = actionMap.FindAction("start");
+        buttonSelect = actionMap.FindAction("select");
+
+        axisZoom = actionMap.FindAction("zoom");
+
+        buttonNorth.Enable();
+        buttonEast.Enable();
+        buttonSouth.Enable();        
+        buttonWest.Enable();
+
+        buttonEastExtra.Enable();
+        buttonWestExtra.Enable();
+
+        axisMoveHorizontal.Enable();
+        axisMoveVertical.Enable();
+
+        axisAimHorizontal.Enable();
+        axisAimVertical.Enable();
+
+        buttonStart.Enable();
+        buttonSelect.Enable();
+        
+        axisZoom.Enable();
     }
 
     void Update()
     {
-        wasInputPositive = isInputPositive;
-        wasInputNegative = isInputNegative;
-        wasInputInteract = isInputInteract;
-        wasInputInspect = isInputInspect;
-        wasInputPositive2 = isInputPositive2;
-        wasInputNegative2 = isInputNegative2;
+        wasInputNorth = inInputNorth;
+        wasInputEast = isInputEast;
+        wasInputSouth = isInputSouth;
+        wasInputWest = inInputWest;
+        
+        wasInputEastExtra = isInputEastExtra;
+        wasInputWestExtra = isInputWestExtra;
 
         wasInputStart = isInputStart;
 
-        isInputPositive = actionPositive.ReadValue<float>() >= 0.1f;
-        isInputNegative = actionNegative.ReadValue<float>() >= 0.1f;
-        isInputInteract = actionInteract.ReadValue<float>() >= 0.1f;
-        isInputInspect = actionInspect.ReadValue<float>() >= 0.1f;
-        isInputPositive2 = actionPositive2.ReadValue<float>() >= 0.1f;
-        isInputNegative2 = actionNegative2.ReadValue<float>() >= 0.1f;
-        isInputStart = actionStart.ReadValue<float>() >= 0.1f;
+        inInputNorth = buttonNorth.ReadValue<float>() >= 0.1f;
+        isInputEast = buttonEast.ReadValue<float>() >= 0.1f;
+        isInputSouth = buttonSouth.ReadValue<float>() >= 0.1f;
+        inInputWest = buttonWest.ReadValue<float>() >= 0.1f;
+        
+        isInputEastExtra = buttonEastExtra.ReadValue<float>() >= 0.1f;
+        isInputWestExtra = buttonWestExtra.ReadValue<float>() >= 0.1f;
+
+        isInputStart = buttonStart.ReadValue<float>() >= 0.1f;
     }
 }

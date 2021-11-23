@@ -16,6 +16,7 @@ namespace Assets.script
             Gizmos.DrawIcon(thisEventObject.transform.position, "ev.png", true);
             if (nextEventObject != null)
                 Gizmos.DrawLine(thisEventObject.transform.position, nextEventObject.transform.position);
+
             if (optionalObject1 != null)
             {
                 Gizmos.color = optionalColour1 == null ? Color.red : optionalColour1.Value;

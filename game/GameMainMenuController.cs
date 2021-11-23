@@ -10,15 +10,15 @@ public class GameMainMenuController : MonoBehaviour
     void Start()
     {
         master = GameObject.FindObjectOfType<GameMasterController>();
-        master.inputController.actionStart.performed += LoadTestScene;
-        master.inputController.actionSelect.performed += loadGame;
+        master.inputController.buttonStart.performed += LoadTestScene;
+        master.inputController.buttonSelect.performed += loadGame;
     }
 
 
     void OnDestroy()
     {
-        master.inputController.actionStart.performed -= LoadTestScene;
-        master.inputController.actionSelect.performed -= loadGame;
+        master.inputController.buttonStart.performed -= LoadTestScene;
+        master.inputController.buttonSelect.performed -= loadGame;
     }
 
     private void LoadTestScene(InputAction.CallbackContext context)

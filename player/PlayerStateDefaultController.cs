@@ -14,12 +14,6 @@ namespace Assets.script
     {
         int update_count_default = 0;
 
-        // slide constants.
-
-        const float SLIDE_ANGLE_MIN = 50f;                              // minimum angle to start sliding
-        const float SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER = 0.001f;  // multiplier for ground angle to subtract from resistance.
-        const float SLIDE_RESISTANCE_MAX = 1.0f;                        // maximum slide resistance.
-
         // variables.
 
         public void BeginState(PlayerController mc)
@@ -33,7 +27,7 @@ namespace Assets.script
 
             // enter jumping state if right criteria are met.
 
-            if (mc.isRaisedPositive && mc.isSpherecastGrounded)
+            if (mc.isRaisedSouth && mc.isSpherecastGrounded)
             {
                 mc.ChangePlayerState(PlayerStateType.playerJump);
                 return;
@@ -48,7 +42,7 @@ namespace Assets.script
             // exit to attack state if attack is pressed
             // and grounded.
 
-            if(mc.isRaisedInteract
+            if(mc.isRaisedWest
                 && mc.isSpherecastGrounded
                 && mc.master.playerController.canAttack)
             {
@@ -59,7 +53,7 @@ namespace Assets.script
             // exit to crouch state if positive 3 is pressed
             // and grounded.
 
-            if(mc.master.inputController.isInputPositive2
+            if(mc.master.inputController.isInputEastExtra
                 && mc.isSpherecastGrounded)
             {
                 mc.ChangePlayerState(PlayerStateType.playerCrouch);
@@ -70,7 +64,7 @@ namespace Assets.script
             // if not grounded since entering this state, 
             // attack is pressed, and in air.
 
-            if (mc.isRaisedInteract
+            if (mc.isRaisedWest
                 && mc.previousStateType == PlayerStateType.playerJump
                 && !mc.isSpherecastGroundedSinceStateBegin
                 && !mc.isSpherecastGrounded
@@ -84,7 +78,7 @@ namespace Assets.script
             // if not grounded since entering this state, 
             // jump is pressed, and in air.
 
-            if (mc.isRaisedPositive
+            if (mc.isRaisedSouth
                 && mc.previousStateType == PlayerStateType.playerJump
                 && !mc.isSpherecastGroundedSinceStateBegin
                 && !mc.isSpherecastGrounded
@@ -132,7 +126,7 @@ namespace Assets.script
             // if the right criteria are met.
 
             if (mc.raycastGroundedSlopeAngle > SLIDE_ANGLE_MIN
-                || mc.groundType == GroundType.ground_slide)
+                || mc.groundData.isGroundSlide)
             {
                 // reduce the slide resistance
                 mc.slideResistance -= (mc.raycastGroundedSlopeAngle * SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER);
@@ -216,7 +210,6 @@ namespace Assets.script
             // update player facing direction.
 
             mc.facingDirection = Quaternion.Euler(0, mc.cameraObject.transform.rotation.eulerAngles.y, 0) * mc.inputDirectional;
-
             mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
             // Move our position a step closer to the target.

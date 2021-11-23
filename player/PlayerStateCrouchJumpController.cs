@@ -98,7 +98,7 @@ namespace Assets.script
 
             mc.jumpPersistEnergy -= 1;
 
-            if (mc.master.inputController.isInputPositive && mc.jumpPersistEnergy > 0)
+            if (mc.master.inputController.isInputSouth && mc.jumpPersistEnergy > 0)
             {
                 // if the jump input is given, and persist energy > 0, add extra jump force.
 

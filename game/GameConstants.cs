@@ -52,6 +52,8 @@ namespace Assets.script
                 (1 << LAYER_IGNORE_CAMERA)
             );
 
+        // event type.
+
         public const string EVENT_TYPE_NULL = "null";
         public const string EVENT_TYPE_DELAY = "delay";
         public const string EVENT_TYPE_MESSAGE_BOX = "message_box";
@@ -71,6 +73,21 @@ namespace Assets.script
         public const string EVENT_TYPE_SET_PLAYER_FACE_DIRECTION = "set_player_face_direction";
         public const string EVENT_TYPE_UNSET_PLAYER_FACE_DIRECTION = "unset_player_face_direction";
         public const string EVENT_TYPE_SET_GAME_VAR_BOOL = "set_game_var_bool";
+        public const string EVENT_TYPE_MOVE_OBJECT = "move_object";
+        public const string EVENT_TYPE_CONDITIONAL_BOOL = "conditional_bool";
+        public const string EVENT_TYPE_SET_GAME_VAR_INT = "set_game_var_int";
+
+        // ground type.
+
+        public const string GROUND_TYPE_DEFAULT = "default";
+        public const string GROUND_TYPE_GRASS = "grass";
+        public const string GROUND_TYPE_SAND = "sand";
+        public const string GROUND_TYPE_MUD = "mud";
+        public const string GROUND_TYPE_FOLIAGE = "foliage";
+        public const string GROUND_TYPE_METAL = "metal";
+        public const string GROUND_TYPE_STONE = "stone";
+        public const string GROUND_TYPE_WOOD = "wood";
+        public const string GROUND_TYPE_WATER = "water";
 
         public enum CameraMode
         {

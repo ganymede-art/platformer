@@ -31,7 +31,7 @@ namespace Assets.script
             // exit to default if crouch
             // button released.
 
-            if(!mc.master.inputController.isInputPositive2)
+            if(!mc.master.inputController.isInputEastExtra)
             {
                 mc.ChangePlayerState(PlayerStateType.playerDefault);
                 return;
@@ -40,10 +40,21 @@ namespace Assets.script
             // exit to crouch jump 
             // if jump putton pressed.
 
-            if(mc.isRaisedPositive
+            if(mc.isRaisedSouth
                 && mc.master.playerController.canCrouchJump)
             {
                 mc.ChangePlayerState(PlayerStateType.playerCrouchJump);
+                return;
+            }
+
+            // exit to shoot state if attack is pressed
+            // and grounded.
+
+            if (mc.isRaisedWest
+                && mc.isSpherecastGrounded
+                && mc.master.playerController.canAttack)
+            {
+                mc.ChangePlayerState(PlayerStateType.PlayerShoot);
                 return;
             }
         }

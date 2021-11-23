@@ -67,19 +67,19 @@ namespace Assets.script
         {
             updateCountWaterDive++;
 
-            if (!mc.master.inputController.isInputInteract)
+            if (!mc.master.inputController.inInputWest)
                 updateCountInteractReleased++;
             else
                 updateCountInteractReleased = 0;
 
-            if (!mc.master.inputController.isInputPositive)
+            if (!mc.master.inputController.isInputSouth)
                 updateCountPositiveReleased++;
             else
                 updateCountPositiveReleased = 0;
 
             // water dive again if button raised.
 
-            if (mc.isRaisedInteract 
+            if (mc.isRaisedWest 
                 && updateCountWaterDive >= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
             {
                 mc.ChangePlayerState(PlayerStateType.playerWaterDive);
@@ -160,7 +160,7 @@ namespace Assets.script
                 + mc.directionObject.transform.right * horizontal_turning_rate
                 + mc.directionObject.transform.up * turning_vertical;
 
-            if (!mc.master.inputController.isInputPositive)
+            if (!mc.master.inputController.isInputSouth)
                 return;
 
             mc.rigidBody.AddForce(mc.diveDirection.normalized * 0.1f, ForceMode.VelocityChange);

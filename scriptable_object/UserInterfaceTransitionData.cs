@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace Assets.script
 {
-    [CreateAssetMenu(fileName = "data", menuName = "ScriptableObjects/UserInterfaceTransitionData", order = 1)]
+    [CreateAssetMenu(fileName = "data", menuName = "ScriptableObjects/UserInterfaceTransitionData")]
     public class UserInterfaceTransitionData : ScriptableObject
     {
         public float transitionInterval;

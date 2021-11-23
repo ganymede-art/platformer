@@ -7,55 +7,25 @@ using UnityEngine.Serialization;
 public class MapAutoCutscene : MonoBehaviour
 {
     [Header("Event Attributes")]
-    [FormerlySerializedAs("event_source")]
-    public GameObject eventSource;
-    public GameState gameState = GameState.Cutscene;
-    public bool isOrdered;
-    public bool isPriority;
-
-    [Header("Variable Attributes")]
-    public bool isOneShot;
-    public string oneShotVariableName;
+    public GameObject gameEventTriggerObject;
 
     void Start()
     {
-        // destroy if one shot and
-        // variables is set.
-
-        if(isOneShot)
+        if (gameEventTriggerObject == null)
         {
-            
-            bool isSet = GameDataController.Global.GetGameVarBool(oneShotVariableName);
-
-            if (isSet)
-            {
-                Debug.Log(oneShotVariableName + " was set, deleting.");
-                GameObject.Destroy(gameObject);
-                return;
-            }
-
-
+            Debug.LogError("Missing event trigger object.");
+            return;
         }
 
-        var gameEvent = new GameEvent(gameState, eventSource);
+        var triggerComponent = gameEventTriggerObject
+            .GetComponent<GameEventTrigger>();
 
-        if (isOrdered)
+        if (triggerComponent == null)
         {
-            if (isPriority)
-                GameMasterController.Global
-                    .cutsceneController.InsertOrderedGameEvent(gameEvent);
-            else
-                GameMasterController.Global
-                    .cutsceneController.AddOrderedGameEvent(gameEvent);
-        }
-        else
-        {
-            GameMasterController.Global
-                .cutsceneController.AddGeneralGameEvent(gameEvent);
+            Debug.LogError("Missing event trigger component.");
+            return;
         }
 
-        if (isOneShot)
-            GameMasterController.Global
-                .dataController.UpdateGameVar(oneShotVariableName, true);
+        triggerComponent.StartGameEvent();
     }
 }

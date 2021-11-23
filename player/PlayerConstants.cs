@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Script;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -55,6 +56,8 @@ namespace Assets.script
         public const float GROUNDED_RAYCAST_DISTANCE = 100f;
 
         public const float GROUNDED_SPHERECAST_RADIUS = 0.187f;
+
+        public static readonly AttributeGroundData DEFAULT_GROUND_DATA = AttributeGroundData.GetDefault();
 
         // movement constants.
 

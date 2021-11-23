@@ -53,7 +53,7 @@ namespace Assets.script
 
             // exit to water dive if pressing interact.
 
-            if (mc.isRaisedInteract && mc.master.playerController.canWaterDive)
+            if (mc.isRaisedWest && mc.master.playerController.canWaterDive)
             {
                 mc.ChangePlayerState(PlayerStateType.playerWaterDive);
                 return;

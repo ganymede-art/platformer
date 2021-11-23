@@ -20,6 +20,7 @@ namespace Assets.script
         playerRepel,
         playerCrouch,
         playerCrouchJump,
-        PlayerDoubleJump
+        PlayerDoubleJump,
+        PlayerShoot
     }
 }

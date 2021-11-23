@@ -7,6 +7,7 @@ using System;
 using static Assets.script.PlayerConstants;
 using static Assets.script.AttributeDataClasses;
 using UnityEngine.Serialization;
+using Assets.Script;
 
 public class PlayerController : MonoBehaviour
     , IActorDataManager
@@ -27,9 +28,9 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public bool isInputDirectional = false;
     [NonSerialized] public bool wasInputDirectional = false;
 
-    [NonSerialized] public bool isRaisedPositive = false;
-    [NonSerialized] public bool isRaisedInteract = false;
-    [NonSerialized] public bool isRaisedPositive2 = false;
+    [NonSerialized] public bool isRaisedSouth = false;
+    [NonSerialized] public bool isRaisedWest = false;
+    [NonSerialized] public bool isRaisedEastExtra = false;
 
     // component variables.
 
@@ -83,7 +84,7 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public float spherecastGroundedSlopeAngle = 0.0f;
     [NonSerialized] public Vector3 spherecastGroundedSlopeNormal = Vector3.up;
 
-    [NonSerialized] public GroundType groundType;
+    [NonSerialized] public AttributeGroundData groundData;
 
     // movement variables.
 
@@ -233,6 +234,10 @@ public class PlayerController : MonoBehaviour
         // setup.
 
         InitialisePhysicalParameters();
+
+        // defaultGroundData
+
+        groundData = DEFAULT_GROUND_DATA;
     }
 
     void OnDestroy()
@@ -345,8 +350,8 @@ public class PlayerController : MonoBehaviour
 
         // get input from input mapper.
 
-        float input_horizontal = master.inputController.actionHorizontal.ReadValue<float>();
-        float input_vertical = master.inputController.actionVertical.ReadValue<float>();
+        float input_horizontal = master.inputController.axisMoveHorizontal.ReadValue<float>();
+        float input_vertical = master.inputController.axisMoveVertical.ReadValue<float>();
 
         Vector3 input = new Vector3(input_horizontal, 0.0f, input_vertical);
 
@@ -359,15 +364,15 @@ public class PlayerController : MonoBehaviour
         // raise events for fixed update
         // edge detection.
 
-        if (!master.inputController.wasInputPositive && master.inputController.isInputPositive)
-            isRaisedPositive = true;
+        if (!master.inputController.wasInputSouth && master.inputController.isInputSouth)
+            isRaisedSouth = true;
 
-        if (!master.inputController.wasInputInteract && master.inputController.isInputInteract)
-            isRaisedInteract = true;
+        if (!master.inputController.wasInputWest && master.inputController.inInputWest)
+            isRaisedWest = true;
 
-        if (!master.inputController.wasInputPositive2 
-            && master.inputController.isInputPositive2)
-            isRaisedPositive2 = true;
+        if (!master.inputController.wasInputEastExtra 
+            && master.inputController.isInputEastExtra)
+            isRaisedEastExtra = true;
     }
 
     private void UpdateWaterStatus()
@@ -451,12 +456,14 @@ public class PlayerController : MonoBehaviour
 
             if (isSpherecastGrounded)
             {
+                // set the ground data.
+
                 if (spherecastHitInfo.collider.gameObject
-                    .GetComponent<AttributeGroundType>() == null)
-                    groundType = GroundType.ground_default;
+                    .GetComponent<AttributeGround>() == null)
+                    groundData = DEFAULT_GROUND_DATA;
                 else
-                    groundType = spherecastHitInfo.collider.gameObject
-                        .GetComponent<AttributeGroundType>().ground_type;
+                    groundData = spherecastHitInfo.collider.gameObject
+                        .GetComponent<AttributeGround>().groundData ?? DEFAULT_GROUND_DATA;
             }
         }
     }
@@ -534,9 +541,9 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateClearRaisedInputs()
     {
-        isRaisedPositive = false;
-        isRaisedInteract = false;
-        isRaisedPositive2 = false;
+        isRaisedSouth = false;
+        isRaisedWest = false;
+        isRaisedEastExtra = false;
     }
 
     // state change.
@@ -712,6 +719,9 @@ public class PlayerController : MonoBehaviour
         master.playerController.health -= damageData.damageAmount;
         ChangePlayerState(PlayerStateType.playerDamage);
 
+        audioSource.clip = soundHurt;
+        audioSource.Play();
+
         damageEffectController.SetDamageEffect();
     }
 
@@ -730,7 +740,7 @@ public class PlayerController : MonoBehaviour
         adm.isInWater = isCollidingWaterObject;
         adm.isSubmerged = isFullSubmerged;
         adm.waterYLevel = waterYLevel;
-        adm.groundType = groundType;
+        adm.groundData = groundData;
     }
 
     public ActorData GetActorData()
@@ -740,31 +750,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnGUI()
     {
-        //GUI.color = Color.black;
-        //GUI.Label(new Rect(64, Screen.height - 600, 600, 600),
-        //    "player_state: " + player_state
-        //    + "\nupdate count: " + state_update_count
-        //    + "\npos " + rigid_body.position.x.ToString("0.00")
-        //    + "|" + rigid_body.position.y.ToString("0.00")
-        //    + "|" + rigid_body.position.z.ToString("0.00")
-        //    + "\nvel " + rigid_body.velocity.x.ToString("0.00")
-        //    + "|" + rigid_body.velocity.y.ToString("0.00")
-        //    + "|" + rigid_body.velocity.z.ToString("0.00")
-        //    + "\nmovement hit: " + is_movement_hit
-        //    + "\nray distance: " + raycast_hit_info.distance
-        //    + "\nray grounded: " + is_raycast_grounded
-        //    + "\nray angle   : " + raycast_grounded_slope_angle
-        //    + "\nsphere distance            : " + spherecast_hit_info.distance
-        //    + "\nsphere grounded            : " + is_spherecast_grounded
-        //    + "\nsphere angle               : " + spherecast_grounded_slope_angle
-        //    + "\nmoving object collisions   : " + moving_object_collision_list.Count
-        //    + "\ncolliding moving object    : " + is_colliding_moving_object
-        //    + "\nwater trigger collisions   : " + water_object_collision_list.Count
-        //    + "\ncolliding water trigger    : " + is_colliding_water_object
-        //    + "\nwater y level              : " + water_y_level
-        //    + "\nis partial submerged       : " + is_partial_submerged
-        //    + "\nis full submerged          : " + is_full_submerged
-        //    + "\nslide resistance           : " + slide_resistance);
+
     }
 
     

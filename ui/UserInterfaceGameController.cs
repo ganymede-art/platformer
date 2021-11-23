@@ -62,7 +62,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
         // health objects.
 
-        uiHealthObjects = new GameObject[9];
+        uiHealthObjects = new GameObject[20];
 
         for (int i = 0; i < uiHealthObjects.Length; i++)
         {
@@ -72,7 +72,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
         // item objects.
 
-        uiItemBasicCountObject = GameObject.Find("ui_count_basic");
+        uiItemBasicCountObject = GameObject.Find("ui_count_b");
         uiItemBasicCountText = uiItemBasicCountObject.GetComponent<TextMeshProUGUI>();
 
         // scene description.
@@ -138,7 +138,7 @@ public class UserInterfaceGameController : MonoBehaviour
     {
         uiObject.SetActive(true);
 
-        uiItemBasicCountText.text = master.dataController.GetItemCountByType("basic").ToString();
+        uiItemBasicCountText.text = master.dataController.GetItemCountByType("b").ToString();
     }
 
     private void UnsetMenu()
@@ -158,7 +158,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
     private void GameItemChange(object sender, EventArgs e)
     {
-        uiItemBasicCountText.text = master.dataController.GetItemCountByType("basic").ToString();
+        uiItemBasicCountText.text = master.dataController.GetItemCountByType("b").ToString();
     }
 
     public void SetSceneTitleDisplay(string sceneTitle, string sceneSubtitle)

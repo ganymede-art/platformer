@@ -35,12 +35,12 @@ namespace Assets.script
             return true;
         }
 
-        public bool GetIsGameEventComplete(GameEvent gameEvent)
+        public bool IsGameEventComplete(GameEvent gameEvent)
         {
             return true;
         }
 
-        public bool GetIsProcessComplete(GameEvent gameEvent)
+        public bool GetIsUpdateComplete(GameEvent gameEvent)
         {
             return true;
         }
@@ -50,7 +50,7 @@ namespace Assets.script
             return nextEventSource;
         }
 
-        public void ProcessEvent(GameEvent gameEvent) { }
+        public void UpdateEvent(GameEvent gameEvent) { }
 
         public void StartEvent(GameEvent gameEvent)
         {

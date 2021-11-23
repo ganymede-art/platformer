@@ -52,7 +52,7 @@ namespace Assets.script
             }
 
             // exit if slow enough to jump.
-            if (mc.isRaisedPositive
+            if (mc.isRaisedSouth
                 && mc.isSpherecastGrounded
                 && mc.rigidBody.velocity.magnitude < SLIDE_SPEED_RECOVERY_MAX)
             {
@@ -140,7 +140,7 @@ namespace Assets.script
             // based on current situation.
 
             if (mc.raycastGroundedSlopeAngle < SLIDE_ANGLE_RECOVERY_MAX
-                && mc.groundType != GroundType.ground_slide
+                && !mc.groundData.isGroundSlide
                 && mc.isSpherecastGrounded)
             {
                 // increase the slide resistance

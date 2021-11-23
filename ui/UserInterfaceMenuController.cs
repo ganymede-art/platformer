@@ -13,10 +13,12 @@ public class UserInterfaceMenuController : MonoBehaviour
     // root.
 
     private GameObject ui_object;
-    private GameObject ui_basic_count_object;
-    private TextMeshProUGUI ui_basic_count_text;
-    private GameObject ui_main_count_object;
-    private TextMeshProUGUI ui_main_count_text;
+    
+    private GameObject ui_a_count_object;
+    private TextMeshProUGUI ui_a_count_text;
+
+    private GameObject ui_b_count_object;
+    private TextMeshProUGUI ui_b_count_text;
 
     private GameObject ui_resume_object;
     private Button ui_resume_button;
@@ -33,10 +35,12 @@ public class UserInterfaceMenuController : MonoBehaviour
 
         ui_object = this.gameObject;
 
-        ui_basic_count_object = GameObject.Find("ui_count_basic");
-        ui_basic_count_text = ui_basic_count_object.GetComponent<TextMeshProUGUI>();
-        ui_main_count_object = GameObject.Find("ui_count_main");
-        ui_main_count_text = ui_main_count_object.GetComponent<TextMeshProUGUI>();
+        ui_a_count_object = GameObject.Find("ui_count_a");
+        ui_a_count_text = ui_a_count_object.GetComponent<TextMeshProUGUI>();
+
+        ui_b_count_object = GameObject.Find("ui_count_b");
+        ui_b_count_text = ui_b_count_object.GetComponent<TextMeshProUGUI>();
+       
 
         ui_resume_object = GameObject.Find("ui_button_resume");
         ui_resume_button = ui_resume_object.GetComponent<Button>();
@@ -55,11 +59,11 @@ public class UserInterfaceMenuController : MonoBehaviour
 
         ui_object.SetActive(true);
 
-        int basic_count = master.dataController.GetItemCountByType("basic");
-        int main_count = master.dataController.GetItemCountByType("main");
+        int main_count = master.dataController.GetItemCountByType("a");
+        int basic_count = master.dataController.GetItemCountByType("b");
 
-        ui_basic_count_text.text = basic_count.ToString();
-        ui_main_count_text.text = main_count.ToString();
+        ui_b_count_text.text = basic_count.ToString();
+        ui_a_count_text.text = main_count.ToString();
 
         var ev = EventSystem.current;
         ev.SetSelectedGameObject(ui_resume_object);

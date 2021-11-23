@@ -38,6 +38,8 @@ namespace Assets.script
 
             weatherObject.SetActive(isWeatherEnabled);
             weatherAudioSource.enabled = isWeatherEnabled;
+
+            
         }
 
         private void Update()

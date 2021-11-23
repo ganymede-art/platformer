@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
 using static Assets.script.GameConstants;
+using Assets.Script;
 
 namespace Assets.script
 {
@@ -15,7 +16,7 @@ namespace Assets.script
         public bool isInWater;
         public bool isSubmerged;
         public float waterYLevel;
-        public GroundType groundType;
+        public AttributeGroundData groundData;
 
         public static ActorData GetDefault()
         {
@@ -23,7 +24,7 @@ namespace Assets.script
             adm.isInWater = false;
             adm.isSubmerged = false;
             adm.waterYLevel = 0f;
-            adm.groundType = GroundType.ground_default;
+            adm.groundData = null;
             return adm;
         }
     }

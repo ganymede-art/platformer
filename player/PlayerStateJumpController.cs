@@ -77,7 +77,7 @@ namespace Assets.script
 
             // exit to dive state.
 
-            if (mc.isRaisedInteract 
+            if (mc.isRaisedWest 
                 && mc.master.playerController.canDive)
             {
                 mc.ChangePlayerState(PlayerStateType.playerDive);
@@ -86,7 +86,7 @@ namespace Assets.script
 
             // exit to double jump state.
 
-            if(mc.isRaisedPositive
+            if(mc.isRaisedSouth
                 && mc.master.playerController.canDoubleJump)
             {
                 mc.ChangePlayerState(PlayerStateType.PlayerDoubleJump);
@@ -127,7 +127,7 @@ namespace Assets.script
 
             mc.jumpPersistEnergy -= 1;
 
-            if (mc.master.inputController.isInputPositive && mc.jumpPersistEnergy > 0)
+            if (mc.master.inputController.isInputSouth && mc.jumpPersistEnergy > 0)
             {
                 // if the jump input is given, and persist energy > 0, add extra jump force.
 

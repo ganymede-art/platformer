@@ -7,7 +7,7 @@ using static Assets.script.GameConstants;
 public class ActorStepEffectController : MonoBehaviour
 {
     private AudioSource audioSource;
-    private Dictionary<GroundType, AudioClip> stepSounds;
+    private Dictionary<string, AudioClip> stepSounds;
     private IActorDataManager manager;
     private ActorData managerData;
 
@@ -31,16 +31,16 @@ public class ActorStepEffectController : MonoBehaviour
         audioSource.spatialBlend = 1;
         audioSource.volume = GameMasterController.Global.audioController.volumeFootstep;
 
-        stepSounds = new Dictionary<GroundType, AudioClip>();
-        stepSounds.Add(GroundType.ground_default, defaultStepSound);
-        stepSounds.Add(GroundType.ground_sand, sandStepSound);
-        stepSounds.Add(GroundType.ground_mud, mudStepSound);
-        stepSounds.Add(GroundType.ground_grass, grassStepSound);
-        stepSounds.Add(GroundType.ground_foliage, foliageStepSound);
-        stepSounds.Add(GroundType.ground_metal, metalStepSound);
-        stepSounds.Add(GroundType.ground_stone, stoneStepSound);
-        stepSounds.Add(GroundType.ground_wood, woodStepSound);
-        stepSounds.Add(GroundType.ground_water, waterStepSound);
+        stepSounds = new Dictionary<string, AudioClip>();
+        stepSounds.Add(GROUND_TYPE_DEFAULT, defaultStepSound);
+        stepSounds.Add(GROUND_TYPE_SAND, sandStepSound);
+        stepSounds.Add(GROUND_TYPE_MUD, mudStepSound);
+        stepSounds.Add(GROUND_TYPE_GRASS, grassStepSound);
+        stepSounds.Add(GROUND_TYPE_FOLIAGE, foliageStepSound);
+        stepSounds.Add(GROUND_TYPE_METAL, metalStepSound);
+        stepSounds.Add(GROUND_TYPE_STONE, stoneStepSound);
+        stepSounds.Add(GROUND_TYPE_WOOD, woodStepSound);
+        stepSounds.Add(GROUND_TYPE_WATER, waterStepSound);
 
         manager = managerObject.GetComponent<IActorDataManager>();
     }
@@ -54,8 +54,8 @@ public class ActorStepEffectController : MonoBehaviour
         if (managerData == null)
             return;
 
-        if (stepSounds.ContainsKey(managerData.groundType) && !onlyUseDefault)
-            audioSource.clip = stepSounds[managerData.groundType];
+        if (stepSounds.ContainsKey(managerData.groundData.groundType) && !onlyUseDefault)
+            audioSource.clip = stepSounds[managerData.groundData.groundType];
         else
             audioSource.clip = defaultStepSound;
 

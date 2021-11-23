@@ -110,6 +110,18 @@ namespace Assets.script
             if (mc.currentStateType != PlayerStateType.playerRepel)
                 mc.ChangePlayerState(PlayerStateType.playerRepel);
         }
+
+        public static void FaceDirection(PlayerController mc)
+        {
+            // update player facing direction.
+
+            mc.facingDirection = Quaternion.Euler(0, mc.cameraObject.transform.rotation.eulerAngles.y, 0) * mc.inputDirectional;
+            mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+
+            // Move our position a step closer to the target.
+            mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
+            mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
+        }
     }
 
     

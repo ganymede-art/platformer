@@ -40,7 +40,7 @@ public class EventSetGameVarBool : MonoBehaviour, IEventController
         GameMasterController.Global.dataController.UpdateGameVar(variableName, variableValue);
     }
 
-    public void ProcessEvent(GameEvent gameEvent)
+    public void UpdateEvent(GameEvent gameEvent)
     {
         return;
     }
@@ -50,12 +50,12 @@ public class EventSetGameVarBool : MonoBehaviour, IEventController
         return true;
     }
 
-    public bool GetIsGameEventComplete(GameEvent gameEvent)
+    public bool IsGameEventComplete(GameEvent gameEvent)
     {
         return GetIsEventComplete(gameEvent);
     }
 
-    public bool GetIsProcessComplete(GameEvent gameEvent)
+    public bool GetIsUpdateComplete(GameEvent gameEvent)
     {
         return GetIsEventComplete(gameEvent);
     }

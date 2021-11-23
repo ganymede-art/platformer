@@ -81,6 +81,9 @@ public class CameraController : MonoBehaviour
         fixedTransform = this.transform;
         transitionTimer = 1.0f;
 
+        x = transform.rotation.eulerAngles.y;
+        y = transform.rotation.eulerAngles.x;
+
         // set to default target (player).
 
         target = GameObject.FindGameObjectWithTag(GameConstants.TAG_PLAYER_CAMERA_TARGET).transform;
@@ -114,8 +117,8 @@ public class CameraController : MonoBehaviour
     {
         // get input.
 
-        xInput = master.inputController.actionAimHorizontal.ReadValue<float>();
-        yInput = master.inputController.actionAimVertical.ReadValue<float>();
+        xInput = master.inputController.axisAimHorizontal.ReadValue<float>();
+        yInput = master.inputController.axisAimVertical.ReadValue<float>();
 
         xInput = Mathf.Clamp(xInput, -1, 1);
         yInput = Mathf.Clamp(yInput, -1, 1);
@@ -130,7 +133,7 @@ public class CameraController : MonoBehaviour
 
         // if in auto rotation, gradually turn to be behind the target.
 
-        isManualAutoRotation = master.inputController.isInputNegative2;
+        isManualAutoRotation = master.inputController.isInputWestExtra;
         if (isAutoRotation || isManualAutoRotation)
         {
             autoX = targetDirectionObject.transform.rotation.eulerAngles.y;
@@ -157,7 +160,7 @@ public class CameraController : MonoBehaviour
 
         // Get max distance from input.
 
-        targetDistance += master.inputController.actionAimZoom.ReadValue<float>()
+        targetDistance += master.inputController.axisZoom.ReadValue<float>()
             * (ZOOM_SPEED * master.inputController.sensitivityCameraZoom);
 
         if (targetDistance > MAX_DISTANCE_MAX) targetDistance = MAX_DISTANCE_MAX;

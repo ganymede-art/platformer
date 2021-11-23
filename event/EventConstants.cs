@@ -6,17 +6,20 @@ using System.Threading.Tasks;
 
 namespace Assets.script
 {
-    public static class EventConstants
+    public enum ConditionalIntType
     {
-        public enum ConditionalIntType
-        {
-            isEqual,
-            isNotEqual,
-            isGreaterThan,
-            isGreaterThanOrEqual,
-            isLessThan,
-            isLessThanOrEqual
-        }
-
+        isEqual,
+        isNotEqual,
+        isGreaterThan,
+        isGreaterThanOrEqual,
+        isLessThan,
+        isLessThanOrEqual
     }
+
+    public enum ConditionalBoolType
+    {
+        isEqual,
+        isNotEqual
+    }
+
 }

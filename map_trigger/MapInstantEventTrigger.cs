@@ -11,13 +11,8 @@ public class MapInstantEventTrigger : MonoBehaviour
     private BoxCollider trigger;
     private bool is_triggered = false;
 
-    [FormerlySerializedAs("event_source")]
-    public GameObject eventSource;
-    [FormerlySerializedAs("is_one_shot")]
-    public bool isOneShot = false;
-    public GameState gameState = GameState.Cutscene;
-    public bool isOrdered;
-    public bool isPriority;
+    [Header("Event Attributes")]
+    public GameObject gameEventTriggerObject;
 
     private void Start()
     {
@@ -27,7 +22,7 @@ public class MapInstantEventTrigger : MonoBehaviour
 
     private void Update()
     {
-        if(is_triggered && !isOneShot)
+        if(is_triggered)
         {
             // unset trigger if player leaves trigger bounds.
 
@@ -48,19 +43,22 @@ public class MapInstantEventTrigger : MonoBehaviour
             {
                 is_triggered = true;
 
-                var gameEvent = new GameEvent(gameState, eventSource);
+                if (gameEventTriggerObject == null)
+                {
+                    Debug.LogError("Missing event trigger object.");
+                    return;
+                }
 
-                if (isOrdered)
+                var triggerComponent = gameEventTriggerObject
+                    .GetComponent<GameEventTrigger>();
+
+                if (triggerComponent == null)
                 {
-                    if (isPriority)
-                        master.cutsceneController.InsertOrderedGameEvent(gameEvent);
-                    else
-                        master.cutsceneController.AddOrderedGameEvent(gameEvent);
+                    Debug.LogError("Missing event trigger component.");
+                    return;
                 }
-                else
-                {
-                    master.cutsceneController.AddGeneralGameEvent(gameEvent);
-                }
+
+                triggerComponent.StartGameEvent();
             }
         }
     }

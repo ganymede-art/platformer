@@ -35,7 +35,7 @@ public class GameMasterController : MonoBehaviour
     public GameAudioController audioController;
     public GamePlayerController playerController;
     public GameDataController dataController;
-    public GameCutsceneController cutsceneController;
+    public GameEventController cutsceneController;
     public GameUserInterfaceController userInterfaceController;
 
     // event handler
@@ -122,7 +122,7 @@ public class GameMasterController : MonoBehaviour
         audioController = this.gameObject.GetComponent<GameAudioController>();
         playerController = this.gameObject.GetComponent<GamePlayerController>();
         dataController = this.gameObject.GetComponent<GameDataController>();
-        cutsceneController = this.gameObject.GetComponent<GameCutsceneController>();
+        cutsceneController = this.gameObject.GetComponent<GameEventController>();
         userInterfaceController = this.gameObject.GetComponentInChildren<GameUserInterfaceController>();
 
         // setup physics.
