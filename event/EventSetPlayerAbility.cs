@@ -17,6 +17,7 @@ namespace Assets.script
         public bool canNowWaterDive;
         public bool canNowWaterJump;
         public bool canNowDoubleJump;
+        public bool canNowFireProjectile;
 
         public void FinishEvent(GameEvent gameEvent) { }
 
@@ -55,22 +56,25 @@ namespace Assets.script
         public void StartEvent(GameEvent gameEvent)
         {
             if (canNowAttack)
-                GameMasterController.Global.playerController.canAttack = true;
+                GamePlayerController.Global.canAttack = true;
 
             if (canNowCrouchJump)
-                GameMasterController.Global.playerController.canCrouchJump = true;
+                GamePlayerController.Global.canCrouchJump = true;
 
             if (canNowDive)
-                GameMasterController.Global.playerController.canDive = true;
+                GamePlayerController.Global.canDive = true;
 
             if(canNowWaterDive)
-                GameMasterController.Global.playerController.canWaterDive = true;
+                GamePlayerController.Global.canWaterDive = true;
 
             if (canNowWaterJump)
-                GameMasterController.Global.playerController.canWaterJump = true;
+                GamePlayerController.Global.canWaterJump = true;
 
             if (canNowDoubleJump)
-                GameMasterController.Global.playerController.canDoubleJump = true;
+                GamePlayerController.Global.canDoubleJump = true;
+
+            if (canNowFireProjectile)
+                GamePlayerController.Global.canFireProjectile = true;
         }
 
         public void ResetEvent(GameEvent gameEvent) { }

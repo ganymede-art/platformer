@@ -60,18 +60,19 @@ namespace Assets.script
     }
 
     [System.Serializable]
-    public struct GameMusicData
+    public class GameMusicData
     {
-        [FormerlySerializedAs("audio_clip")]
+        public string code;
         public AudioClip audioClip;
-        [FormerlySerializedAs("is_loop")]
         public bool isLoop;
     }
 
     [System.Serializable]
     public class GameEvent
     {
-        public GameState gameState;
+        public string eventGuid;
+
+        public string gameState;
 
         public GameObject controllerSource;
         public IEventController controller;
@@ -85,8 +86,10 @@ namespace Assets.script
         public float runningTimer;
         public float processTimer;
 
-        public GameEvent(GameState gameState, GameObject controllerSource)
+        public GameEvent(string gameState, GameObject controllerSource)
         {
+            eventGuid = Guid.NewGuid().ToString();
+
             this.gameState = gameState;
             this.controllerSource = controllerSource;
             controller = controllerSource.GetComponent<IEventController>();
@@ -97,8 +100,8 @@ namespace Assets.script
             isStarted = false;
             isFinished = false;
 
-            runningTimer = 0.0f;
-            processTimer = 0.0f;
+            runningTimer = 0.0F;
+            processTimer = 0.0F;
         }
     }
 

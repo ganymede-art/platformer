@@ -9,24 +9,32 @@ namespace Assets.script
 {
     public class EventMoveObject : MonoBehaviour, IEventController
     {
-        const float MOVE_DURATION_MIN = 0.1f;
-        const float MOVE_DURATION_DEFAULT = 1.0f;
+        const float MOVE_DURATION_MIN = 0.1F;
+        const float MOVE_DURATION_DEFAULT = 1.0F;
 
-        const float ROTATE_DURATION_MIN = 0.1f;
-        const float ROTATE_DURATION_DEFAULT = 1.0f;
+        const float ROTATE_DURATION_MIN = 0.1F;
+        const float ROTATE_DURATION_DEFAULT = 1.0F;
+
+        const float SCALE_DURATION_MIN = 0.1F;
+        const float SCALE_DURATION_DEFAULT = 1.0F;
 
         private Vector3 startPosition;
         private Vector3 endPosition;
         private Quaternion startRotation;
         private Quaternion endRotation;
+        private Vector3 startScale;
+        private Vector3 endScale;
 
         private bool isActive = false;
 
-        private float moveTimer = 0.0f;
-        private float moveProgess = 0.0f;
+        private float moveTimer = 0.0F;
+        private float moveProgess = 0.0F;
 
-        private float rotateTimer = 0.0f;
-        private float rotateProgess = 0.0f;
+        private float rotateTimer = 0.0F;
+        private float rotateProgess = 0.0F;
+
+        private float scaleTimer = 0.0F;
+        private float scaleProgress = 0.0F;
 
         private Rigidbody objectRigidBody;
 
@@ -43,6 +51,9 @@ namespace Assets.script
 
         public float moveDuration;
         public float rotateDuration;
+        public float scaleDuration;
+
+        public bool doScale;
 
         public bool isObjectKinematic;
 
@@ -54,8 +65,14 @@ namespace Assets.script
             if (rotateDuration < ROTATE_DURATION_MIN)
                 rotateDuration = ROTATE_DURATION_DEFAULT;
 
+            if (scaleDuration < SCALE_DURATION_MIN)
+                scaleDuration = SCALE_DURATION_DEFAULT;
+
             if (rotateDuration > moveDuration)
                 rotateDuration = moveDuration;
+
+            if (scaleDuration > moveDuration)
+                scaleDuration = moveDuration;
 
             if (isObjectKinematic)
             {
@@ -111,12 +128,15 @@ namespace Assets.script
         {
             moveTimer += Time.deltaTime;
             rotateTimer += Time.deltaTime;
+            scaleTimer += Time.deltaTime;
 
             moveProgess = Mathf.InverseLerp(0, moveDuration, moveTimer);
             rotateProgess = Mathf.InverseLerp(0, rotateDuration, rotateTimer);
+            scaleProgress = Mathf.InverseLerp(0, scaleDuration, scaleTimer);
 
             moveProgess = Mathf.Clamp(moveProgess, 0.0f, 1.0f);
             rotateProgess = Mathf.Clamp(rotateProgess, 0.0f, 1.0f);
+            scaleProgress = Mathf.Clamp(scaleProgress, 0.0f, 1.0f);
 
             if (isObjectKinematic && objectRigidBody != null)
             {
@@ -127,6 +147,8 @@ namespace Assets.script
             {
                 objectToMove.transform.position = Vector3.Lerp(startPosition, endPosition, moveProgess);
                 objectToMove.transform.rotation = Quaternion.Lerp(startRotation, endRotation, rotateProgess);
+                if(doScale)
+                    objectToMove.transform.localScale = Vector3.Lerp(startScale, endScale, scaleProgress);
             }
         }
 
@@ -143,21 +165,26 @@ namespace Assets.script
             {
                 startPosition = objectToMove.transform.position;
                 startRotation = objectToMove.transform.rotation;
+                startScale = objectToMove.transform.localScale;
             }
             else
             {
                 startPosition = startTransform.position;
                 startRotation = startTransform.rotation;
+                startScale = startTransform.localScale;
             }
 
             endPosition = endTransform.position;
             endRotation = endTransform.rotation;
+            endScale = endTransform.localScale;
 
-            moveTimer = 0.0f;
-            rotateTimer = 0.0f;
+            moveTimer = 0.0F;
+            rotateTimer = 0.0F;
+            scaleTimer = 0.0F;
 
-            moveProgess = 0.0f;
-            rotateProgess = 0.0f;
+            moveProgess = 0.0F;
+            rotateProgess = 0.0F;
+            scaleProgress = 0.0F;
 
             isActive = true;
         }

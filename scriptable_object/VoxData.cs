@@ -14,6 +14,6 @@ namespace Assets.script
         [Header("Vox Attributes")]
         public Sprite voxSprite = null;
         public AudioClip[] voxSounds;
-        public float voxSoundPitch = 1.0f;
+        public float voxSoundPitch = 1.0F;
     }
 }

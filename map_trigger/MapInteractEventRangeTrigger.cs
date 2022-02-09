@@ -4,61 +4,79 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class MapInteractEventRangeTrigger : MonoBehaviour
+public class MapInteractEventRangeTrigger : MonoBehaviour, IInteractable
 {
-    private GameMasterController master;
-    private GameObject playerObject;
-    private PlayerController playerController;
-
-    private bool wasInRange = false;
-    private bool isInRange = false;
+    static readonly Vector3 INTERACTABLE_PROMPT_OFFSET_DEFAULT = new Vector3(0.0F, 0.75F, 0.0F);
 
     [Header("Interation Attributes")]
     [FormerlySerializedAs("interact_range")]
-    public float interactRange = 1.0f;
+    public float interactRange = 1.0F;
+    public Vector3 interactablePromptOffset;
+    public bool isInteractableWhenNotGrounded;
 
     [Header("Event Attributes")]
     public GameObject gameEventTriggerObject;
 
+
     void Start()
     {
-        master = GameMasterController.Global;
-        playerObject = GameMasterController.GlobalPlayerObject;
-        playerController = playerObject.GetComponent<PlayerController>();
+        if (interactablePromptOffset == Vector3.zero)
+            interactablePromptOffset = INTERACTABLE_PROMPT_OFFSET_DEFAULT;
+
+        GameSceneController.Global.interactables.Add(this);
+    }
+
+    private void OnDestroy()
+    {
+        GameSceneController.Global.interactables.Remove(this);
     }
 
     void Update()
     {
-        if (master.gameState != GameState.Game)
-            return;
+    }
 
-        wasInRange = isInRange;
+    public float GetInteractableRange()
+    {
+        return interactRange;
+    }
 
-        isInRange = Vector3.Distance(this.transform.position, playerObject.transform.position) <= interactRange;
+    public GameObject GetInteractableObject()
+    {
+        return this.gameObject;
+    }
 
-        if (!isInRange)
-            return;
+    public Transform GetInteractableTransform()
+    {
+        return this.transform;
+    }
 
-        if (playerController.isSpherecastGrounded
-            && !master.inputController.wasInputWest
-            && master.inputController.inInputWest)
+    public void OnInteract()
+    {
+        if (gameEventTriggerObject == null)
         {
-            if (gameEventTriggerObject == null)
-            {
-                Debug.LogError("Missing event trigger object.");
-                return;
-            }
-
-            var triggerComponent = gameEventTriggerObject
-                .GetComponent<GameEventTrigger>();
-
-            if(triggerComponent == null)
-            {
-                Debug.LogError("Missing event trigger component.");
-                return;
-            }
-
-            triggerComponent.StartGameEvent();
+            Debug.LogError("Missing event trigger object.");
+            return;
         }
+
+        var triggerComponent = gameEventTriggerObject
+            .GetComponent<GameEventTrigger>();
+
+        if (triggerComponent == null)
+        {
+            Debug.LogError("Missing event trigger component.");
+            return;
+        }
+
+        triggerComponent.StartGameEvent();
+    }
+
+    public Vector3 GetInteractablePromptOffset()
+    {
+        return interactablePromptOffset;
+    }
+
+    public bool GetIsInteractableWhenNotGrounded()
+    {
+        return isInteractableWhenNotGrounded;
     }
 }

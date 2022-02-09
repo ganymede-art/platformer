@@ -7,55 +7,57 @@ using Assets.script;
 using UnityEngine.Serialization;
 using static Assets.script.GameConstants;
 
-public enum GameState
-{
-    MainMenu,
-    Menu,
-    Game,
-    Loading,
-    GameOver,
-    Cutscene
-}
-
 public class GameMasterController : MonoBehaviour
 {
-    // state variables.
+    // private state variables.
 
-    [System.NonSerialized] public GameState gameStatePrevious;
-    [System.NonSerialized] public GameState gameState;
-    private float gameStateTimer = 0.0f;
+    private float gameStateTimer = 0.0F;
 
-    public float GameStateTime
-    { get => gameStateTimer; }
+    // private event handler variables.
 
-    // master components.
-
-    public GameLoadLevelController loadLevelController;
-    public GameInputController inputController;
-    public GameAudioController audioController;
-    public GamePlayerController playerController;
-    public GameDataController dataController;
-    public GameEventController cutsceneController;
-    public GameUserInterfaceController userInterfaceController;
-
-    // event handler
-
-    public event EventHandler GameStateChange;
     private GameStateChangeEventArgs gameStateChangeEventArgs;
 
-    // prefabs.
-
-    [FormerlySerializedAs("player_prefab")]
-    public GameObject playerPrefab;
-    [FormerlySerializedAs("camera_prefab")]
-    public GameObject cameraPrefab;
-
-    // static references.
+    // private global variables.
 
     private static GameMasterController globalMasterController;
     private static GameObject globalCameraObject;
     private static GameObject globalPlayerObject;
     private static PlayerController globalPlayerController;
+
+    // public state variables.
+
+    [NonSerialized] public string gameStatePrevious;
+    [NonSerialized] public string gameState;
+
+    public float GameStateTime
+    { get => gameStateTimer; }
+
+    // public master variables.
+
+    [NonSerialized] public GameLoadSceneController loadSceneController;
+    [NonSerialized] public GameInputController inputController;
+    [NonSerialized] public GameAudioController audioController;
+    [NonSerialized] public GamePlayerController playerController;
+    [NonSerialized] public GameDataController dataController;
+    [NonSerialized] public GameEventController cutsceneController;
+    [NonSerialized] public GameUserInterfaceController userInterfaceController;
+    [NonSerialized] public GameSceneController sceneController;
+    [NonSerialized] public GameSettingsController settingsController;
+
+    // public event handler variables.
+
+    public event EventHandler GameStateChange;
+
+    // prefabs.
+
+    public GameObject playerPrefab;
+    public GameObject cameraPrefab;
+
+    // global random variables.
+
+    [NonSerialized] public static System.Random staticRandom = new System.Random();
+
+    // static references.
 
     public static GameMasterController Global
     {
@@ -101,10 +103,6 @@ public class GameMasterController : MonoBehaviour
         }
     }
 
-    // global random.
-
-    [NonSerialized] public static System.Random staticRandom = new System.Random();
-
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -112,26 +110,28 @@ public class GameMasterController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        gameStatePrevious = GameState.MainMenu;
-        gameState = GameState.MainMenu;
+        gameStatePrevious = GAME_STATE_MENU_MAIN;
+        gameState = GAME_STATE_MENU_MAIN;
         gameStateChangeEventArgs = new GameStateChangeEventArgs();
         gameStateChangeEventArgs.gameState = gameState;
 
-        loadLevelController = this.gameObject.AddComponent<GameLoadLevelController>();
-        inputController = this.gameObject.GetComponent<GameInputController>();
-        audioController = this.gameObject.GetComponent<GameAudioController>();
-        playerController = this.gameObject.GetComponent<GamePlayerController>();
-        dataController = this.gameObject.GetComponent<GameDataController>();
-        cutsceneController = this.gameObject.GetComponent<GameEventController>();
-        userInterfaceController = this.gameObject.GetComponentInChildren<GameUserInterfaceController>();
+        loadSceneController = gameObject.AddComponent<GameLoadSceneController>();
+        inputController = gameObject.GetComponent<GameInputController>();
+        audioController = gameObject.GetComponent<GameAudioController>();
+        playerController = gameObject.GetComponent<GamePlayerController>();
+        dataController = gameObject.GetComponent<GameDataController>();
+        cutsceneController = gameObject.GetComponent<GameEventController>();
+        userInterfaceController = gameObject.GetComponentInChildren<GameUserInterfaceController>();
+        sceneController = gameObject.GetComponent<GameSceneController>();
+        settingsController = gameObject.GetComponent<GameSettingsController>();
 
         // setup physics.
 
         Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_PLAYER);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_MOB);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_MOB_ONLY); ;
 
-        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ENEMY);
-        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ACTOR);
-        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ENEMY_BOUNDARY); ;
+        Physics.IgnoreLayerCollision(LAYER_MOB, LAYER_PLAYER_ONLY);
     }
 
     private void Start()
@@ -148,22 +148,22 @@ public class GameMasterController : MonoBehaviour
     {
         gameStateTimer += Time.deltaTime;
 
-        if(gameState == GameState.Game)
+        if(gameState == GAME_STATE_GAME)
         {
             if(!inputController.wasInputStart && inputController.isInputStart)
             {
-                ChangeState(GameState.Menu);
+                ChangeState(GAME_STATE_MENU_PAUSE);
             }
         }
     }
 
-    public void ChangeState(GameState new_game_state)
+    public void ChangeState(string new_game_state)
     {
         gameStatePrevious = gameState;
         gameState = new_game_state;
         gameStateChangeEventArgs.gameState = gameState;
         gameStateChangeEventArgs.game_state_previous = gameStatePrevious;
-        gameStateTimer = 0.0f;
+        gameStateTimer = 0.0F;
 
         EventHandler handler = GameStateChange;
         if (handler != null) handler(this, gameStateChangeEventArgs);
@@ -180,6 +180,6 @@ public class GameMasterController : MonoBehaviour
 
 public class GameStateChangeEventArgs : EventArgs
 {
-    public GameState gameState;
-    public GameState game_state_previous;
+    public string gameState;
+    public string game_state_previous;
 }

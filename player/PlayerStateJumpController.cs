@@ -10,7 +10,7 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateJumpController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateJumpController : MonoBehaviour, IPlayerState
     {
         // variables.
 
@@ -19,7 +19,7 @@ namespace Assets.script
         RaycastHit movement_hit;
         RaycastHit step_movement_hit;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             mc.playerAnimator.ResetAllAnimatorTriggers();
             mc.playerAnimator.SetTrigger("jump_up");
@@ -31,7 +31,7 @@ namespace Assets.script
             // if coming from the water jump state,
             // don't add any additional force.
 
-            if (mc.previousStateType == PlayerStateType.playerWaterJump)
+            if (mc.previousStateType == GameConstants.PLAYER_STATE_WATER_JUMP)
                 return;
 
             // enter jump state.
@@ -48,8 +48,12 @@ namespace Assets.script
 
             // player sound.
 
-            mc.audioSource.clip = mc.soundJump;
+            mc.audioSource.clip = mc.jumpSound;
             mc.audioSource.Play();
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
@@ -62,7 +66,7 @@ namespace Assets.script
 
             if (mc.rigidBody.velocity.y <= 0)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
 
@@ -71,7 +75,7 @@ namespace Assets.script
             if (update_count_jump >= PlayerConstants.UPDATE_COUNT_JUMP_RECOVERY_MIN
                 && (mc.isRaycastGrounded || mc.isSpherecastGrounded))
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
 
@@ -80,7 +84,7 @@ namespace Assets.script
             if (mc.isRaisedWest 
                 && mc.master.playerController.canDive)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDive);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DIVE);
                 return;
             }
 
@@ -89,7 +93,7 @@ namespace Assets.script
             if(mc.isRaisedSouth
                 && mc.master.playerController.canDoubleJump)
             {
-                mc.ChangePlayerState(PlayerStateType.PlayerDoubleJump);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DOUBLE_JUMP);
                 return;
             }
         }
@@ -99,15 +103,16 @@ namespace Assets.script
             return;
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
             UpdateStateJump(mc);
             UpdateStateMovement(mc);
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_GROUNDED);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
         {
-            if (mc.stateUpdateCount ==  0)
+            if (mc.stateFixedUpdateCount ==  0)
                 mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.directionObject.transform.forward);
 
             // update player facing direction.
@@ -154,36 +159,14 @@ namespace Assets.script
             PlayerStaticMethods.StepMovement(mc, camera_relative_movement, force);
         }
 
-        public void UpdateStateSlide(PlayerController mc)
+        public void FixedUpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateSpeed(PlayerController mc)
+        public string GetStateType()
         {
-            Vector3 old_x_z = new Vector3(mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
-            Vector3 old_y = new Vector3(0, mc.rigidBody.velocity.y, 0);
-
-            if (old_x_z.magnitude > PlayerConstants.MAX_SPEED_GROUNDED)
-            {
-
-                old_x_z = Vector3.ClampMagnitude(old_x_z, PlayerConstants.MAX_SPEED_GROUNDED);
-                mc.rigidBody.velocity = old_x_z + old_y;
-            }
-        }
-
-        public void UpdateStateDragAndFriction(PlayerController mc)
-        {
-            mc.rigidBody.drag = DRAG_AIR;
-            mc.rbCollider.material.dynamicFriction = 0f;
-            mc.rbCollider.material.staticFriction = 0f;
-
-            mc.rbCollider.material.frictionCombine = PhysicMaterialCombine.Minimum;
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerJump;
+            return GameConstants.PLAYER_STATE_JUMP;
         }
     }
 }

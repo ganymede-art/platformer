@@ -5,6 +5,7 @@ using Assets.script;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System;
+using static Assets.script.GameConstants;
 
 public class GamePlayerController : MonoBehaviour
 {
@@ -23,7 +24,7 @@ public class GamePlayerController : MonoBehaviour
 
     // game over constants.
 
-    const float GAME_OVER_TIMER_INTERVAL = 4f;
+    const float GAME_OVER_TIMER_INTERVAL = 4F;
 
     // master.
 
@@ -32,7 +33,7 @@ public class GamePlayerController : MonoBehaviour
 
     // game over variables.
 
-    float game_over_timer = 0f;
+    float game_over_timer = 0F;
 
     // player variables.
 
@@ -42,12 +43,16 @@ public class GamePlayerController : MonoBehaviour
     [NonSerialized] public int ammo = 10;
     [NonSerialized] public int maxAmmo = 10;
 
+    [NonSerialized] public int money = 0;
+    [NonSerialized] public int maxMoney = 99;
+
     [NonSerialized] public bool canAttack = false;
     [NonSerialized] public bool canCrouchJump = false;
     [NonSerialized] public bool canDive = false;
     [NonSerialized] public bool canWaterDive = false;
     [NonSerialized] public bool canWaterJump = false;
     [NonSerialized] public bool canDoubleJump = false;
+    [NonSerialized] public bool canFireProjectile = false;
 
     void Start()
     {
@@ -56,17 +61,8 @@ public class GamePlayerController : MonoBehaviour
 
     void Update()
     {
-        if (master.gameState == GameState.Game)
-        {
-            // game over.
 
-            if (health <= 0 && master.gameState != GameState.GameOver)
-            {
-                master.ChangeState(GameState.GameOver);
-                game_over_timer = 0f;
-            }
-        }
-        else if(master.gameState == GameState.GameOver)
+        if (master.gameState == GAME_STATE_GAME_OVER)
         {
             game_over_timer += Time.deltaTime;
 
@@ -75,8 +71,46 @@ public class GamePlayerController : MonoBehaviour
                 // TODO USE LOAD LEVEL CONTROLLER.
                 foreach (GameObject o in GameObject.FindObjectsOfType<GameObject>())
                     Destroy(o);
-                SceneManager.LoadScene("scene_title");
+                SceneManager.LoadScene("scene_startup");
             }
         }
     }
+
+    public void ModifyPlayerHealth(int playerHealthChange)
+    {
+        health += playerHealthChange;
+
+        if (health > maxHealth)
+            health = maxHealth;
+
+        if(health <= 0)
+        {
+            health = 0;
+            master.ChangeState(GAME_STATE_GAME_OVER);
+            game_over_timer = 0F;
+        }
+    }
+
+    public void modifyPlayerAmmo(int playerAmmoChange)
+    {
+        ammo += playerAmmoChange;
+
+        if (ammo > maxAmmo)
+            ammo = maxAmmo;
+
+        if (ammo <= 0)
+            ammo = 0;
+    }
+
+    public void modifyPlayerMoney(int playerMoneyChange)
+    {
+        money += playerMoneyChange;
+
+        if (money > maxMoney)
+            money = maxMoney;
+
+        if (money <= 0)
+            money = 0;
+    }
+    
 }

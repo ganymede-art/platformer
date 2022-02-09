@@ -5,8 +5,8 @@ using UnityEngine.Serialization;
 
 public class ActorFxSplashController : MonoBehaviour
 {
-    const float LIFETIME = 1f;
-    const float TIMER_MULTIPLIER = 1f;
+    const float LIFETIME = 1F;
+    const float TIMER_MULTIPLIER = 1F;
 
     float timer;
     float opacity;
@@ -15,12 +15,12 @@ public class ActorFxSplashController : MonoBehaviour
     Color colour;
 
     [FormerlySerializedAs("scale_multiplier")]
-    public float scaleMultiplier = 1f;
+    public float scaleMultiplier = 1F;
 
     private void Start()
     {
-        timer = 0f;
-        opacity = 1f;
+        timer = 0F;
+        opacity = 1F;
         scale = new Vector3(0,1,0);
         material = GetComponent<Renderer>().material;
         colour = new Color(1, 1, 1, 1);
@@ -32,7 +32,7 @@ public class ActorFxSplashController : MonoBehaviour
         opacity -= Time.deltaTime * TIMER_MULTIPLIER;
 
         scale.x = timer * scaleMultiplier;
-        scale.y = 1f;
+        scale.y = 1F;
         scale.z = timer * scaleMultiplier;
 
         colour.a = opacity;

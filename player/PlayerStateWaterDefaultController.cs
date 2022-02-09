@@ -10,7 +10,7 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateWaterDefaultController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateWaterDefaultController : MonoBehaviour, IPlayerState
     {
         int update_count_water_default = 0;
 
@@ -19,10 +19,10 @@ namespace Assets.script
         private void Start()
         {
             playerDefault = GameMasterController.GlobalPlayerController
-                .stateControllers[PlayerStateType.playerDefault] as PlayerStateDefaultController;
+                .states[GameConstants.PLAYER_STATE_DEFAULT] as PlayerStateDefaultController;
         }
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             update_count_water_default = 0;
         }
@@ -36,7 +36,7 @@ namespace Assets.script
             if (mc.isRaisedWest
                 && mc.master.playerController.canDive)
             {
-                mc.ChangePlayerState(PlayerStateType.playerWaterDive);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_WATER_DIVE);
                 return;
             }
 
@@ -51,14 +51,14 @@ namespace Assets.script
             {
                 if (mc.isSpherecastGrounded || mc.master.playerController.canWaterJump)
                 {
-                    mc.ChangePlayerState(PlayerStateType.playerWaterJump);
+                    mc.ChangePlayerState(GameConstants.PLAYER_STATE_WATER_JUMP);
                     return;
                 }
             }
 
             if (!mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
         }
@@ -68,9 +68,12 @@ namespace Assets.script
             
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
             UpdateStateMovement(mc);
+            PlayerStaticMethods.ApplyDynamicFriction(mc);
+            FixedUpdateStateSpeed(mc);
+
         }
 
         public void UpdateStateMovement(PlayerController mc)
@@ -94,7 +97,7 @@ namespace Assets.script
             PlayerStaticMethods.StepMovement(mc, slope_relative_movement, force);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
         {
             // update the animator.
 
@@ -104,6 +107,7 @@ namespace Assets.script
                 {
                     mc.playerAnimator.ResetAllAnimatorTriggers();
                     mc.playerAnimator.SetTrigger("water_move");
+                    mc.playerAnimator.SetFloat("speed_multiplier", mc.rigidBody.velocity.magnitude);
                 }
                 else
                 {
@@ -113,7 +117,7 @@ namespace Assets.script
             }
             else
             {
-                if (mc.rigidBody.velocity.y < -0.5f)
+                if (mc.rigidBody.velocity.y < -1f)
                 {
                     mc.playerAnimator.ResetAllAnimatorTriggers();
                     mc.playerAnimator.SetTrigger("water_jump_down");
@@ -131,12 +135,7 @@ namespace Assets.script
             mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
-        public void UpdateStateSlide(PlayerController mc)
-        {
-            return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
+        public void FixedUpdateStateSpeed(PlayerController mc)
         {
             Vector3 old_x_z = new Vector3(mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
             Vector3 old_y = new Vector3(0, mc.rigidBody.velocity.y, 0);
@@ -148,21 +147,15 @@ namespace Assets.script
 
             if (old_y.y < -MAX_SPEED_WATER_SINK)
             {
-                //old_y = Vector3.ClampMagnitude(old_y, MAX_SPEED_WATER_SINK);
                 old_y.y = -MAX_SPEED_WATER_SINK;
             }
 
             mc.rigidBody.velocity = old_x_z + old_y;
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
+        public string GetStateType()
         {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateDragAndFriction(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerWaterDefault;
+            return GameConstants.PLAYER_STATE_WATER_DEFAULT;
         }
     }
 }

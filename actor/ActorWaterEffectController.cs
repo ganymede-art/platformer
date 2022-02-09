@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
-
+using Assets.script.utility;
 
 public class ActorWaterEffectController : MonoBehaviour
 {
@@ -42,11 +42,14 @@ public class ActorWaterEffectController : MonoBehaviour
 
         // get a list of all water triggers in the scene.
 
-        var water_trigger_objects = GameObject.FindGameObjectsWithTag(GameConstants.TAG_WATER);
+        var water_trigger_objects = UtilityStaticMethods.FindObjectsOfLayer(GameConstants.LAYER_WORLD_WATER);
 
-        for(int i = 0; i < water_trigger_objects.Length; i++)
+        if (water_trigger_objects != null)
         {
-            air_bubble_ps_tm.SetCollider(i, water_trigger_objects[i].GetComponent<Collider>());
+            for (int i = 0; i < water_trigger_objects.Length; i++)
+            {
+                air_bubble_ps_tm.SetCollider(i, water_trigger_objects[i].GetComponent<Collider>());
+            }
         }
     }
 

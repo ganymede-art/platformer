@@ -4,6 +4,7 @@ using UnityEngine;
 using Assets.script;
 using System;
 using UnityEngine.Serialization;
+using static Assets.script.GameConstants;
 
 public class MapInstantEventTrigger : MonoBehaviour
 {
@@ -37,7 +38,7 @@ public class MapInstantEventTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         
-        if (other.tag == GameConstants.TAG_PLAYER)
+        if (other.transform.name == NAME_PLAYER_COLLIDER)
         {
             if (!is_triggered)
             {

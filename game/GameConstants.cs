@@ -9,47 +9,83 @@ namespace Assets.script
 {
     public class GameConstants
     {
-        public const string TAG_PLAYER = "Player";
-        public const string TAG_WATER =  "water";
-        public const string TAG_MOVING_OBJECT = "moving_object";
-        public const string TAG_DAMAGE_OBJECT = "damage_object";
-        public const string TAG_PLAYER_DAMAGE_OBJECT = "player_damage_object";
-        public const string TAG_REPEL_OBJECT = "repel_object";
-        public const string TAG_INDIRECT_DAMAGE_OBJECT = "indirect_damage_object";
-        public const string TAG_INDIRECT_PLAYER_DAMAGE_OBJECT = "indirect_player_damage_object";
-        public const string TAG_INDIRECT_REPEL_OBJECT = "indirect_repel_object";
+        public const string TAG_PLAYER_OBJECT = "PlayerObject";
+        public const string TAG_MOB_OBJECT = "MobObject";
+        public const string TAG_NPC_OBJECT = "NpcObject";
+
+        public const string TAG_PLAYER_DAMAGE_SOURCE = "PlayerDamageSource";
+        public const string TAG_PLAYER_INDIRECT_DAMAGE_SOURCE = "PlayerIndirectDamageSource";
+
+        public const string TAG_MOB_DAMAGE_SOURCE = "MobDamageSource";
+        public const string TAG_MOB_INDIRECT_DAMAGE_SOURCE = "MobIndirectDamageSource";
+
+        public const string TAG_NPC_DAMAGE_SOURCE = "NpcDamageSource";
+        public const string TAG_NPC_INDIRECT_DAMAGE_SOURCE = "NpcIndirectDamageSource";
+
+        public const string TAG_STATIC_DAMAGE_SOURCE = "StaticDamageSource";
+        public const string TAG_STATIC_INDIRECT_DAMAGE_SOURCE = "StaticIndirectDamageSource";
+
+        public const string TAG_REPEL_SOURCE = "RepelSource";
+        public const string TAG_INDIRECT_REPEL_SOURCE = "IndirectRepelSource";
+
+        public const string TAG_MAIN_CAMERA = "MainCamera";
 
         public const string NAME_PLAYER = "player";
+        public const string NAME_PLAYER_COLLIDER = "player_collider";
         public const string NAME_PLAYER_CAMERA = "player_camera";
+        public const string NAME_PLAYER_CAMERA_TARGET = "player_camera_target";
         public const string NAME_GAME_SCENE_DATA = "scene_data";
-
-        public const string TAG_PLAYER_CAMERA_TARGET = "player_camera_target";
-        public const string TAG_MAIN_CAMERA = "MainCamera";
 
         public const string DIRECTORY_FONT = "font/game_font";
 
         public const int LAYER_PLAYER = 8;
-        public const int LAYER_ACTOR = 9;
-        public const int LAYER_ENEMY = 10;
-        public const int LAYER_IGNORE_CAMERA = 11;
-        public const int LAYER_ENEMY_BOUNDARY = 12;
+        public const int LAYER_PLAYER_ONLY = 9;
+        public const int LAYER_MOB = 10;
+        public const int LAYER_MOB_ONLY = 11;
+        public const int LAYER_NPC = 12;
+        public const int LAYER_NPC_ONLY = 13;
 
+        public const int LAYER_WORLD_STATIC = 18;
+        public const int LAYER_WORLD_DYNAMIC = 19;
+        public const int LAYER_WORLD_STATIC_IGNORE_CAMERA = 20;
+        public const int LAYER_WORLD_DYNAMIC_IGNORE_CAMERA = 21;
+        public const int LAYER_WORLD_WATER = 22;
+        public const int LAYER_WORLD_SCENERY = 23;
+
+        public const int MASK_EVERYTHING = ~0;
         public const int MASK_ONLY_PLAYER = 1 << LAYER_PLAYER;
         public const int MASK_ALL_BUT_PLAYER = ~(1 << LAYER_PLAYER);
         public const int MASK_PLAYER_IGNORES = 
             ~(
-                (1 << LAYER_PLAYER)        |
-                (1 << LAYER_ACTOR)         |
-                (1 << LAYER_ENEMY)         |
-                (1 << LAYER_IGNORE_CAMERA) |
-                (1 << LAYER_ENEMY_BOUNDARY)
+                (1 << LAYER_PLAYER)   |
+                (1 << LAYER_MOB)      |
+                (1 << LAYER_MOB_ONLY) |
+                (1 << LAYER_NPC_ONLY)
             );
-        public const int MASK_ENEMY_IGNORES =
+        public const int MASK_NPC_IGNORES =
             ~(
                 (1 << LAYER_PLAYER) |
-                (1 << LAYER_ACTOR) |
-                (1 << LAYER_ENEMY) |
-                (1 << LAYER_IGNORE_CAMERA)
+                (1 << LAYER_MOB) |
+                (1 << LAYER_PLAYER_ONLY) |
+                (1 << LAYER_MOB_ONLY)
+            );
+        public const int MASK_MOB_IGNORES =
+            ~(
+                (1 << LAYER_PLAYER) |
+                (1 << LAYER_NPC) |
+                (1 << LAYER_PLAYER_ONLY) |
+                (1 << LAYER_NPC_ONLY)
+            );
+        public const int MASK_CAMERA_IGNORES =
+            ~(
+                (1 << LAYER_PLAYER) |
+                (1 << LAYER_MOB) |
+                (1 << LAYER_NPC) |
+                (1 << LAYER_WORLD_STATIC_IGNORE_CAMERA) |
+                (1 << LAYER_WORLD_DYNAMIC_IGNORE_CAMERA) |
+                (1 << LAYER_PLAYER_ONLY) |
+                (1 << LAYER_MOB_ONLY) |
+                (1 << LAYER_NPC_ONLY)
             );
 
         // event type.
@@ -76,6 +112,9 @@ namespace Assets.script
         public const string EVENT_TYPE_MOVE_OBJECT = "move_object";
         public const string EVENT_TYPE_CONDITIONAL_BOOL = "conditional_bool";
         public const string EVENT_TYPE_SET_GAME_VAR_INT = "set_game_var_int";
+        public const string EVENT_TYPE_RANDOM_NEXT_EVENT = "random_next_event";
+        public const string EVENT_TYPE_LOAD_SCENE = "load_scene";
+        public const string EVENT_TYPE_STOP_SOUND = "stop_sound";
 
         // ground type.
 
@@ -88,6 +127,50 @@ namespace Assets.script
         public const string GROUND_TYPE_STONE = "stone";
         public const string GROUND_TYPE_WOOD = "wood";
         public const string GROUND_TYPE_WATER = "water";
+
+        // player constants.
+
+        public const string PLAYER_STATE_ATTACK = "attack";
+        public const string PLAYER_STATE_CROUCH = "crouch";
+        public const string PLAYER_STATE_HIGH_JUMP = "high_jump";
+        public const string PLAYER_STATE_DAMAGE = "damage";
+        public const string PLAYER_STATE_DEFAULT = "default";
+        public const string PLAYER_STATE_DIVE = "dive";
+        public const string PLAYER_STATE_DOUBLE_JUMP = "double_jump";
+        public const string PLAYER_STATE_JUMP = "jump";
+        public const string PLAYER_STATE_REPEL = "repel";
+        public const string PLAYER_STATE_SHOOT = "shoot";
+        public const string PLAYER_STATE_SLIDE = "slide";
+        public const string PLAYER_STATE_WATER_DEFAULT = "water_default";
+        public const string PLAYER_STATE_WATER_DIVE = "water_dive";
+        public const string PLAYER_STATE_WATER_JUMP = "water_jump";
+
+        public const string PLAYER_BEHAVIOUR_MOVING_OBJECT = "moving_object";
+        public const string PLAYER_BEHAVIOUR_DAMAGE = "damage";
+        public const string PLAYER_BEHAVIOUR_REPEL = "repel";
+        public const string PLAYER_BEHAVIOUR_WATER = "water";
+        public const string PLAYER_BEHAVIOUR_INTERACT = "interact";
+
+        public const string MOB_BEHAVIOUR_RAYCAST_ALERT = "raycast_alert";
+        public const string MOB_BEHAVIOUR_GROUND_CHECK = "ground_check";
+        public const string MOB_BEHAVIOUR_WALL_CHECK = "wall_check";
+        public const string MOB_BEHAVIOUR_DAMAGE = "damage";
+
+        // game state.
+
+        public const string GAME_STATE_GAME = "game";
+        public const string GAME_STATE_GAME_OVER = "game_over";
+        public const string GAME_STATE_CUTSCENE = "cutscene";
+        public const string GAME_STATE_LOAD = "load";
+        public const string GAME_STATE_MENU_MAIN = "menu_main";
+        public const string GAME_STATE_MENU_PAUSE = "menu_pause";
+        public const string GAME_STATE_MENU_SETTINGS = "menu_settings";
+
+        // load setup mode.
+
+        public const string LOAD_SETUP_MODE_MENU = "load_scene_mode_default";
+        public const string LOAD_SETUP_MODE_GAME = "load_scene_mode_game";
+        
 
         public enum CameraMode
         {

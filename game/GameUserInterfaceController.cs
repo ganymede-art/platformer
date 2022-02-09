@@ -23,7 +23,7 @@ public class GameUserInterfaceController : MonoBehaviour
 
     // ui constants.
 
-    const float MESSAGE_BOX_FONT_SIZE = 24f;
+    const float MESSAGE_BOX_FONT_SIZE = 24F;
 
     // ui variables
 

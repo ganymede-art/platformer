@@ -9,25 +9,23 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateWaterDiveController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateWaterDiveController : MonoBehaviour, IPlayerState
     {
-        int updateCountWaterDive = 0;
         int updateCountInteractReleased = 0;
         int updateCountPositiveReleased = 0;
 
-        float input_horizontal = 0f;
-        float input_vertical = 0f;
+        float input_horizontal = 0F;
+        float input_vertical = 0F;
 
-        float turning_vertical = 0f;
+        float turning_vertical = 0F;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             // set the animation.
 
             mc.playerAnimator.ResetAllAnimatorTriggers();
             mc.playerAnimator.SetTrigger("water_dive");
 
-            updateCountWaterDive = 0;
             updateCountInteractReleased = 0;
             updateCountPositiveReleased = 0;
 
@@ -39,7 +37,7 @@ namespace Assets.script
 
             mc.isUnderGravity = false;
 
-            mc.audioSource.clip = mc.soundWaterJump;
+            mc.audioSource.clip = mc.waterJumpSound;
             mc.audioSource.Play();
 
             mc.diveDirection = mc.rendererObject.transform.forward.normalized;
@@ -47,8 +45,8 @@ namespace Assets.script
             // zero out pitch, unless previous
             // state was also water dive.
 
-            if (mc.previousStateType != PlayerStateType.playerWaterDive)
-                turning_vertical = 0.0f;
+            if (mc.previousStateType != GameConstants.PLAYER_STATE_WATER_DIVE)
+                turning_vertical = 0.0F;
 
             // zero out vertical velocity and add diving force.
 
@@ -61,12 +59,14 @@ namespace Assets.script
             // enable the attack forward trigger.
 
             mc.attackForward1Collider.enabled = true;
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
         {
-            updateCountWaterDive++;
-
             if (!mc.master.inputController.inInputWest)
                 updateCountInteractReleased++;
             else
@@ -80,9 +80,9 @@ namespace Assets.script
             // water dive again if button raised.
 
             if (mc.isRaisedWest 
-                && updateCountWaterDive >= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
+                && mc.stateFixedUpdateCount >= UPDATE_COUNT_WATER_DIVE_RESTART_MIN)
             {
-                mc.ChangePlayerState(PlayerStateType.playerWaterDive);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_WATER_DIVE);
                 return;
             }
 
@@ -91,7 +91,7 @@ namespace Assets.script
             if (updateCountInteractReleased >= UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN
                 && updateCountPositiveReleased >= UPDATE_COUNT_WATER_DIVE_RECOVERY_MIN)
             {
-                mc.ChangePlayerState(PlayerStateType.playerWaterDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_WATER_DEFAULT);
                 return;
             }
 
@@ -99,7 +99,7 @@ namespace Assets.script
 
             if (!mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerStateType.playerJump);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_JUMP);
                 return;
             }
         }
@@ -119,15 +119,18 @@ namespace Assets.script
             mc.attackForward1Collider.enabled = false;
         }
 
-
+        public void FixedUpdateState(PlayerController mc)
+        {
+            UpdateStateMovement(mc);
+            FixedUpdateStateSpeed(mc);
+        }
 
         public void UpdateState(PlayerController mc)
         {
-            UpdateStateMovement(mc);
-        }
+            // update the animation speed.
 
-        public void UpdateStateAnimator(PlayerController mc)
-        {
+            mc.playerAnimator.SetFloat("speed_multiplier", mc.rigidBody.velocity.magnitude / 2.0F);
+
             // update the internal direction transform.
 
             mc.facingDirection = new Vector3(mc.diveDirection.x, 0, mc.diveDirection.z);
@@ -149,8 +152,8 @@ namespace Assets.script
             input_horizontal = mc.inputDirectional.x;
             input_vertical = mc.inputDirectional.z;
 
-            float horizontal_turning_rate = input_horizontal * 0.075f;
-            float vertical_turning_rate = input_vertical * 0.05f;
+            float horizontal_turning_rate = input_horizontal * 0.075F;
+            float vertical_turning_rate = input_vertical * 0.05F;
 
             turning_vertical += vertical_turning_rate;
             turning_vertical = Mathf.Clamp(turning_vertical, -2, 2);
@@ -166,35 +169,23 @@ namespace Assets.script
             mc.rigidBody.AddForce(mc.diveDirection.normalized * 0.1f, ForceMode.VelocityChange);
         }
 
-        public void UpdateStateSlide(PlayerController mc)
+        public void FixedUpdateStateSpeed(PlayerController mc)
         {
-            return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            if (updateCountWaterDive <= UPDATE_COUNT_WATER_DIVE_REENTRY_MIN)
+            if (mc.stateFixedUpdateCount <= UPDATE_COUNT_WATER_DIVE_RESTART_MIN)
             {
-                if (mc.rigidBody.velocity.magnitude > MAX_SPEED_WATER*2)
-                    mc.rigidBody.velocity = mc.rigidBody.velocity.normalized * MAX_SPEED_WATER*2;
+                if (mc.rigidBody.velocity.magnitude > MAX_SPEED_WATER_DIVE)
+                    mc.rigidBody.velocity = mc.rigidBody.velocity.normalized * MAX_SPEED_WATER_DIVE;
             }
             else
             {
                 if (mc.rigidBody.velocity.magnitude > MAX_SPEED_WATER)
                     mc.rigidBody.velocity = mc.rigidBody.velocity.normalized * MAX_SPEED_WATER;
-            }
-
-            
+            } 
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
+        public string GetStateType()
         {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerWaterDive;
+            return GameConstants.PLAYER_STATE_WATER_DIVE;
         }
     }
 }

@@ -6,8 +6,8 @@ using UnityEngine.Serialization;
 
 public class EventSetCamera : MonoBehaviour, IEventController
 {
-    const float TRANSITION_DURATION_MIN = 0.01f;
-    const float TRANSITION_DURATION_DEFAULT = 2.0f;
+    const float TRANSITION_DURATION_MIN = 0.01F;
+    const float TRANSITION_DURATION_DEFAULT = 2.0F;
 
     private GameEvent parentEvent;
     public GameEvent ParentEvent
@@ -68,7 +68,7 @@ public class EventSetCamera : MonoBehaviour, IEventController
         var player_camera_object = GameMasterController.GlobalCameraObject;
         float fixed_transition = player_camera_object.GetComponent<CameraController>().transitionProgress;
 
-        return fixed_transition >= 1.0f;
+        return fixed_transition >= 1.0F;
     }
 
     public bool GetIsUpdateComplete(GameEvent gameEvent)

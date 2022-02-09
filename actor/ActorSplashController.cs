@@ -5,12 +5,12 @@ using Assets.script;
 
 public class ActorSplashController : MonoBehaviour
 {
-    const float SPAWN_INTERVAL = 0.25f;
-    const float TIMER_MULTIPLIER = 1f;
+    const float SPAWN_INTERVAL = 0.25F;
+    const float TIMER_MULTIPLIER = 1F;
 
     public IActorDataManager manager;
     public GameObject splash_prefab;
-    public float splash_scale_multiplier = 1f;
+    public float splash_scale_multiplier = 1F;
 
     private float timer;
     ActorData manager_data;
@@ -25,8 +25,8 @@ public class ActorSplashController : MonoBehaviour
     {
         manager = this.gameObject.GetComponent<IActorDataManager>();
 
-        timer = 0.0f;
-        y_level = 0f;
+        timer = 0.0F;
+        y_level = 0F;
         is_in_water = false;
         is_submerged = false;
         spawn_vector = new Vector3(0,0,0);
@@ -49,7 +49,7 @@ public class ActorSplashController : MonoBehaviour
 
         if(timer >= SPAWN_INTERVAL)
         {
-            timer = 0.0f;
+            timer = 0.0F;
 
             
 

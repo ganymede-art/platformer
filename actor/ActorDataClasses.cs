@@ -23,7 +23,7 @@ namespace Assets.script
             var adm = new ActorData();
             adm.isInWater = false;
             adm.isSubmerged = false;
-            adm.waterYLevel = 0f;
+            adm.waterYLevel = 0F;
             adm.groundData = null;
             return adm;
         }

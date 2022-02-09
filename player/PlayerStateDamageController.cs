@@ -11,26 +11,37 @@ using Assets.script.attribute;
 
 namespace Assets.script
 {
-    public class PlayerStateDamageController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateDamageController : MonoBehaviour, IPlayerState
     {
         int update_count_damage = 0;
+        private Vector3 damageVector = Vector3.zero;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             update_count_damage = 0;
 
             // zero out velocities.
             mc.rigidBody.velocity = Vector3.zero;
 
-            Vector3 damageVector = AttributeStaticMethods.GetAttributeDamageVector(mc.damageData, mc.damageSourceObject, mc.gameObject);
+            // apply damage vector, from params.
+
+            Vector3 damageVector = Vector3.zero;
+
+            if (parameters == null || parameters.Length == 0)
+                damageVector = Vector3.up;
+            else
+            {
+                var damageSourceObject = (GameObject)parameters[0];
+                var damageData = (AttributeDamageData)parameters[1];
+                damageVector = AttributeStaticMethods.GetAttributeDamageVector
+                    (damageData, damageSourceObject, gameObject);
+            }
 
             mc.rigidBody.AddForce(damageVector, ForceMode.VelocityChange);
 
-            // play  damage sound if defined.
-            // or player default damage sound.
+            // apply friction.
 
-            mc.audioSource.clip = mc.damageData.damageSound ?? mc.soundHurt;
-            mc.audioSource.Play();
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
@@ -39,7 +50,7 @@ namespace Assets.script
 
             if (update_count_damage >= 100)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
         }
@@ -49,9 +60,10 @@ namespace Assets.script
             
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
             damageMovement(mc);
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_GROUNDED);
         }
 
         private void damageMovement(PlayerController mc)
@@ -72,29 +84,28 @@ namespace Assets.script
             PlayerStaticMethods.Movement(mc, camera_relative_movement, force);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
+        {
+            if (mc.rigidBody.velocity.y > 0)
+            {
+                mc.playerAnimator.ResetAllAnimatorTriggers();
+                mc.playerAnimator.SetTrigger("damage_up");
+            }
+            else
+            {
+                mc.playerAnimator.ResetAllAnimatorTriggers();
+                mc.playerAnimator.SetTrigger("damage_down");
+            }
+        }
+
+        public void FixedUpdateStateSlide(PlayerController mc)
         {
             return;
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
+        public string GetStateType()
         {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public void UpdateStateSlide(PlayerController mc)
-        {
-            return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerDamage;
+            return GameConstants.PLAYER_STATE_DAMAGE;
         }
     }
 }

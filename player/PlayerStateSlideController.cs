@@ -10,11 +10,11 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateSlideController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateSlideController : MonoBehaviour, IPlayerState
     {
         int update_count_slide = 0;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             update_count_slide = 0;
 
@@ -22,8 +22,12 @@ namespace Assets.script
             mc.slideDirection = mc.raycastGroundedSlopeDirection;
             mc.rigidBody.AddForce(mc.raycastGroundedSlopeDirection * mc.slideForce, ForceMode.VelocityChange);
 
-            mc.audioSource.clip = mc.soundSlide;
+            mc.audioSource.clip = mc.slideSound;
             mc.audioSource.Play();
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
@@ -33,21 +37,21 @@ namespace Assets.script
             // exit if entering water.
             if (mc.isPartialSubmerged)
             {
-                mc.ChangePlayerState(PlayerStateType.playerWaterDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_WATER_DEFAULT);
                 return;
             }
 
             // exit if slide resistance recovered.
             if (mc.slideResistance >= SLIDE_RESISTANCE_MAX)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
 
             // exit if fully in air.
             if (!mc.isSpherecastGrounded && !mc.isRaycastGrounded)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
 
@@ -56,7 +60,7 @@ namespace Assets.script
                 && mc.isSpherecastGrounded
                 && mc.rigidBody.velocity.magnitude < SLIDE_SPEED_RECOVERY_MAX)
             {
-                mc.ChangePlayerState(PlayerStateType.playerJump);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_JUMP);
                 return;
             }
         }
@@ -66,10 +70,13 @@ namespace Assets.script
             
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
             UpdateStateMovement(mc);
             UpdateStateLateralMovement(mc);
+            PlayerStaticMethods.LimitSpeedThreeAxis(mc, MAX_SPEED_SLIDE);
+            FixedUpdateStateSlide(mc);
+
         }
 
         public void UpdateStateMovement(PlayerController mc)
@@ -134,7 +141,7 @@ namespace Assets.script
             }
         }
 
-        public void UpdateStateSlide(PlayerController mc)
+        public void FixedUpdateStateSlide(PlayerController mc)
         {
             // recover, or continue sliding
             // based on current situation.
@@ -148,21 +155,13 @@ namespace Assets.script
             }
             else
             {
-                mc.slideResistance = 0.0f;
+                mc.slideResistance = 0.0F;
             }
 
             mc.slideResistance = Mathf.Clamp(mc.slideResistance, 0.0f, SLIDE_RESISTANCE_MAX);
         }
 
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            if (mc.rigidBody.velocity.magnitude > MAX_SPEED_SLIDE)
-            {
-                mc.rigidBody.velocity = Vector3.ClampMagnitude(mc.rigidBody.velocity, MAX_SPEED_GROUNDED);
-            }
-        }
-
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
         {
             mc.facingDirection = new Vector3(mc.slideDirection.x, 0, mc.slideDirection.z);
 
@@ -172,14 +171,9 @@ namespace Assets.script
             mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
+        public string GetStateType()
         {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerSlide;
+            return GameConstants.PLAYER_STATE_SLIDE;
         }
     }
 }

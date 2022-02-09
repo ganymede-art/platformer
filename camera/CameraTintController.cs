@@ -27,13 +27,13 @@ public class CameraTintController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == GameConstants.TAG_WATER)
+        if (other.gameObject.layer == GameConstants.LAYER_WORLD_WATER)
             isUnderwater = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag == GameConstants.TAG_WATER)
+        if (other.gameObject.layer == GameConstants.LAYER_WORLD_WATER)
             isUnderwater = false;
     }
 

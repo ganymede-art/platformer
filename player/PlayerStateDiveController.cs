@@ -10,15 +10,22 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateDiveController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateDiveController : MonoBehaviour, IPlayerState
     {
         int update_count_dive = 0;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             update_count_dive = 0;
 
-            mc.audioSource.clip = mc.soundDive;
+            // play dive animation.
+
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("dive");
+
+            // play dive sound.
+
+            mc.audioSource.clip = mc.diveSound;
             mc.audioSource.Play();
 
             if (mc.inputDirectional.magnitude >= DIVE_MIN_INPUT_DIRECTIONAL_MAGNITUDE)
@@ -37,6 +44,10 @@ namespace Assets.script
             // enable the attack forward trigger.
 
             mc.attackForward1Collider.enabled = true;
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
@@ -45,7 +56,7 @@ namespace Assets.script
 
             if (update_count_dive >= UPDATE_COUNT_DIVE_RECOVERY_MIN)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
         }
@@ -57,11 +68,12 @@ namespace Assets.script
             mc.attackForward1Collider.enabled = false;
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_DIVE);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
         {
             mc.facingDirection.x = mc.diveDirection.x;
             mc.facingDirection.y = 0;
@@ -73,32 +85,9 @@ namespace Assets.script
             mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
         }
 
-        public void UpdateStateSlide(PlayerController mc)
+        public string GetStateType()
         {
-            return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            Vector3 old_x_z = new Vector3(mc.rigidBody.velocity.x, 0, mc.rigidBody.velocity.z);
-            Vector3 old_y = new Vector3(0, mc.rigidBody.velocity.y, 0);
-
-            if (old_x_z.magnitude > MAX_SPEED_DIVE)
-            {
-
-                old_x_z = Vector3.ClampMagnitude(old_x_z, MAX_SPEED_DIVE);
-                mc.rigidBody.velocity = old_x_z + old_y;
-            }
-        }
-
-        public void UpdateStateDragAndFriction(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerDive;
+            return GameConstants.PLAYER_STATE_DIVE;
         }
     }
 }

@@ -168,38 +168,38 @@ public class GameDataController : MonoBehaviour
 
     public void SaveData(string player_start_transform_name, string camera_start_transform_name)
     {
-        var saveData = new SaveData();
+        var saveInfo = new SaveInfo();
 
-        saveData.gameVarBool = this.gameVarBool;
-        saveData.gameVarString = this.gameVarString;
-        saveData.gameVarInt = this.gameVarInt;
+        saveInfo.gameVarBool = this.gameVarBool;
+        saveInfo.gameVarString = this.gameVarString;
+        saveInfo.gameVarInt = this.gameVarInt;
 
-        saveData.collectedGameItemFlags = collectedGameItemFlags;
-        saveData.gameItemCountByType = gameItemCountByType;
-        saveData.gameItemTotalCountByType = gameItemTotalCountByType;
-        saveData.gameItemTotalCountByTypeAndGroup = gameItemTotalCountByTypeAndGroup;
+        saveInfo.collectedGameItemFlags = collectedGameItemFlags;
+        saveInfo.gameItemCountByType = gameItemCountByType;
+        saveInfo.gameItemTotalCountByType = gameItemTotalCountByType;
+        saveInfo.gameItemTotalCountByTypeAndGroup = gameItemTotalCountByTypeAndGroup;
 
-        saveData.loadSceneName = SceneManager.GetActiveScene().name;
-        saveData.loadPlayerStartTransformName = player_start_transform_name;
-        saveData.loadCameraStartTransformName = camera_start_transform_name;
+        saveInfo.loadSceneName = SceneManager.GetActiveScene().name;
+        saveInfo.loadPlayerStartTransformName = player_start_transform_name;
+        saveInfo.loadCameraStartTransformName = camera_start_transform_name;
 
-        saveData.playerHealth = master.playerController.health;
-        saveData.playerMaxHealth = master.playerController.maxHealth;
+        saveInfo.playerHealth = master.playerController.health;
+        saveInfo.playerMaxHealth = master.playerController.maxHealth;
 
-        saveData.ammo = master.playerController.ammo;
-        saveData.ammo = master.playerController.maxAmmo;
+        saveInfo.ammo = master.playerController.ammo;
+        saveInfo.ammo = master.playerController.maxAmmo;
 
-        saveData.canAttack = master.playerController.canAttack;
-        saveData.canCrouchJump = master.playerController.canCrouchJump;
-        saveData.canDive = master.playerController.canDive;
-        saveData.canWaterDive = master.playerController.canWaterDive;
-        saveData.canWaterJump = master.playerController.canWaterJump;
-        saveData.canDoubleJump = master.playerController.canDoubleJump;
-
+        saveInfo.canAttack = master.playerController.canAttack;
+        saveInfo.canCrouchJump = master.playerController.canCrouchJump;
+        saveInfo.canDive = master.playerController.canDive;
+        saveInfo.canWaterDive = master.playerController.canWaterDive;
+        saveInfo.canWaterJump = master.playerController.canWaterJump;
+        saveInfo.canDoubleJump = master.playerController.canDoubleJump;
+        saveInfo.canFireProjectile = master.playerController.canFireProjectile;
 
         Debug.Log("Saving data to: " + jsonSavePath);
         //string json_data = JsonUtility.ToJson(save_data, true);
-        string json_data = JsonConvert.SerializeObject(saveData,Formatting.Indented);
+        string saveInfoJson = JsonConvert.SerializeObject(saveInfo,Formatting.Indented);
 
         if (!Directory.Exists(jsonSaveDirectory))
             Directory.CreateDirectory(jsonSaveDirectory);
@@ -207,7 +207,7 @@ public class GameDataController : MonoBehaviour
         if (!File.Exists(jsonSavePath))
             File.Create(jsonSavePath).Close();
 
-        File.WriteAllText(jsonSavePath, json_data);
+        File.WriteAllText(jsonSavePath, saveInfoJson);
     }
 
     public void LoadData()
@@ -215,40 +215,41 @@ public class GameDataController : MonoBehaviour
         //var save_data = JsonUtility.FromJson<SaveData>
         //    (File.ReadAllText(json_save_path));
 
-        var saveData = JsonConvert.DeserializeObject<SaveData>
+        var saveInfo = JsonConvert.DeserializeObject<SaveInfo>
             (File.ReadAllText(jsonSavePath));
 
-        this.gameVarBool = saveData.gameVarBool;
-        this.gameVarString = saveData.gameVarString;
-        this.gameVarInt = saveData.gameVarInt;
+        this.gameVarBool = saveInfo.gameVarBool;
+        this.gameVarString = saveInfo.gameVarString;
+        this.gameVarInt = saveInfo.gameVarInt;
 
-        this.collectedGameItemFlags = saveData.collectedGameItemFlags;
-        this.gameItemCountByType = saveData.gameItemCountByType;
-        this.gameItemTotalCountByType = saveData.gameItemTotalCountByType;
-        this.gameItemTotalCountByTypeAndGroup = saveData.gameItemTotalCountByTypeAndGroup;
+        this.collectedGameItemFlags = saveInfo.collectedGameItemFlags;
+        this.gameItemCountByType = saveInfo.gameItemCountByType;
+        this.gameItemTotalCountByType = saveInfo.gameItemTotalCountByType;
+        this.gameItemTotalCountByTypeAndGroup = saveInfo.gameItemTotalCountByTypeAndGroup;
 
-        master.playerController.health = saveData.playerHealth;
-        master.playerController.maxHealth = saveData.playerMaxHealth;
+        master.playerController.health = saveInfo.playerHealth;
+        master.playerController.maxHealth = saveInfo.playerMaxHealth;
 
-         master.playerController.ammo = saveData.ammo;
-         master.playerController.maxAmmo = saveData.ammo;
+        master.playerController.ammo = saveInfo.ammo;
+        master.playerController.maxAmmo = saveInfo.ammo;
 
-         master.playerController.canAttack = saveData.canAttack;
-         master.playerController.canCrouchJump = saveData.canCrouchJump;
-         master.playerController.canDive = saveData.canDive;
-         master.playerController.canWaterDive = saveData.canWaterDive;
-         master.playerController.canWaterJump = saveData.canWaterJump;
-        master.playerController.canDoubleJump = saveData.canDoubleJump;
+        master.playerController.canAttack = saveInfo.canAttack;
+        master.playerController.canCrouchJump = saveInfo.canCrouchJump;
+        master.playerController.canDive = saveInfo.canDive;
+        master.playerController.canWaterDive = saveInfo.canWaterDive;
+        master.playerController.canWaterJump = saveInfo.canWaterJump;
+        master.playerController.canDoubleJump = saveInfo.canDoubleJump;
+        master.playerController.canFireProjectile = saveInfo.canFireProjectile;
 
-        master.loadLevelController.StartLoadLevel(
-            saveData.loadSceneName, 
-            saveData.loadPlayerStartTransformName, 
-            saveData.loadCameraStartTransformName);
+        master.loadSceneController.StartLoadGameScene(
+            saveInfo.loadSceneName, 
+            saveInfo.loadPlayerStartTransformName, 
+            saveInfo.loadCameraStartTransformName);
 
     }
 }
 
-public struct SaveData
+public struct SaveInfo
 {
     public Dictionary<string, bool> gameVarBool;
     public Dictionary<string, string> gameVarString;
@@ -275,6 +276,7 @@ public struct SaveData
     public bool canWaterDive;
     public bool canWaterJump;
     public bool canDoubleJump;
+    public bool canFireProjectile;
 }
 
 public class GameItemChangeEventArgs : EventArgs

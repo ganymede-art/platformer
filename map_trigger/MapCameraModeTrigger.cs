@@ -5,8 +5,8 @@ using Assets.script;
 
 public class MapCameraModeTrigger : MonoBehaviour
 {
-    const float TRANSITION_SPEED_MIN = 1.0f;
-    const float TRANSITION_SPEED_DEFAULT = 2.0f;
+    const float TRANSITION_SPEED_MIN = 1.0F;
+    const float TRANSITION_SPEED_DEFAULT = 2.0F;
 
     private GameObject playerCamera;
 
@@ -25,7 +25,7 @@ public class MapCameraModeTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == GameConstants.TAG_PLAYER)
+        if (other.transform.root.tag == GameConstants.TAG_PLAYER_OBJECT)
         {
             playerCamera.GetComponent<CameraController>()
                 .SetFixedCamera(fixedTransform, isTracking, isInstant, transitionSpeed);
@@ -34,7 +34,7 @@ public class MapCameraModeTrigger : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.tag == GameConstants.TAG_PLAYER)
+        if (other.transform.root.tag == GameConstants.TAG_PLAYER_OBJECT)
         {
             playerCamera.GetComponent<CameraController>().UnsetCamera();
         }

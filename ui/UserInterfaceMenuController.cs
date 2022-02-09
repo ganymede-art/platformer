@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System;
 using TMPro;
 using UnityEngine.EventSystems;
+using static Assets.script.GameConstants;
 
 public class UserInterfaceMenuController : MonoBehaviour
 {
@@ -80,7 +81,7 @@ public class UserInterfaceMenuController : MonoBehaviour
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        if (args.gameState == GameState.Menu)
+        if (args.gameState == GAME_STATE_MENU_PAUSE)
             SetMenu();
         else
             UnsetMenu();

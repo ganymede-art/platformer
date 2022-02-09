@@ -9,7 +9,7 @@ public class UserInterfaceTransitionController : MonoBehaviour
 {
     const float MASK_WIDTH_MAX = 1000;
     const float MASK_WIDTH_MIN = 0;
-    const float DEFAULT_TRANSITION_INTERVAL = 1.0f;
+    const float DEFAULT_TRANSITION_INTERVAL = 1.0F;
 
     // root.
 
@@ -27,11 +27,11 @@ public class UserInterfaceTransitionController : MonoBehaviour
 
     bool isActive;
 
-    float transitionTimer = 0.0f;
-    float transitionInterval = 1.0f;
-    float transitionPercentage = 0.0f;
+    float transitionTimer = 0.0F;
+    float transitionInterval = 1.0F;
+    float transitionPercentage = 0.0F;
 
-    float maskWidth = 0.0f;
+    float maskWidth = 0.0F;
 
     private AudioSource audioSource;
     private AudioClip transitionSound;
@@ -110,8 +110,8 @@ public class UserInterfaceTransitionController : MonoBehaviour
         }
 
         isActive = true;
-        transitionTimer = 0.0f;
-        transitionPercentage = 0.0f;
+        transitionTimer = 0.0F;
+        transitionPercentage = 0.0F;
 
         maskWidth = MASK_WIDTH_MAX;
 

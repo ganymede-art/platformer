@@ -6,11 +6,11 @@ using Assets.script;
 public class ActorDamageEffectController : MonoBehaviour
 {
 
-    const float FLASH_INTERVAL = 0.1f;
+    const float FLASH_INTERVAL = 0.1F;
     const string EMISSION_MATERIAL_PROPERTY = "_Emission";
 
     bool isActive = false;
-    float flashTimer = 0f;
+    float flashTimer = 0F;
     bool isFlashing = false;
     private Renderer actorRenderer;
 
@@ -37,7 +37,7 @@ public class ActorDamageEffectController : MonoBehaviour
         flashTimer += Time.deltaTime;
         if (flashTimer >= FLASH_INTERVAL)
         {
-            flashTimer = 0f;
+            flashTimer = 0F;
             isFlashing = !isFlashing;
             foreach(var material in actorRenderer.materials)
                 material.SetColor(EMISSION_MATERIAL_PROPERTY, isFlashing ? Color.red : Color.black);

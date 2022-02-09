@@ -10,12 +10,16 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateCrouchController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateCrouchController : MonoBehaviour, IPlayerState
     {
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             mc.playerAnimator.ResetAllAnimatorTriggers();
             mc.playerAnimator.SetTrigger("crouch");
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0.0F, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
@@ -24,7 +28,7 @@ namespace Assets.script
 
             if(!mc.isSpherecastGrounded)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
 
@@ -33,7 +37,7 @@ namespace Assets.script
 
             if(!mc.master.inputController.isInputEastExtra)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
 
@@ -43,7 +47,7 @@ namespace Assets.script
             if(mc.isRaisedSouth
                 && mc.master.playerController.canCrouchJump)
             {
-                mc.ChangePlayerState(PlayerStateType.playerCrouchJump);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_HIGH_JUMP);
                 return;
             }
 
@@ -52,49 +56,31 @@ namespace Assets.script
 
             if (mc.isRaisedWest
                 && mc.isSpherecastGrounded
-                && mc.master.playerController.canAttack)
+                && mc.master.playerController.canFireProjectile
+                && GamePlayerController.Global.ammo > 0)
             {
-                mc.ChangePlayerState(PlayerStateType.PlayerShoot);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_SHOOT);
                 return;
             }
         }
 
-        public void FinishState(PlayerController mc)
+        public void FinishState(PlayerController mc) { }
+
+        public void FixedUpdateState(PlayerController mc)
         {
-            return;
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_GROUNDED);
+            PlayerStaticMethods.FixedUpdateSlide(mc);
         }
 
         public void UpdateState(PlayerController mc)
         {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
+            PlayerStaticMethods.UpdateInternalDirection(mc);
+            PlayerStaticMethods.UpdateRendererDirection(mc);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public string GetStateType()
         {
-            return;
-        }
-
-        public void UpdateStateDragAndFriction(PlayerController mc)
-        {
-            mc.rigidBody.drag = DRAG_AIR;
-            mc.rbCollider.material.dynamicFriction = 0.1f;
-            mc.rbCollider.material.staticFriction = 0.1f;
-            mc.rbCollider.material.frictionCombine = PhysicMaterialCombine.Minimum;
-        }
-
-        public void UpdateStateSlide(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSlide(mc);
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerCrouch;
+            return GameConstants.PLAYER_STATE_CROUCH;
         }
     }
 }

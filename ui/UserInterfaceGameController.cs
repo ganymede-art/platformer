@@ -5,14 +5,15 @@ using Assets.script;
 using UnityEngine.SceneManagement;
 using System;
 using TMPro;
+using static Assets.script.GameConstants;
 
 public class UserInterfaceGameController : MonoBehaviour
 {
     // constants.
 
-    const float DESC_APPEAR_TIME = 1f;
-    const float DESC_DISAPPEAR_TIME = 5f;
-    const float DESC_FINISH_TIME = 6f;
+    const float DESC_APPEAR_TIME = 1F;
+    const float DESC_DISAPPEAR_TIME = 5F;
+    const float DESC_FINISH_TIME = 6F;
 
     GameMasterController master;
 
@@ -28,8 +29,11 @@ public class UserInterfaceGameController : MonoBehaviour
 
     private GameObject[] uiHealthObjects;
 
-    private GameObject uiItemBasicCountObject;
-    private TextMeshProUGUI uiItemBasicCountText;
+    private GameObject uiCountBObject;
+    private TextMeshProUGUI uiCountBText;
+
+    private GameObject uiCountAmmoObject;
+    private TextMeshProUGUI uiCountAmmoText;
 
     // scene description variables.
 
@@ -49,7 +53,7 @@ public class UserInterfaceGameController : MonoBehaviour
         // scene description variables.
 
         isDisplayingTitle = false;
-        titleDisplayTimer = 0.0f;
+        titleDisplayTimer = 0.0F;
         titleDisplayColour = new Color(1, 1, 1, 0);
 
         // initialise ui.
@@ -72,8 +76,11 @@ public class UserInterfaceGameController : MonoBehaviour
 
         // item objects.
 
-        uiItemBasicCountObject = GameObject.Find("ui_count_b");
-        uiItemBasicCountText = uiItemBasicCountObject.GetComponent<TextMeshProUGUI>();
+        uiCountBObject = GameObject.Find("ui_count_b");
+        uiCountBText = uiCountBObject.GetComponent<TextMeshProUGUI>();
+
+        uiCountAmmoObject = GameObject.Find("ui_count_ammo");
+        uiCountAmmoText = uiCountAmmoObject.GetComponent<TextMeshProUGUI>();
 
         // scene description.
 
@@ -93,8 +100,10 @@ public class UserInterfaceGameController : MonoBehaviour
 
     void Update()
     {
-        if (master.gameState != GameState.Game)
+        if (master.gameState != GAME_STATE_GAME)
             return;
+
+        uiCountAmmoText.text = GamePlayerController.Global.ammo.ToString();
 
         for (int i = 0; i < uiHealthObjects.Length; i++)
         {
@@ -121,7 +130,7 @@ public class UserInterfaceGameController : MonoBehaviour
             if(titleDisplayColour.a >= 0 
                 && titleDisplayTimer >= DESC_DISAPPEAR_TIME)
             {
-                titleDisplayColour.a -= 0.01f;
+                titleDisplayColour.a -= 0.01F;
             }
 
             uiSceneTitleText.color = titleDisplayColour;
@@ -138,7 +147,7 @@ public class UserInterfaceGameController : MonoBehaviour
     {
         uiObject.SetActive(true);
 
-        uiItemBasicCountText.text = master.dataController.GetItemCountByType("b").ToString();
+        uiCountBText.text = master.dataController.GetItemCountByType("b").ToString();
     }
 
     private void UnsetMenu()
@@ -150,7 +159,7 @@ public class UserInterfaceGameController : MonoBehaviour
     {
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
 
-        if (args.gameState == GameState.Game)
+        if (args.gameState == GAME_STATE_GAME)
             SetMenu();
         else
             UnsetMenu();
@@ -158,7 +167,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
     private void GameItemChange(object sender, EventArgs e)
     {
-        uiItemBasicCountText.text = master.dataController.GetItemCountByType("b").ToString();
+        uiCountBText.text = master.dataController.GetItemCountByType("b").ToString();
     }
 
     public void SetSceneTitleDisplay(string sceneTitle, string sceneSubtitle)
@@ -170,7 +179,7 @@ public class UserInterfaceGameController : MonoBehaviour
 
         isDisplayingTitle = true;
 
-        titleDisplayColour.a = 0.0f;
-        titleDisplayTimer = 0.0f;
+        titleDisplayColour.a = 0.0F;
+        titleDisplayTimer = 0.0F;
     }
 }

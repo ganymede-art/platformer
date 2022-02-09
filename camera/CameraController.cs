@@ -4,45 +4,49 @@ using UnityEngine;
 using Assets.script;
 using static Assets.script.GameConstants;
 using UnityEngine.Serialization;
+using static Assets.script.GameConstants;
 
 public class CameraController : MonoBehaviour
 {
     const float Y_MIN = -20;
     const float Y_MAX = 60;
 
-    const float X_SPEED = 200f;
-    const float Y_SPEED = 200f;
-    const float ZOOM_SPEED = 1f;
+    const float X_SPEED = 200F;
+    const float Y_SPEED = 200F;
+    const float ZOOM_SPEED = 1F;
 
-    const float AUTO_ROTATION_DIFFERENCE_MIN = 30f;
-    const float AUTO_X_SPEED = 100f;
-    const float AUTO_X_SPEED_MANUAL = 600f;
+    const float AUTO_ROTATION_DIFFERENCE_MIN = 30F;
+    const float AUTO_X_SPEED = 100F;
+    const float AUTO_X_SPEED_MANUAL = 600F;
 
-    const float CAMERA_CLIPPING_RADIUS = 0.05f;
+    const float CAMERA_CLIPPING_RADIUS = 0.05F;
 
-    const float MAX_DISTANCE_MIN = 1.0f;
-    const float MAX_DISTANCE_MAX = 3.0f;
+    const float MAX_DISTANCE_MIN = 1.0F;
+    const float MAX_DISTANCE_MAX = 3.0F;
 
-    const float EXIT_FIXED_TRANSITION_DURATION = 1f;
+    const float EXIT_FIXED_TRANSITION_DURATION = 1F;
 
     private GameObject targetDirectionObject;
 
-    private float xInput = 0.0f;
-    private float yInput = 0.0f;
+    private float xInput = 0.0F;
+    private float yInput = 0.0F;
 
-    private float xSensitivity = 0.0f;
-    private float ySensitivity = 0.0f;
+    private float xSensitivity = 0.0F;
+    private float ySensitivity = 0.0F;
 
-    private float x = 0.0f;
-    private float y = 0.0f;
+    private float x = 0.0F;
+    private float y = 0.0F;
 
     private bool isAutoRotation = false;
     private bool isManualAutoRotation = false;
+    private float manualAutoRotationTimer = 0.0F;
+    private float manualAutoRotationInterval = 1.0F;
+    private Quaternion manualAutoRotationTarget;
 
-    private float autoX = 0.0f;
-    private float autoXSpeed = 0.0f;
+    private float autoX = 0.0F;
+    private float autoXSpeed = 0.0F;
 
-    private float autoRotationDifference = 0.0f;
+    private float autoRotationDifference = 0.0F;
     private Quaternion autoRotationStart = Quaternion.identity;
     private Quaternion autoRotationEnd = Quaternion.identity;
 
@@ -51,8 +55,8 @@ public class CameraController : MonoBehaviour
     private CameraMode cameraMode;
 
     private Transform fixedTransform = null;
-    private float transitionTimer = 0f;
-    private float transitionDuration = 2f;
+    private float transitionTimer = 0F;
+    private float transitionDuration = 2F;
 
     private Vector3 fixedStartPosition;
     private Quaternion fixedStartRotation;
@@ -67,7 +71,7 @@ public class CameraController : MonoBehaviour
     [FormerlySerializedAs("target_distance")]
     public float targetDistance;
     public float distance;
-    [System.NonSerialized] public float transitionProgress = 0f;
+    [System.NonSerialized] public float transitionProgress = 0F;
 
     void Start()
     {
@@ -79,14 +83,14 @@ public class CameraController : MonoBehaviour
         fixedStartRotation = this.transform.rotation;
 
         fixedTransform = this.transform;
-        transitionTimer = 1.0f;
+        transitionTimer = 1.0F;
 
         x = transform.rotation.eulerAngles.y;
         y = transform.rotation.eulerAngles.x;
 
         // set to default target (player).
 
-        target = GameObject.FindGameObjectWithTag(GameConstants.TAG_PLAYER_CAMERA_TARGET).transform;
+        target = GameObject.Find(GameConstants.NAME_PLAYER_CAMERA_TARGET).transform;
         targetDirectionObject = GameObject.Find(PlayerConstants.DIRECTION_OBJECT);
 
         Debug.Log("Camera Starting");
@@ -94,8 +98,8 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        if (master.gameState == GameState.Game 
-            || master.gameState == GameState.Cutscene)
+        if (master.gameState == GAME_STATE_GAME
+            || master.gameState == GAME_STATE_CUTSCENE)
         {
             if (cameraMode == GameConstants.CameraMode.camera_default)
             {
@@ -131,10 +135,44 @@ public class CameraController : MonoBehaviour
         x += (xInput * (X_SPEED * xSensitivity)) * Time.deltaTime;
         y -= (yInput * (Y_SPEED * ySensitivity)) * Time.deltaTime;
 
-        // if in auto rotation, gradually turn to be behind the target.
+        // if manual auto rotation, gradually turn to the manual target.
 
-        isManualAutoRotation = master.inputController.isInputWestExtra;
-        if (isAutoRotation || isManualAutoRotation)
+        if(!GameInputController.Global.wasInputWestExtra 
+            && GameInputController.Global.isInputWestExtra)
+        {
+            isManualAutoRotation = true;
+            manualAutoRotationTimer = 0.0F;
+            manualAutoRotationInterval = 1.0F;
+            manualAutoRotationTarget = targetDirectionObject.transform.rotation;
+        }
+        
+        if(isManualAutoRotation)
+        {
+            manualAutoRotationTimer += Time.deltaTime;
+
+            autoX = manualAutoRotationTarget.eulerAngles.y;
+
+            autoRotationStart = Quaternion.Euler(y, autoX, 0);
+            autoRotationEnd = Quaternion.Euler(y, x, 0.0f);
+
+            autoRotationDifference = Quaternion.Angle(autoRotationStart, autoRotationEnd);
+
+            autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN)
+                    ? AUTO_X_SPEED_MANUAL
+                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED_MANUAL;
+
+            autoRotationEnd = Quaternion.RotateTowards(autoRotationEnd, autoRotationStart, autoXSpeed * Time.deltaTime);
+
+            x = autoRotationEnd.eulerAngles.y;     // auto yaw.
+
+            if (manualAutoRotationTimer > manualAutoRotationInterval)
+                isManualAutoRotation = false;
+        }
+
+
+        // if in auto rotation and NOT manual, gradually turn to be behind the target.
+
+        if (isAutoRotation && !isManualAutoRotation)
         {
             autoX = targetDirectionObject.transform.rotation.eulerAngles.y;
 
@@ -143,14 +181,9 @@ public class CameraController : MonoBehaviour
 
             autoRotationDifference = Quaternion.Angle(autoRotationStart, autoRotationEnd);
 
-            if (isManualAutoRotation)
-                autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN)
-                    ? AUTO_X_SPEED_MANUAL
-                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED_MANUAL;
-            else
-                autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN) 
-                    ? AUTO_X_SPEED 
-                    : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED;
+            autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN) 
+                ? AUTO_X_SPEED 
+                : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED;
 
             autoRotationEnd = Quaternion.RotateTowards(autoRotationEnd, autoRotationStart, autoXSpeed * Time.deltaTime);
 
@@ -191,7 +224,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            transitionProgress = 1.0f;
+            transitionProgress = 1.0F;
             transform.position = fixedTransform.position;
             transform.rotation = fixedTransform.rotation;
         }
@@ -201,7 +234,7 @@ public class CameraController : MonoBehaviour
         // exiting the fixed camera zone.
 
         x = transform.rotation.eulerAngles.y;
-        y = transform.rotation.eulerAngles.x;
+        y = 0;
     }
 
     private void UpdateCameraFixedTracking()
@@ -224,7 +257,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            transitionProgress = 1.0f;
+            transitionProgress = 1.0F;
             transform.position = fixedTransform.position;
             transform.LookAt(target.position);
         }
@@ -248,7 +281,7 @@ public class CameraController : MonoBehaviour
 
         RaycastHit hit;
         bool isHit = Physics.SphereCast(target.position, CAMERA_CLIPPING_RADIUS, transform.forward * -1, 
-            out hit, targetDistance, GameConstants.MASK_PLAYER_IGNORES);
+            out hit, targetDistance, GameConstants.MASK_CAMERA_IGNORES);
 
         if (isHit)
         {
@@ -258,7 +291,7 @@ public class CameraController : MonoBehaviour
         {
             if (distance < targetDistance)
             {
-                distance += 0.1f;
+                distance += 0.1F;
             }
             if (distance > targetDistance)
             {
@@ -295,7 +328,7 @@ public class CameraController : MonoBehaviour
             float rotateSpeed = Quaternion.Angle(transform.rotation, rotation) * 16;
             transform.rotation = Quaternion.RotateTowards(transform.rotation, rotation, rotateSpeed);
 
-            float lerpSpeed = Vector3.Distance(transform.position, position) * 16f;
+            float lerpSpeed = Vector3.Distance(transform.position, position) * 16F;
             transform.position = Vector3.MoveTowards(transform.position, position, lerpSpeed * Time.deltaTime); 
         }
     }
@@ -312,8 +345,8 @@ public class CameraController : MonoBehaviour
         fixedStartRotation = this.transform.rotation;
         transitionTimer = (isInstant)
             ? transitionDuration
-            : 0.0f;
-        transitionProgress = 0.0f;
+            : 0.0F;
+        transitionProgress = 0.0F;
 
         this.fixedTransform = fixedTransform;
         this.transitionDuration = transitionDuration;
@@ -328,8 +361,8 @@ public class CameraController : MonoBehaviour
 
         fixedStartPosition = this.transform.position;
         fixedStartRotation = this.transform.rotation;
-        transitionTimer = 0.0f;
-        transitionProgress = 0.0f;
+        transitionTimer = 0.0F;
+        transitionProgress = 0.0F;
         this.transitionDuration = EXIT_FIXED_TRANSITION_DURATION;
     }
 

@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class MapThunderController : MonoBehaviour
 {
-    const float RANDOM_THUNDER_INTERVAL_MIN = 5.0f;
-    const float RANDOM_THUNDER_INTERVAL_MAX = 30.0f;
+    const float RANDOM_THUNDER_INTERVAL_MIN = 5.0F;
+    const float RANDOM_THUNDER_INTERVAL_MAX = 30.0F;
 
-    const float LIGHTNING_INTERVAL_MAX = 1.0f;
+    const float LIGHTNING_INTERVAL_MAX = 1.0F;
 
     private List<Light> lightningLights;
     
@@ -60,7 +60,7 @@ public class MapThunderController : MonoBehaviour
 
         if(thunderTimer >= thunderInterval)
         {
-            thunderTimer = 0.0f;
+            thunderTimer = 0.0F;
             thunderInterval = Random.Range
                 (RANDOM_THUNDER_INTERVAL_MIN, RANDOM_THUNDER_INTERVAL_MAX);
 
@@ -76,7 +76,7 @@ public class MapThunderController : MonoBehaviour
             {
                 isLightningActive = true;
 
-                lightningTimer = 0.0f;
+                lightningTimer = 0.0F;
 
                 foreach (var lightningObject in lightningObjects)
                 {

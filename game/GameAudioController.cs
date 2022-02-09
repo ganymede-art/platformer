@@ -20,44 +20,29 @@ public class GameAudioController : MonoBehaviour
         }
     }
 
-    [System.NonSerialized] public float volumeMusic = 0.4f;
-    [System.NonSerialized] public float volumeFootstep = 0.4f;
-    [System.NonSerialized] public float volumeObject = 1.0f;
-    [System.NonSerialized] public float volumeItem = 1.0f;
-
-    // null sound.
-
-    [System.NonSerialized] public AudioClip audioDefault;
-
-    // message box.
-
-    [System.NonSerialized] public AudioClip a_message_box_continue;
-    [System.NonSerialized] public AudioClip a_message_box_negative;
-    [System.NonSerialized] public AudioClip a_message_box_positive;
+    [System.NonSerialized] public float volumeMusic = 0.4F;
+    [System.NonSerialized] public float volumeFootstep = 0.4F;
+    [System.NonSerialized] public float volumeObject = 1.0F;
+    [System.NonSerialized] public float volumeItem = 1.0F;
 
     // music.
 
     AudioSource musicAudioSource;
-    GameMusicData musicData;
+    GameMusicData currentMusicData;
 
     private void Awake()
     {
-        audioDefault = Resources.Load("sound/ui/sfx_message_box_negative") as AudioClip;
-
-        a_message_box_continue = Resources.Load("sound/ui/sfx_message_box_continue") as AudioClip;
-        a_message_box_negative = Resources.Load("sound/ui/sfx_message_box_negative") as AudioClip;
-        a_message_box_positive = Resources.Load("sound/ui/sfx_message_box_positive") as AudioClip;
-
         musicAudioSource = this.gameObject.AddComponent<AudioSource>();
     }
 
-    public void PlayMusic(GameMusicData music_data)
+    public void PlayMusic(GameMusicData newMusicData)
     {
-        this.musicData = music_data;
+        if (currentMusicData == null)
+            currentMusicData = newMusicData;
 
         // stop music if name is empty or invalid.
 
-        if(music_data.audioClip == null)
+        if(newMusicData.audioClip == null)
         {
             musicAudioSource.clip = null;
             StopMusic();
@@ -66,16 +51,34 @@ public class GameAudioController : MonoBehaviour
 
         // do nothing is clip is already playing.
 
-        if (musicAudioSource.clip != null 
-            && musicAudioSource.clip.name == music_data.audioClip.name)
+        if (musicAudioSource.clip != null
+            && musicAudioSource.clip.name == newMusicData.audioClip.name)
             return;
 
         // play music.
 
-        musicAudioSource.clip = music_data.audioClip;
-        musicAudioSource.loop = music_data.isLoop;
-        musicAudioSource.volume = volumeMusic;
-        musicAudioSource.Play();
+        if(currentMusicData.code == newMusicData.code)
+        {
+            float pos = musicAudioSource.time;
+
+            musicAudioSource.clip = newMusicData.audioClip;
+            musicAudioSource.loop = newMusicData.isLoop;
+            musicAudioSource.volume = volumeMusic;
+            musicAudioSource.Play();
+
+            musicAudioSource.time = pos;
+        }
+        else
+        {
+            musicAudioSource.clip = newMusicData.audioClip;
+            musicAudioSource.loop = newMusicData.isLoop;
+            musicAudioSource.volume = volumeMusic;
+            musicAudioSource.Play();
+        }
+
+        // set current music data.
+
+        this.currentMusicData = newMusicData;
     }
 
     public void StopMusic()

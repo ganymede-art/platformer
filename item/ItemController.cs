@@ -6,15 +6,15 @@ using UnityEngine.Serialization;
 
 public class ItemController : MonoBehaviour
 {
-    private const float ITEM_PICKUP_RANGE = 0.375f;
-    private const float BASE_VOLUME = 0.5f;
+    private const float ITEM_PICKUP_RANGE = 0.375F;
+    private const float BASE_VOLUME = 0.5F;
 
     private Vector3 originalPosition;
     private Quaternion originalRotation;
 
     private GameMasterController master;
     private GameObject playerObject;
-    private float distanceToPlayer = 0.0f;
+    private float distanceToPlayer = 0.0F;
     private AudioSource pickupAudioSource;
     private GameObject pickupFxObject;
     private float pickupAudioPitch;
@@ -66,49 +66,62 @@ public class ItemController : MonoBehaviour
 
         pickupAudioPitch = UnityEngine.Random.Range(0.95f, 1.05f);
         pickupAudioVolume = BASE_VOLUME * master.audioController.volumeItem;
+
+        // start coroutine.
+
+        StartCoroutine(UpdateStatus());
     }
 
     
     void Update()
     {
-        distanceToPlayer = Vector3.Distance(this.transform.position, playerObject.transform.position);
+    }
 
-        if (distanceToPlayer < ITEM_PICKUP_RANGE)
+    IEnumerator UpdateStatus()
+    {
+        while (true)
         {
-            pickupFxObject = GameObject.Instantiate(
-                pickupFxPrefab,
-                pickupFxOrigin.position,
-                pickupFxOrigin.rotation);
+            distanceToPlayer = Vector3.Distance(this.transform.position, playerObject.transform.position);
 
-            pickupAudioSource = pickupFxObject.AddComponent<AudioSource>();
-            pickupAudioSource.clip = sfxItemPickup;
-            pickupAudioSource.pitch = pickupAudioPitch;
-            pickupAudioSource.volume = pickupAudioVolume;
-            pickupAudioSource.Play();
-
-            master.dataController.UpdateItem(itemData);
-
-            // if a game event is present, start the cutscene.
-
-            if (pickupEventPrefab != null)
+            if (distanceToPlayer < ITEM_PICKUP_RANGE)
             {
-                itemPickupEventSource = Instantiate(
-                    pickupEventPrefab,
-                    this.transform.position,
-                    originalRotation);
+                pickupFxObject = GameObject.Instantiate(
+                    pickupFxPrefab,
+                    pickupFxOrigin.position,
+                    pickupFxOrigin.rotation);
 
-                var gameEventTrigger = itemPickupEventSource.GetComponent<GameEventTrigger>();
+                pickupAudioSource = pickupFxObject.AddComponent<AudioSource>();
+                pickupAudioSource.clip = sfxItemPickup;
+                pickupAudioSource.pitch = pickupAudioPitch;
+                pickupAudioSource.volume = pickupAudioVolume;
+                pickupAudioSource.Play();
 
-                if (gameEventTrigger == null)
-                    return;
+                master.dataController.UpdateItem(itemData);
 
-                gameEventTrigger.StartGameEvent();
+                // if a game event is present, start the cutscene.
+
+                if (pickupEventPrefab != null)
+                {
+                    itemPickupEventSource = Instantiate(
+                        pickupEventPrefab,
+                        this.transform.position,
+                        originalRotation);
+
+                    var gameEventTrigger = itemPickupEventSource.GetComponent<GameEventTrigger>();
+
+                    if (gameEventTrigger == null)
+                        yield return null;
+
+                    gameEventTrigger.StartGameEvent();
+                }
+
+                // destroy the item.
+
+                GameObject.Destroy(this.gameObject);
+                GameObject.Destroy(pickupFxObject, 5);
             }
 
-            // destroy the item.
-
-            GameObject.Destroy(this.gameObject);
-            GameObject.Destroy(pickupFxObject, 5);
+            yield return new WaitForSeconds(0.1F);
         }
     }
 }

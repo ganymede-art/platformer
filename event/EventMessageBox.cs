@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
+using static Assets.script.GameConstants;
 
 namespace Assets.script.Event
 {
@@ -12,10 +13,10 @@ namespace Assets.script.Event
 
         private readonly int[][] VOX_INDICES =
         {
-            new int[] { 4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76, 79, 81, 84, 88},
-            new int[] { 3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70, 73, 79, 81, 84 },
-            new int[] { 1, 5, 10, 12, 15, 19, 21, 24, 29, 30, 34, 38, 40, 43, 48, 53, 58, 61, 66, 71, 74, 79, 82, 85 },
-            new int[] { 2, 6, 11, 12, 14, 15, 22, 27, 29, 32, 36, 39, 41, 46, 53, 55, 57, 62, 67, 73, 78, 79, 84, 87 }
+            new int[] { 4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76, 79, 81, 84, 88, 92, 95, 98, 102, 105, 109, 111, 115, 120, 124, 128},
+            new int[] { 3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70, 73, 79, 81, 84, 89, 93, 97, 103, 102, 108, 110, 112, 119, 123, 128 },
+            new int[] { 1, 5, 10, 12, 15, 19, 21, 24, 29, 30, 34, 38, 40, 43, 48, 53, 58, 61, 66, 71, 74, 79, 82, 85, 95, 98, 102, 105, 109, 111, 115, 120, 124, 128 },
+            new int[] { 2, 6, 11, 12, 14, 15, 22, 27, 29, 32, 36, 39, 41, 46, 53, 55, 57, 62, 67, 73, 78, 79, 84, 87, 95, 98, 102, 105, 109, 111, 115, 120, 124, 128 }
         };
 
         // core constants.
@@ -24,8 +25,8 @@ namespace Assets.script.Event
 
         // update constants.
 
-        const float EVENT_STEP_INTERVAL_DEFAULT = 0.04f;
-        const float EVENT_STEP_INTERVAL_FAST = 0.02f;
+        const float EVENT_STEP_INTERVAL_DEFAULT = 0.04F;
+        const float EVENT_STEP_INTERVAL_FAST = 0.02F;
 
         // delay constants.
 
@@ -138,7 +139,7 @@ namespace Assets.script.Event
                 voxSprite = null;
 
             master.userInterfaceController.uiControllerMessageBox.SetMessageBox
-                (voxSprite, isQuestion,gameEvent.gameState == GameState.Cutscene);
+                (voxSprite, isQuestion,gameEvent.gameState == GAME_STATE_CUTSCENE);
 
             gameCutsceneDelayProcessCount = 0;
 
@@ -159,7 +160,7 @@ namespace Assets.script.Event
             if (gameEvent.processTimer < eventStepInterval)
                 return;
 
-            gameEvent.processTimer = 0.0f;
+            gameEvent.processTimer = 0.0F;
 
             // delay the process step.
             if (delayProcessCount > 0)
@@ -221,7 +222,7 @@ namespace Assets.script.Event
 
         public bool GetIsEventComplete(GameEvent gameEvent)
         {
-            if (gameEvent.gameState == GameState.Cutscene)
+            if (gameEvent.gameState == GAME_STATE_CUTSCENE)
             {
                 // if the button is pressed, and
                 // reached the end of the message.
@@ -232,8 +233,8 @@ namespace Assets.script.Event
                         && master.inputController.isInputSouth
                         && outputTextIndex == inputText.Length)
                     {
-                        audioSource.clip = master.audioController.a_message_box_positive;
-                        audioSource.pitch = 1.0f;
+                        //audioSource.clip = master.audioController.a_message_box_positive;
+                        audioSource.pitch = 1.0F;
                         audioSource.Play();
 
                         master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
@@ -245,8 +246,8 @@ namespace Assets.script.Event
                         && master.inputController.isInputEast
                         && outputTextIndex == inputText.Length)
                     {
-                        audioSource.clip = master.audioController.a_message_box_negative;
-                        audioSource.pitch = 1.0f;
+                        //audioSource.clip = master.audioController.a_message_box_negative;
+                        audioSource.pitch = 1.0F;
                         audioSource.Play();
 
                         master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
@@ -260,8 +261,8 @@ namespace Assets.script.Event
                         && master.inputController.isInputSouth
                         && outputTextIndex == inputText.Length)
                     {
-                        audioSource.clip = master.audioController.a_message_box_continue;
-                        audioSource.pitch = 1.0f;
+                        //audioSource.clip = master.audioController.a_message_box_continue;
+                        audioSource.pitch = 1.0F;
                         audioSource.Play();
 
                         master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();

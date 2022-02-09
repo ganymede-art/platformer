@@ -9,16 +9,16 @@ using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateAttackController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateAttackController : MonoBehaviour, IPlayerState
     {
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             mc.playerAnimator.ResetAllAnimatorTriggers();
             mc.playerAnimator.SetTrigger("attack");
 
             // play attack sound.
 
-            mc.audioSource.clip = mc.soundAttack;
+            mc.audioSource.clip = mc.attackSound;
             mc.audioSource.Play();
 
             // zero out vertical velocity and add diving force.
@@ -34,13 +34,18 @@ namespace Assets.script
             // enable the attack forward trigger.
 
             mc.attackForward1Collider.enabled = true;
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_GROUNDED, 1, PhysicMaterialCombine.Average);
+
         }
 
         public void CheckState(PlayerController mc)
         {
-            if (mc.stateUpdateCount >= 15)
+            if (mc.stateFixedUpdateCount >= 15)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
         }
@@ -52,34 +57,19 @@ namespace Assets.script
             mc.attackForward1Collider.enabled = false;
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_GROUNDED);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
         {
             
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
+        public string GetStateType()
         {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public void UpdateStateSlide(PlayerController mc)
-        {
-            return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerAttack;
+            return GameConstants.PLAYER_STATE_ATTACK;
         }
     }
 }

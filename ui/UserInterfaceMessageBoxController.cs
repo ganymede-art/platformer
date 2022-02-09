@@ -49,10 +49,6 @@ public class UserInterfaceMessageBoxController : MonoBehaviour
         master.GameStateChange += ChangeGameState;
         SceneManager.sceneLoaded += SceneLoaded;
 
-        // load ui resources.
-
-        voxSprite = Resources.Load<Sprite>("texture/vox/default");
-
         // initialise UI.
 
         Initialise();

@@ -4,11 +4,10 @@ using UnityEngine;
 using Assets.script;
 using UnityEngine.Serialization;
 using static Assets.script.prop.PropConstants;
-using static Assets.script.AttributeDataClasses;
 
 public class PropBreakableController : MonoBehaviour
 {
-    private const float BASE_VOLUME = 1f;
+    private const float BASE_VOLUME = 1F;
 
     private GameMasterController master;
 
@@ -84,7 +83,8 @@ public class PropBreakableController : MonoBehaviour
     
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == GameConstants.TAG_PLAYER_DAMAGE_OBJECT)
+        if (other.tag == GameConstants.TAG_PLAYER_DAMAGE_SOURCE
+            || other.tag == GameConstants.TAG_PLAYER_INDIRECT_DAMAGE_SOURCE)
         {
             HandleDamageObject(other);
         }

@@ -21,6 +21,6 @@ namespace Assets.script
         playerCrouch,
         playerCrouchJump,
         PlayerDoubleJump,
-        PlayerShoot
+        PlayerFireProjectile
     }
 }

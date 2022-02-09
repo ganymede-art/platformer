@@ -5,22 +5,31 @@ using UnityEngine;
 using UnityEngine.Serialization;
 public class CameraAudioController : MonoBehaviour
 {
-    [FormerlySerializedAs("manager_game_object")]
     public GameObject managerObject;
     private IActorDataManager manager;
     private ActorData managerData;
 
+    private bool isSubmerged;
+    private bool wasSubmerged;
+
     AudioLowPassFilter audioLowPassFilter;
+
+    AudioReverbZone[] audioReverbZoneObjects;
 
     // Start is called before the first frame update
     void Start()
     {
+        isSubmerged = false;
+        wasSubmerged = false;
+
         managerObject = GameObject.Find(GameConstants.NAME_PLAYER);
         manager = managerObject.GetComponent<IActorDataManager>();
 
         audioLowPassFilter = gameObject.AddComponent<AudioLowPassFilter>();
         audioLowPassFilter.enabled = false;
-        audioLowPassFilter.cutoffFrequency = 500f;
+        audioLowPassFilter.cutoffFrequency = 500F;
+
+        audioReverbZoneObjects = GameObject.FindObjectsOfType<AudioReverbZone>();
     }
 
     private void FixedUpdate()
@@ -39,6 +48,15 @@ public class CameraAudioController : MonoBehaviour
         if (managerData == null)
             return;
 
-        audioLowPassFilter.enabled = managerData.isSubmerged;
+        wasSubmerged = isSubmerged;
+        isSubmerged = managerData.isSubmerged;
+
+        if(isSubmerged != wasSubmerged)
+        {
+            audioLowPassFilter.enabled = isSubmerged;
+
+            foreach (var zone in audioReverbZoneObjects)
+                zone.enabled = !isSubmerged;
+        }
     }
 }

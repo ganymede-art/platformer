@@ -13,18 +13,14 @@ public class EventDelay : MonoBehaviour, IEventController
         set => parentEvent = value;
     }
 
-    private GameMasterController master;
-    private float startTime = 0.0f;
+    private float startTime = 0.0F;
 
     [FormerlySerializedAs("next_event_source")]
     public GameObject nextEventSource = null;
     [FormerlySerializedAs("delay_seconds")]
-    public float delaySeconds = 0.0f;
+    public float delaySeconds = 0.0F;
 
-    void Start()
-    {
-        master = GameMasterController.Global;
-    }
+    void Start() { }
 
     public GameObject GetNextEventSource()
     {

@@ -49,7 +49,7 @@ public class EventUnsetCamera : MonoBehaviour, IEventController
         var player_camera_object = GameMasterController.GlobalCameraObject;
         float fixed_transition = player_camera_object.GetComponent<CameraController>().transitionProgress;
 
-        return fixed_transition >= 1.0f;
+        return fixed_transition >= 1.0F;
     }
 
     public bool GetIsUpdateComplete(GameEvent gameEvent)

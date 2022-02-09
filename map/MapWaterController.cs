@@ -8,13 +8,13 @@ public class MapWaterController : MonoBehaviour
     Renderer meshRenderer;
 
     [FormerlySerializedAs("scrolling_speed_x")]
-    public float layer1ScrollXSpeed = 0.1f;
+    public float layer1ScrollXSpeed = 0.1F;
     [FormerlySerializedAs("scrolling_speed_y")]
-    public float layer1ScrollYSpeed = 0.1f;
+    public float layer1ScrollYSpeed = 0.1F;
     [FormerlySerializedAs("counter_scrolling_speed_x")]
-    public float layer2ScrollXSpeed = 0.1f;
+    public float layer2ScrollXSpeed = 0.1F;
     [FormerlySerializedAs("counter_scrolling_speed_y")]
-    public float layer2ScrollYSpeed = 0.1f;
+    public float layer2ScrollYSpeed = 0.1F;
     
 
     void Start()

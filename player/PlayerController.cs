@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
 using System;
-
+using static Assets.script.GameConstants;
 using static Assets.script.PlayerConstants;
-using static Assets.script.AttributeDataClasses;
 using UnityEngine.Serialization;
 using Assets.Script;
 
@@ -16,11 +15,15 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 storedVelocity = Vector3.zero;
 
-    [NonSerialized] public PlayerStateType currentStateType = PlayerStateType.playerDefault;
-    [NonSerialized] public PlayerStateType previousStateType = PlayerStateType.playerDefault;
-    [NonSerialized] public Dictionary<PlayerStateType, IPlayerStateController> stateControllers;
+    [NonSerialized] public string currentStateType = PLAYER_STATE_DEFAULT;
+    [NonSerialized] public string previousStateType = PLAYER_STATE_DEFAULT;
 
-    [NonSerialized] public int stateUpdateCount = 0;
+    [NonSerialized] public Dictionary<string, IPlayerState> states;
+    [NonSerialized] public int stateFixedUpdateCount = 0;
+
+    // behaviour variables.
+
+    [NonSerialized] public Dictionary<string, IPlayerBehaviour> behaviours;
 
     // input variables.
 
@@ -63,25 +66,29 @@ public class PlayerController : MonoBehaviour
 
     // grounded variables.
 
-    float groundedRaycastMaxDistance = 0f;
-    float groundedSpherecastMaxDistance = 0f;
+    float groundedRaycastMaxDistance = 0F;
+    float groundedSpherecastMaxDistance = 0F;
 
     [NonSerialized] public RaycastHit raycastHitInfo;
     [NonSerialized] public bool isRaycastHit = false;
     [NonSerialized] public bool wasRaycastGrounded = false;
     [NonSerialized] public bool isRaycastGrounded = false;
+    [NonSerialized] public bool isNearRaycastGrounded = false;
 
     [NonSerialized] public RaycastHit spherecastHitInfo;
     [NonSerialized] public bool isSpherecastHit = false;
     [NonSerialized] public bool wasSpherecastGrounded = false;
     [NonSerialized] public bool isSpherecastGrounded = false;
+    [NonSerialized] public bool isNearSpherecaseGrounded = false;
     [NonSerialized] public bool isSpherecastGroundedSinceStateBegin = false;
 
-    [NonSerialized] public float raycastGroundedSlopeAngle = 0.0f;
+
+
+    [NonSerialized] public float raycastGroundedSlopeAngle = 0.0F;
     [NonSerialized] public Vector3 raycastGroundedSlopeNormal = Vector3.up;
     [NonSerialized] public Vector3 raycastGroundedSlopeDirection = Vector3.up;
 
-    [NonSerialized] public float spherecastGroundedSlopeAngle = 0.0f;
+    [NonSerialized] public float spherecastGroundedSlopeAngle = 0.0F;
     [NonSerialized] public Vector3 spherecastGroundedSlopeNormal = Vector3.up;
 
     [NonSerialized] public AttributeGroundData groundData;
@@ -100,8 +107,8 @@ public class PlayerController : MonoBehaviour
 
     // slide variables.
 
-    [NonSerialized] public float slideResistance = 1.0f;
-    [NonSerialized] public float slideForce = 1.0f;
+    [NonSerialized] public float slideResistance = 1.0F;
+    [NonSerialized] public float slideForce = 1.0F;
     [NonSerialized] public Vector3 slideDirection = Vector3.zero;
 
     [NonSerialized] public bool isSlideHit = false;
@@ -110,24 +117,10 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized] public Vector3 diveDirection = Vector3.zero;
 
-    // damage variables.
-
-    [NonSerialized] public GameObject damageSourceObject = null;
-    [NonSerialized] public AttributeDamageData damageData = null;
-
-    [NonSerialized] public bool isDamaged = false;
-    [NonSerialized] public float damageTimer = 0.0f;
-    [NonSerialized] public float damageInterval = DAMAGE_INTERVAL;
-
-    // repel variables.
-
-    [NonSerialized] public GameObject repelSourceObject = null;
-    [NonSerialized] public AttributeDamageData repelData = null;
-
     // moving object variables.
 
     [NonSerialized] public List<GameObject> collidingMovingObjects = new List<GameObject>();
-    bool isCollidingMovingObject = false;
+    [NonSerialized] public bool isCollidingMovingObject = false;
 
     // water variables.
 
@@ -142,10 +135,6 @@ public class PlayerController : MonoBehaviour
     [NonSerialized] public Vector3 facingDirection = Vector3.zero;
     [NonSerialized] public Vector3 facingDirectionDelta = Vector3.zero;
 
-    public RuntimeAnimatorController animatorGame;
-    public RuntimeAnimatorController animatorGameOver;
-    public RuntimeAnimatorController animatorCutscene;
-
     // cutscene variables.
 
     [NonSerialized] public bool isCutsceneFaceDirection;
@@ -155,18 +144,26 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized] public AudioSource audioSource;
 
-    public AudioClip soundAttack;
-    public AudioClip soundDive;
-    public AudioClip soundHurt;
-    public AudioClip soundJump;
-    public AudioClip soundCrouchJump;
-    public AudioClip soundSlide;
-    public AudioClip soundWaterJump;
-    public AudioClip soundDoubleJump;
-
     // interface variables.
 
     ActorData adm;
+
+    // public fields.
+
+    [Header("State and Behaviour Objects")]
+    public GameObject statesObject;
+    public GameObject behavioursObject;
+
+    [Header("Sounds")]
+    public AudioClip attackSound;
+    public AudioClip diveSound;
+    public AudioClip jumpSound;
+    [FormerlySerializedAs("crouchJumpSound")]
+    public AudioClip highJumpSound;
+    public AudioClip slideSound;
+    public AudioClip waterJumpSound;
+    public AudioClip doubleJumpSound;
+    public AudioClip shootSound;
 
     private void Start()
     {
@@ -174,13 +171,20 @@ public class PlayerController : MonoBehaviour
 
         // initialise state controllers.
 
-        stateControllers = new Dictionary<PlayerStateType, IPlayerStateController>();
-
-        var states_to_add = gameObject.GetComponentsInChildren<IPlayerStateController>();
-
-        foreach (var state_to_add in states_to_add)
+        states = new Dictionary<string, IPlayerState>();
+        var statesToAdd = statesObject.GetComponents<IPlayerState>();
+        foreach (var stateToAdd in statesToAdd)
         {
-            stateControllers.Add(state_to_add.GetStateType(), state_to_add);
+            states.Add(stateToAdd.GetStateType(), stateToAdd);
+        }
+
+        // initialise behaviour controllers.
+
+        behaviours = new Dictionary<string, IPlayerBehaviour>();
+        var behavioursToAdd = behavioursObject.GetComponents<IPlayerBehaviour>();
+        foreach(var behaviourToAdd in behavioursToAdd)
+        {
+            behaviours.Add(behaviourToAdd.GetBehaviourType(), behaviourToAdd);
         }
 
         // initialise componenets.
@@ -215,16 +219,11 @@ public class PlayerController : MonoBehaviour
 
         // add listeners.
 
-        master.GameStateChange += ChangeGameState;
+        master.GameStateChange += OnGameStateChange;
 
         // add components.
 
         audioSource = this.gameObject.AddComponent<AudioSource>();
-
-        // initialise actor attributes.
-
-        damageData = new AttributeDamageData();
-        repelData = new AttributeDamageData();
 
         // initialise interface.
 
@@ -244,7 +243,7 @@ public class PlayerController : MonoBehaviour
     {
         // remove listeners.
 
-        master.GameStateChange -= ChangeGameState;
+        master.GameStateChange -= OnGameStateChange;
     }
 
     private void InitialisePhysicalParameters()
@@ -259,7 +258,7 @@ public class PlayerController : MonoBehaviour
 
         // collider inits.
 
-        rbCollider.material.bounciness = 0.0f;
+        rbCollider.material.bounciness = 0.0F;
         rbCollider.material.bounceCombine = PhysicMaterialCombine.Minimum;
 
         groundedRaycastMaxDistance = rbCollider.radius + GROUNDED_RAYCAST_ADDITIONAL_DISTANCE;
@@ -268,62 +267,35 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (master.gameState == GameState.Game)
+        if (master.gameState == GAME_STATE_GAME)
         {
             UpdatePlayerInput();
             UpdateActorDataManager();
-
-            if(isDamaged)
-            {
-                damageTimer += Time.deltaTime;
-
-                if (damageTimer >= DAMAGE_INTERVAL)
-                    UnsetDamaged();
-            }
         }
-
-        
     }
 
     private void FixedUpdate()
     {
-        if (master.gameState == GameState.Game)
+        if (master.gameState == GAME_STATE_GAME)
         {
-            // run update if in game state.
-
-            UpdateWaterStatus();
-            UpdateMovingObjectStatus();
-
             UpdateGroundedRay();
             UpdateGroundedSphere();
             UpdateGravity();
-            stateControllers[currentStateType].UpdateStateDragAndFriction(this);
 
             // update the player state.
-
-            stateUpdateCount++;
-            stateControllers[currentStateType].CheckState(this);
+            stateFixedUpdateCount++;
+            states[currentStateType].CheckState(this);
 
             // do state specific actions.
-
-            stateControllers[currentStateType].UpdateState(this);
-            stateControllers[currentStateType].UpdateStateSlide(this);
-            stateControllers[currentStateType].UpdateStateSpeed(this);
+            states[currentStateType].FixedUpdateState(this);
 
             // update animator.
-
-            UpdateAnimatorVariables();
-            stateControllers[currentStateType].UpdateStateAnimator(this);
+            states[currentStateType].UpdateState(this);
 
             // clear any raised inputs.
-
             UpdateClearRaisedInputs();
         }
-        else if (master.gameState == GameState.GameOver)
-        {
-            
-        }
-        else if (master.gameState == GameState.Cutscene)
+        else if (master.gameState == GAME_STATE_CUTSCENE)
         {
             UpdateAnimatorCutscene();
         }
@@ -340,7 +312,7 @@ public class PlayerController : MonoBehaviour
         // time when entering game state
         // from a non-game state.
 
-        if (master.gameStatePrevious != GameState.Game
+        if (master.gameStatePrevious != GAME_STATE_GAME
             && master.GameStateTime <= INPUT_GAME_STATE_DELAY)
             return;
 
@@ -375,21 +347,6 @@ public class PlayerController : MonoBehaviour
             isRaisedEastExtra = true;
     }
 
-    private void UpdateWaterStatus()
-    {
-        if (!isCollidingWaterObject)
-            return;
-
-        isPartialSubmerged = (this.transform.position + WATER_PARTIAL_SUBMERGED_OFFSET).y <= waterYLevel;
-        isFullSubmerged = (this.transform.position + WATER_FULL_SUBMERGED_OFFSET).y <= waterYLevel;
-    }
-
-    private void UpdateMovingObjectStatus()
-    {
-        if (!isCollidingMovingObject)
-            return;
-    }
-
     private void UpdateGroundedRay()
     {
         // check grounding by ray.
@@ -412,10 +369,12 @@ public class PlayerController : MonoBehaviour
             wasRaycastGrounded = isRaycastGrounded;
             isRaycastGrounded = raycastHitInfo.distance <= groundedRaycastMaxDistance 
                 && raycastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
+            isNearRaycastGrounded = raycastHitInfo.distance <= MAX_NEAR_GROUNDED_RAYCAST_DISTANCE
+                && raycastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
 
             // if grounded, and in the regular state, set the position above the floor.
 
-            if (isRaycastGrounded && currentStateType == PlayerStateType.playerDefault)
+            if (isRaycastGrounded && currentStateType == GameConstants.PLAYER_STATE_DEFAULT)
             {
                 rigidBody.MovePosition(new Vector3(
                     rigidBody.position.x,
@@ -453,6 +412,8 @@ public class PlayerController : MonoBehaviour
             wasSpherecastGrounded = isSpherecastGrounded;
             isSpherecastGrounded = spherecastHitInfo.distance <= groundedSpherecastMaxDistance
                 && spherecastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
+            isNearSpherecaseGrounded = spherecastHitInfo.distance <= MAX_NEAR_GROUNDED_SPHERECAST_DISTANCE
+                && spherecastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
 
             if (isSpherecastGrounded)
             {
@@ -479,25 +440,6 @@ public class PlayerController : MonoBehaviour
             rigidBody.AddForce(Physics.gravity, ForceMode.Acceleration);
         else
             rigidBody.AddForce(Physics.gravity * GRAVITY_MULTIPLIER, ForceMode.Acceleration);
-    }
-
-    private void UpdateAnimatorVariables()
-    {
-        playerAnimator.SetInteger("anim_game_state", (int)master.gameState);
-        playerAnimator.SetInteger("anim_player_state", (int)currentStateType);
-        playerAnimator.SetInteger("anim_player_state_update_count", stateUpdateCount);
-        playerAnimator.SetBool("anim_is_grounded", isSpherecastGrounded);
-        playerAnimator.SetBool("anim_is_moving", rigidBody.velocity.magnitude > 0.2f);
-        playerAnimator.SetFloat("anim_horizontal_speed", isInputDirectional ? rigidBody.velocity.magnitude : 0.0f);
-        playerAnimator.SetFloat("anim_vertical_speed", rigidBody.velocity.y);
-        playerAnimator.SetFloat("anim_speed_water_dive", Mathf.Clamp(rigidBody.velocity.magnitude,0.25f,1.0f));
-        playerAnimator.SetBool("anim_is_input_right", inputDirectional.x > 0.5);
-        playerAnimator.SetBool("anim_is_input_left", inputDirectional.x < -0.5);
-    }
-
-    private void UpdateAnimatorGameOver()
-    {
-
     }
 
     private void UpdateAnimatorCutscene()
@@ -530,7 +472,7 @@ public class PlayerController : MonoBehaviour
             0.0f);
         }
 
-        facingDirectionDelta.y = 0.0f;
+        facingDirectionDelta.y = 0.0F;
 
         // Move our position a step closer to the target.
         rendererObject.transform.rotation = Quaternion.LookRotation(facingDirectionDelta);
@@ -548,37 +490,37 @@ public class PlayerController : MonoBehaviour
 
     // state change.
 
-    private void ChangeGameState(object sender, EventArgs e)
+    private void OnGameStateChange(object sender, EventArgs e)
     {
-        Debug.Log("Game State Changed");
-
         GameStateChangeEventArgs args = e as GameStateChangeEventArgs;
-
-        if (master.gameState == GameState.Game)
-            playerAnimator.runtimeAnimatorController = animatorGame;
-        else if (master.gameState == GameState.GameOver)
-            playerAnimator.runtimeAnimatorController = animatorGameOver;
-        else if (master.gameState == GameState.Cutscene)
-            playerAnimator.runtimeAnimatorController = animatorCutscene;
-        else
-            playerAnimator.runtimeAnimatorController = animatorGame;
 
         // store, or restore, velocity when changing state.
 
-        if (master.gameState == GameState.Game)
+        if (master.gameState == GAME_STATE_GAME)
         {
-            if(master.gameStatePrevious != GameState.Game)
+            if(master.gameStatePrevious != GAME_STATE_GAME)
                 ResumeController(e);
         }
         else
         {
-            if (master.gameStatePrevious == GameState.Game)
+            if (master.gameState == GAME_STATE_CUTSCENE)
+            {
+                playerAnimator.ResetAllAnimatorTriggers();
+                playerAnimator.SetTrigger("idle");
+            }
+            else if(master.gameState == GAME_STATE_GAME_OVER)
+            {
+                playerAnimator.ResetAllAnimatorTriggers();
+                playerAnimator.SetTrigger("emote_die");
+            }
+
+            if (master.gameStatePrevious == GAME_STATE_GAME)
                 PauseController(e);
         }
 
         // if not in a game state, clear the directional input.
 
-        if (args.gameState != GameState.Game)
+        if (args.gameState != GAME_STATE_GAME)
             inputDirectional = Vector3.zero;
     }
 
@@ -590,7 +532,6 @@ public class PlayerController : MonoBehaviour
 
         rigidBody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
         rigidBody.isKinematic = true;
-        UpdateAnimatorVariables();
     }
 
     private void ResumeController(EventArgs e)
@@ -601,24 +542,31 @@ public class PlayerController : MonoBehaviour
         rigidBody.isKinematic = false;
         playerAnimator.enabled = true;
 
-        // restore velocity if coming from the pause meny.
+        // restore velocity if coming from the pause menu.
 
-        if(args.game_state_previous == GameState.Menu)
+        if(args.game_state_previous == GAME_STATE_MENU_PAUSE)
             rigidBody.velocity = storedVelocity;
     }
 
-    public void ChangePlayerState(PlayerStateType new_state)
+    public void ChangePlayerState(string newState, params object[] parameters)
     {
-        stateControllers[currentStateType].FinishState(this);
+        // finish current state.
+
+        states[currentStateType].FinishState(this);
 
         previousStateType = currentStateType;
-        currentStateType = new_state;
+        currentStateType = newState;
+        
+        // begin new state, pass params if provided.
 
-        stateControllers[currentStateType].BeginState(this);
+        if(parameters == null || parameters.Length == 0)
+            states[currentStateType].BeginState(this);
+        else
+            states[currentStateType].BeginState(this, parameters);
 
         // set general state variables.
 
-        stateUpdateCount = 0;
+        stateFixedUpdateCount = 0;
         isSpherecastGroundedSinceStateBegin = false;
     }
 
@@ -627,110 +575,6 @@ public class PlayerController : MonoBehaviour
         rigidBody.velocity = Vector3.zero;
         var repelVector = (this.transform.position - repelSource.transform.position).normalized;
         rigidBody.AddForce(repelVector * repelForceMultiplier, ForceMode.VelocityChange);
-    }
-
-
-    // collision.
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.tag == GameConstants.TAG_MOVING_OBJECT)
-        {
-            collidingMovingObjects.Add(collision.gameObject);
-
-            isCollidingMovingObject = true;
-        }
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        if (collidingMovingObjects.Contains(collision.gameObject))
-        {
-            collidingMovingObjects.Remove(collision.gameObject);
-
-            if (collidingMovingObjects.Count == 0)
-            {
-                isCollidingMovingObject = false;
-            }
-        }
-    }
-
-    // trigger.
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.tag == GameConstants.TAG_WATER)
-        {
-            collidingWaterObjects.Add(other.gameObject);
-
-            isCollidingWaterObject = true;
-            waterYLevel = other.bounds.center.y + (other.bounds.size.y / 2);
-            
-        }
-
-        if (other.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
-        {
-            PlayerStaticMethods.HandleDamageObject(this, other.gameObject, false);
-        }
-
-        if (other.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
-        {
-            PlayerStaticMethods.HandleRepelObject(this, other.gameObject);
-        }
-
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.gameObject.tag == GameConstants.TAG_DAMAGE_OBJECT)
-        {
-            PlayerStaticMethods.HandleDamageObject(this, other.gameObject, true);
-        }
-
-        if (other.gameObject.tag == GameConstants.TAG_REPEL_OBJECT)
-        {
-            PlayerStaticMethods.HandleRepelObject(this, other.gameObject);
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (collidingWaterObjects.Contains(other.gameObject))
-        {
-            collidingWaterObjects.Remove(other.gameObject);
-
-            if (collidingWaterObjects.Count == 0)
-            {
-                isCollidingWaterObject = false;
-                waterYLevel = 0.0f;
-                isFullSubmerged = false;
-                isPartialSubmerged = false;
-            }
-        }
-    }
-
-    // set and unset.
-
-    public void SetDamaged(AttributeDamageData damageData)
-    {
-        isDamaged = true;
-
-        damageTimer = 0.0f;
-        master.playerController.health -= damageData.damageAmount;
-        ChangePlayerState(PlayerStateType.playerDamage);
-
-        audioSource.clip = soundHurt;
-        audioSource.Play();
-
-        damageEffectController.SetDamageEffect();
-    }
-
-    public void UnsetDamaged()
-    {
-        isDamaged = false;
-
-        damageTimer = 0.0f;
-        damageEffectController.UnsetDamageEffect();
     }
 
     // interface managers.
@@ -750,8 +594,16 @@ public class PlayerController : MonoBehaviour
 
     private void OnGUI()
     {
+        string output = "[DEBUG]"
+            + "\nplayerState: " + currentStateType
+            + "\nisRaycastGrounded: " + isRaycastGrounded
+            + "\nisSpherecastGrounded: " + isSpherecastGrounded
+            + "\nisNearRaycastGrounded: " + isNearRaycastGrounded
+            + "\nisNearSpherecastGrounded: " + isNearSpherecaseGrounded;
 
+        GUI.color = Color.black;
+        GUI.Label(DEBUG_RECTANGLE_2, output);
+        GUI.color = Color.white;
+        GUI.Label(DEBUG_RECTANGLE_1, output);
     }
-
-    
 }

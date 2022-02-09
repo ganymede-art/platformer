@@ -2,15 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
+using static Assets.script.GameConstants;
 
 public class MapFloatingObjectController : MonoBehaviour
 {
-    const float SINKING_DURATION_MIN = 0.1f;
+    const float SINKING_DURATION_MIN = 0.1F;
 
     List<GameObject> weightObjects = new List<GameObject>();
     bool wasWeighedDown = false;
     bool isWeighedDown = false;
-    private float sinkingTimer = 0.0f;
+    private float sinkingTimer = 0.0F;
     private Vector3 startPosition;
     private Vector3 endPosition;
     private Rigidbody objectRigidBody;
@@ -33,7 +34,7 @@ public class MapFloatingObjectController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (GameMasterController.Global.gameState != GameState.Game)
+        if (GameMasterController.Global.gameState != GAME_STATE_GAME)
             return;
 
         if (isWeighedDown && sinkingTimer < 1)
@@ -47,7 +48,7 @@ public class MapFloatingObjectController : MonoBehaviour
         {
             sinkingTimer -= 1f * Time.deltaTime;
             if (sinkingTimer < 0)
-                sinkingTimer = 0.0f;
+                sinkingTimer = 0.0F;
         }
 
         float t = sinkingTimer / sinkingDuration;
@@ -59,8 +60,7 @@ public class MapFloatingObjectController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         wasWeighedDown = isWeighedDown;
-
-        if (other.gameObject.tag == GameConstants.TAG_PLAYER)
+        if (other.transform.name == NAME_PLAYER_COLLIDER)
         {
             weightObjects.Add(other.gameObject);
         }
@@ -78,7 +78,7 @@ public class MapFloatingObjectController : MonoBehaviour
     {
         wasWeighedDown = isWeighedDown;
 
-        if (other.gameObject.tag == GameConstants.TAG_PLAYER)
+        if (other.transform.name == NAME_PLAYER_COLLIDER)
         {
             weightObjects.Remove(other.gameObject);
         }

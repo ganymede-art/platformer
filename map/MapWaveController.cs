@@ -8,8 +8,8 @@ public class MapWaveController : MonoBehaviour
     private Vector3[] base_vertices;
     private Vector3[] world_vertices;
 
-    public float wave_scale = 0.1f;
-    public float wave_speed = 1.0f;
+    public float wave_scale = 0.1F;
+    public float wave_speed = 1.0F;
 
     void Start()
     {

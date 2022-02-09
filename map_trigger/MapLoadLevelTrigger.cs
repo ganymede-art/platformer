@@ -5,20 +5,16 @@ using Assets.script;
 using UnityEngine.Serialization;
 
 public class MapLoadLevelTrigger : MonoBehaviour
-{
-    public string scene = string.Empty;
-    [FormerlySerializedAs("player_start_transform")]
-    public string playerStartTransform = string.Empty;
-    [FormerlySerializedAs("camera_start_transform")]
-    public string cameraStartTransform = string.Empty;
-
-    public UserInterfaceTransitionData transitionData;
+{ 
+    public GameObject gameLoadSceneTriggerObject;
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == GameConstants.TAG_PLAYER)
+        if (other.transform.root.tag == GameConstants.TAG_PLAYER_OBJECT)
         {
-            GameLoadLevelController.Global.StartLoadLevel(scene, playerStartTransform, cameraStartTransform, transitionData);
+            var gameLoadSceneTrigger = gameLoadSceneTriggerObject
+                .GetComponent<GameLoadSceneTrigger>();
+            gameLoadSceneTrigger.StartLoadScene();
         }
     }
 }

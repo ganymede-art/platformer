@@ -5,9 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Assets.script;
-
-using static Assets.script.AttributeDataClasses;
 using static Assets.script.GameConstants;
+using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
@@ -33,6 +32,7 @@ namespace Assets.script
 
         public static void StepMovement(PlayerController mc, Vector3 direction, Vector3 force)
         {
+            Debug.DrawRay(mc.rigidBody.position, direction);
             // do raycasts.
 
             mc.isMovementHit = Physics.SphereCast
@@ -61,6 +61,7 @@ namespace Assets.script
 
                     // force the sphere grounded status while moving up short steps.
                     mc.isSpherecastGrounded = true;
+                    Debug.Log("stepping!");
                 }
                 else
                 {
@@ -78,51 +79,105 @@ namespace Assets.script
             }
         }
 
-        public static void HandleDamageObject(PlayerController mc, GameObject damage_object, bool is_stay)
+        public static void UpdateInternalDirection(PlayerController pc)
         {
-            // get the objects damage attributes (or default)
-            // the handle moving into the damage state.
+            // update player facing direction.
+            pc.facingDirection = Quaternion.Euler(0, pc.cameraObject.transform.rotation.eulerAngles.y, 0) * pc.inputDirectional;
+            pc.facingDirectionDelta = Vector3.RotateTowards(pc.rendererObject.transform.forward, pc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
-            mc.damageSourceObject = damage_object.gameObject;
-            mc.damageData = damage_object.gameObject.GetComponent<AttributeDamageController>()?.data;
-            if (mc.damageData == null)
-                mc.damageData = AttributeDamageData.GetDefault();
+            // Move our position a step closer to the target.
+            pc.directionObject.transform.rotation = Quaternion.LookRotation(pc.facingDirectionDelta);
+        }
 
-            // move to damage mode if not already in damage mode, or instant damage.
-            // instant damage applied only if entering the trigger (not on stay).
+        public static void UpdateRendererDirection(PlayerController pc)
+        {
+            // update player facing direction.
+            pc.facingDirection = Quaternion.Euler(0, pc.cameraObject.transform.rotation.eulerAngles.y, 0) * pc.inputDirectional;
+            pc.facingDirectionDelta = Vector3.RotateTowards(pc.rendererObject.transform.forward, pc.facingDirection, ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
 
-            if (!mc.isDamaged || (mc.damageData.isDamageInstant && !is_stay))
+            // Move our position a step closer to the target.
+            pc.rendererObject.transform.rotation = Quaternion.LookRotation(pc.facingDirectionDelta);
+        }
+
+        public static void ApplyStaticFriction(PlayerController pc, float drag, float friction, PhysicMaterialCombine physicsMaterialCombine)
+        {
+            pc.rigidBody.drag = drag;
+            pc.rbCollider.material.dynamicFriction = friction;
+            pc.rbCollider.material.staticFriction = friction;
+
+            pc.rbCollider.material.frictionCombine = physicsMaterialCombine;
+        }
+
+        public static void ApplyDynamicFriction(PlayerController pc)
+        {
+            // update based on circumstances.
+
+            pc.rigidBody.drag = pc.isRaycastGrounded ? DRAG_GROUNDED : DRAG_AIR;
+
+            // change physics combine mode.
+
+            pc.rbCollider.material.frictionCombine = PhysicMaterialCombine.Average;
+
+            //
+
+            if (pc.isSpherecastGrounded && pc.isRaycastGrounded && !pc.isInputDirectional)
             {
-                mc.SetDamaged(mc.damageData);
+                pc.rbCollider.material.dynamicFriction = 1;
+                pc.rbCollider.material.staticFriction = 1;
+            }
+            else
+            {
+                pc.rbCollider.material.dynamicFriction = 0F;
+                pc.rbCollider.material.staticFriction = 0F;
             }
         }
 
-        public static void HandleRepelObject(PlayerController mc, GameObject repel_object)
+        public static void LimitSpeedThreeAxis(PlayerController pc, float speedLimit)
         {
-            // get the objects repel attributes (or default)
-            // the handle moving into the repel state.
-
-            mc.repelSourceObject = repel_object.gameObject;
-            mc.repelData = repel_object.gameObject.GetComponent<AttributeRepelController>()?.data;
-            if (mc.repelData == null)
-                mc.repelData = AttributeDamageData.GetDefault();
-
-            if (mc.currentStateType != PlayerStateType.playerRepel)
-                mc.ChangePlayerState(PlayerStateType.playerRepel);
+            if (pc.rigidBody.velocity.magnitude > speedLimit)
+            {
+                pc.rigidBody.velocity = Vector3.ClampMagnitude(pc.rigidBody.velocity, speedLimit);
+            }
         }
 
-        public static void FaceDirection(PlayerController mc)
+        public static void LimitSpeedTwoAxis(PlayerController pc, float speedLimit)
         {
-            // update player facing direction.
+            // limit speed while in the default state.
 
-            mc.facingDirection = Quaternion.Euler(0, mc.cameraObject.transform.rotation.eulerAngles.y, 0) * mc.inputDirectional;
-            mc.facingDirectionDelta = Vector3.RotateTowards(mc.rendererObject.transform.forward, mc.facingDirection, PlayerConstants.ANIMATION_TURNING_SPEED_MULTIPLIER, 0.0f);
+            Vector3 old_x_z = new Vector3(pc.rigidBody.velocity.x, 0, pc.rigidBody.velocity.z);
+            Vector3 old_y = new Vector3(0, pc.rigidBody.velocity.y, 0);
 
-            // Move our position a step closer to the target.
-            mc.rendererObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
-            mc.directionObject.transform.rotation = Quaternion.LookRotation(mc.facingDirectionDelta);
+            if (old_x_z.magnitude > speedLimit)
+            {
+
+                old_x_z = Vector3.ClampMagnitude(old_x_z, speedLimit);
+                pc.rigidBody.velocity = old_x_z + old_y;
+            }
         }
-    }
 
-    
+        public static void FixedUpdateSlide(PlayerController pc)
+        {
+            // move towards the sliding state
+            // if the right criteria are met.
+
+            if (pc.raycastGroundedSlopeAngle > SLIDE_ANGLE_MIN
+                || pc.groundData.isGroundSlide)
+            {
+                // reduce the slide resistance
+                pc.slideResistance -= (pc.raycastGroundedSlopeAngle * SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER);
+            }
+            else
+            {
+                pc.slideResistance = SLIDE_RESISTANCE_MAX;
+            }
+
+            pc.slideResistance = Mathf.Clamp(pc.slideResistance, 0.0f, SLIDE_RESISTANCE_MAX);
+
+            if (pc.slideResistance <= 0.0f && pc.isSpherecastGrounded)
+            {
+                pc.ChangePlayerState(GameConstants.PLAYER_STATE_SLIDE);
+                return;
+            }
+        }
+    } 
 }

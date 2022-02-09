@@ -41,9 +41,9 @@ public class GameInputController : MonoBehaviour
 
     [NonSerialized] public InputAction axisZoom;
 
-    [NonSerialized] public float sensitivityCameraZoom = 0.05f;
-    [NonSerialized] public float sensitivityCameraHorizontal = 0.7f;
-    [NonSerialized] public float sensitivityCameraVertical = 0.7f;
+    [NonSerialized] public float sensitivityCameraZoom = 0.05F;
+    [NonSerialized] public float sensitivityCameraHorizontal = 0.7F;
+    [NonSerialized] public float sensitivityCameraVertical = 0.7F;
 
     [System.NonSerialized] public bool wasInputNorth = false;
     [System.NonSerialized] public bool wasInputEast = false;
@@ -55,7 +55,7 @@ public class GameInputController : MonoBehaviour
 
     [System.NonSerialized] public bool wasInputStart = false;
 
-    [System.NonSerialized] public bool inInputNorth = false;
+    [System.NonSerialized] public bool isInputNorth = false;
     [System.NonSerialized] public bool isInputEast = false;
     [System.NonSerialized] public bool isInputSouth = false;
     [System.NonSerialized] public bool inInputWest = false;
@@ -109,7 +109,7 @@ public class GameInputController : MonoBehaviour
 
     void Update()
     {
-        wasInputNorth = inInputNorth;
+        wasInputNorth = isInputNorth;
         wasInputEast = isInputEast;
         wasInputSouth = isInputSouth;
         wasInputWest = inInputWest;
@@ -119,14 +119,18 @@ public class GameInputController : MonoBehaviour
 
         wasInputStart = isInputStart;
 
-        inInputNorth = buttonNorth.ReadValue<float>() >= 0.1f;
-        isInputEast = buttonEast.ReadValue<float>() >= 0.1f;
-        isInputSouth = buttonSouth.ReadValue<float>() >= 0.1f;
-        inInputWest = buttonWest.ReadValue<float>() >= 0.1f;
+        isInputNorth = buttonNorth.ReadValue<float>() >= 0.1F;
+        isInputEast = buttonEast.ReadValue<float>() >= 0.1F;
+        isInputSouth = buttonSouth.ReadValue<float>() >= 0.1F;
+        inInputWest = buttonWest.ReadValue<float>() >= 0.1F;
         
-        isInputEastExtra = buttonEastExtra.ReadValue<float>() >= 0.1f;
-        isInputWestExtra = buttonWestExtra.ReadValue<float>() >= 0.1f;
+        isInputEastExtra = buttonEastExtra.ReadValue<float>() >= 0.1F;
+        isInputWestExtra = buttonWestExtra.ReadValue<float>() >= 0.1F;
 
-        isInputStart = buttonStart.ReadValue<float>() >= 0.1f;
+        isInputStart = buttonStart.ReadValue<float>() >= 0.1F;
+
+        
     }
+
+    
 }

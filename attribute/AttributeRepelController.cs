@@ -1,7 +1,7 @@
+using Assets.script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Assets.script.AttributeDataClasses;
 using static Assets.script.AttributeConstants;
 
 public class AttributeRepelController : MonoBehaviour

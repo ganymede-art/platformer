@@ -4,6 +4,8 @@ using UnityEngine;
 using Assets.script;
 using TMPro;
 using System;
+using UnityEngine.SceneManagement;
+using static Assets.script.GameConstants;
 
 public class GameEventController : MonoBehaviour
 {
@@ -22,7 +24,7 @@ public class GameEventController : MonoBehaviour
 
     private GameMasterController master;
 
-    float eventProcessInterval = 0.05f;
+    float eventProcessInterval = 0.05F;
 
     public List<GameEvent> orderedEvents;
     public List<GameEvent> generalEvents;
@@ -32,6 +34,7 @@ public class GameEventController : MonoBehaviour
     void Start()
     {
         master = GameMasterController.Global;
+        SceneManager.sceneLoaded += SceneLoaded;
 
         orderedEvents = new List<GameEvent>();
         generalEvents = new List<GameEvent>();
@@ -43,6 +46,9 @@ public class GameEventController : MonoBehaviour
         {
             if (orderedEvent.gameState
                 != GameMasterController.Global.gameState)
+                continue;
+
+            if (orderedEvent.controllerSource == null)
                 continue;
 
             if (!orderedEvent.isStarted)
@@ -68,6 +74,9 @@ public class GameEventController : MonoBehaviour
                 != GameMasterController.Global.gameState)
                 continue;
 
+            if (generalEvent.controllerSource == null)
+                continue;
+
             if (!generalEvent.isStarted)
                 StartGameEvent(generalEvent);
 
@@ -88,9 +97,9 @@ public class GameEventController : MonoBehaviour
         generalEvents.RemoveAll(ge => ge.controllerSource == null);
 
         // end cutscene if no more cutscene events.
-        if (GameMasterController.Global.gameState == GameState.Cutscene
-            && orderedEvents.FindAll(oe => oe.gameState == GameState.Cutscene).Count == 0
-            && generalEvents.FindAll(ge => ge.gameState == GameState.Cutscene).Count == 0)
+        if (GameMasterController.Global.gameState == GAME_STATE_CUTSCENE
+            && orderedEvents.FindAll(oe => oe.gameState == GAME_STATE_CUTSCENE).Count == 0
+            && generalEvents.FindAll(ge => ge.gameState == GAME_STATE_CUTSCENE).Count == 0)
             EndCutscene();
     }
 
@@ -98,8 +107,8 @@ public class GameEventController : MonoBehaviour
     {
         gameEvent.isStarted = true;
 
-        gameEvent.runningTimer = 0.0f;
-        gameEvent.processTimer = 0.0f;
+        gameEvent.runningTimer = 0.0F;
+        gameEvent.processTimer = 0.0F;
 
         gameEvent.controller = gameEvent.controllerSource.GetComponent<IEventController>();
         gameEvent.controller.StartEvent(gameEvent);
@@ -144,25 +153,43 @@ public class GameEventController : MonoBehaviour
         gameEvent.isStarted = false;
         gameEvent.isFinished = false;
 
-        gameEvent.runningTimer = 0.0f;
-        gameEvent.processTimer = 0.0f;
+        gameEvent.runningTimer = 0.0F;
+        gameEvent.processTimer = 0.0F;
 
         gameEvent.controller.ResetEvent(gameEvent);
     }
 
     public void AddOrderedGameEvent(GameEvent newEvent)
     {
-        if (newEvent.gameState == GameState.Cutscene)
+        // check if event has already been added.
+        foreach (var existingEvent in orderedEvents)
+        {
+            if (existingEvent.eventGuid == newEvent.eventGuid)
+                return;
+        }
+
+        // start the cutscene if it's a cutscene event.
+        if (newEvent.gameState == GAME_STATE_CUTSCENE)
             StartCutscene();
 
+        // add the event.
         orderedEvents.Add(newEvent);
     }
 
     public void InsertOrderedGameEvent(GameEvent newEvent)
     {
-        if (newEvent.gameState == GameState.Cutscene)
+        // check if event has already been added.
+        foreach (var existingEvent in orderedEvents)
+        {
+            if (existingEvent.eventGuid == newEvent.eventGuid)
+                return;
+        }
+
+        // start the cutscene if it's a cutscene event.
+        if (newEvent.gameState == GAME_STATE_CUTSCENE)
             StartCutscene();
 
+        // insert the event.
         if (orderedEvents.Count == 0)
         {
             orderedEvents.Add(newEvent);
@@ -176,21 +203,57 @@ public class GameEventController : MonoBehaviour
 
     public void AddGeneralGameEvent(GameEvent newEvent)
     {
-        if (newEvent.gameState == GameState.Cutscene)
+        // check if event has already been added.
+        foreach (var existingEvent in generalEvents)
+        {
+            if (existingEvent.eventGuid == newEvent.eventGuid)
+                return;
+        }
+
+        // start the cutscene if it's a cutscene event.
+        if (newEvent.gameState == GAME_STATE_CUTSCENE)
             StartCutscene();
 
+        // add the event.
         generalEvents.Add(newEvent);
     }
 
     public void StartCutscene()
     {
-        if(master.gameState != GameState.Cutscene)
-            master.ChangeState(GameState.Cutscene);
+        if(master.gameState != GAME_STATE_CUTSCENE)
+            master.ChangeState(GAME_STATE_CUTSCENE);
     }
 
     public void EndCutscene()
     {
-        if(master.gameState != GameState.Game)
-            master.ChangeState(GameState.Game);
+        if(master.gameState != GAME_STATE_GAME)
+            master.ChangeState(GAME_STATE_GAME);
+    }
+
+    public void SceneLoaded(Scene scene, LoadSceneMode load_scene_mode)
+    {
+        var orderedIndexesToRemove = new List<int>();
+        var generalIndexesToRemove = new List<int>();
+
+        for(int i = 0; i < orderedEvents.Count; i++)
+        {
+            if (orderedEvents[i].controllerSource == null)
+                orderedIndexesToRemove.Add(i);
+        }
+
+        for (int i = 0; i < generalEvents.Count; i++)
+        {
+            if (generalEvents[i].controllerSource == null)
+                generalIndexesToRemove.Add(i);
+        }
+
+        foreach (int i in orderedIndexesToRemove)
+            orderedEvents.RemoveAt(i);
+
+        foreach (int i in generalIndexesToRemove)
+            generalIndexesToRemove.RemoveAt(i);
+
+        Debug.Log("Removed " + orderedIndexesToRemove.Count + " stale ordered events.");
+        Debug.Log("Removed " + generalIndexesToRemove.Count + " stale general events.");
     }
 }

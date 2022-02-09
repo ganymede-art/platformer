@@ -5,16 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
+using static Assets.script.GameConstants;
 
 namespace Assets.script.actor 
 {
     class ActorNpcController : MonoBehaviour
     {
-        const float FACING_RANGE_MIN = 0.5f;
-        const float FACING_RANGE_DEFAULT = 2.0f;
+        const float FACING_RANGE_MIN = 0.5F;
+        const float FACING_RANGE_DEFAULT = 2.0F;
 
-        const float FACING_SPEED_MIN = 0.1f;
-        const float FACING_SPEED_DEFAULT = 5f;
+        const float FACING_SPEED_MIN = 0.1F;
+        const float FACING_SPEED_DEFAULT = 5F;
 
         private GameObject playerObject;
 
@@ -46,7 +47,7 @@ namespace Assets.script.actor
 
         private void Update()
         {
-            if (GameMasterController.Global.gameState == GameState.Game)
+            if (GameMasterController.Global.gameState == GAME_STATE_GAME)
             {
                 UpdateFacing();
             }

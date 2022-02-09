@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.script;
-using static Assets.script.AttributeDataClasses;
 using static Assets.script.AttributeConstants;
 
 public class AttributeDamageController : MonoBehaviour

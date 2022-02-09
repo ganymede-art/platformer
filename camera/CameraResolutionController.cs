@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using UnityEngine;
 using System.Collections;
+using UnityEngine.Rendering;
 
 namespace Assets.script.camera
 {
@@ -16,7 +17,6 @@ namespace Assets.script.camera
         public int h = 480;
         protected void Start()
         {
-
         }
 
         void Update()
@@ -31,7 +31,7 @@ namespace Assets.script.camera
         {
             source.filterMode = FilterMode.Bilinear;
             RenderTexture buffer = RenderTexture.GetTemporary(w, h, -1);
-            buffer.filterMode = FilterMode.Bilinear;
+            buffer.filterMode = FilterMode.Point;
             Graphics.Blit(source, buffer);
             Graphics.Blit(buffer, destination);
             RenderTexture.ReleaseTemporary(buffer);

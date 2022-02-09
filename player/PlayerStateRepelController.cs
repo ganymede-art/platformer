@@ -11,20 +11,38 @@ using Assets.script.attribute;
 
 namespace Assets.script
 {
-    public class PlayerStateRepelController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateRepelController : MonoBehaviour, IPlayerState
     {
         int update_count_repel = 0;
+        private Vector3 repelVector = Vector3.zero;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             update_count_repel = 0;
+
+            // play dive animation.
+
+            mc.playerAnimator.ResetAllAnimatorTriggers();
+            mc.playerAnimator.SetTrigger("repel_up");
 
             // zero out velocities.
             mc.rigidBody.velocity = Vector3.zero;
 
-            Vector3 damageVector = AttributeStaticMethods.GetAttributeDamageVector(mc.repelData, mc.repelSourceObject, mc.gameObject);
+            if (parameters == null || parameters.Length == 0)
+                repelVector = Vector3.up;
+            else
+            {
+                var repelSourceObject = (GameObject)parameters[0];
+                var repelData = (AttributeDamageData)parameters[1];
+                repelVector = AttributeStaticMethods.GetAttributeDamageVector
+                    (repelData, repelSourceObject, gameObject);
+            }
 
-            mc.rigidBody.AddForce(damageVector, ForceMode.VelocityChange);
+            mc.rigidBody.AddForce(repelVector, ForceMode.VelocityChange);
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
@@ -33,7 +51,7 @@ namespace Assets.script
 
             if (update_count_repel >= 10)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
         }
@@ -43,34 +61,19 @@ namespace Assets.script
 
         }
 
+        public void FixedUpdateState(PlayerController mc)
+        {
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_GROUNDED);
+        }
+
         public void UpdateState(PlayerController mc)
         {
-            //mc.state_jump.UpdateStateMovement(mc);
-        }
-
-        public void UpdateStateAnimator(PlayerController mc)
-        {
 
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
+        public string GetStateType()
         {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public void UpdateStateSlide(PlayerController mc)
-        {
-            return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateSpeed(mc);
-        }
-
-        public PlayerStateType GetStateType()
-        {
-            return PlayerStateType.playerRepel;
+            return GameConstants.PLAYER_STATE_REPEL;
         }
     }
 }

@@ -6,14 +6,11 @@ using UnityEngine.Serialization;
 
 public class MapAutoMusic : MonoBehaviour
 {
-    GameMasterController master;
-    [FormerlySerializedAs("music_data")]
     public GameMusicData musicData;
 
     void Start()
     {
-        master = GameMasterController.Global;
-        master.audioController.PlayMusic(musicData);
+        GameAudioController.Global.PlayMusic(musicData);
         GameObject.Destroy(this);
     }
 }

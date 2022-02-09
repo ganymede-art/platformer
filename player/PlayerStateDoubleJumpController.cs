@@ -4,25 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static Assets.script.PlayerConstants;
 
 namespace Assets.script
 {
-    public class PlayerStateDoubleJumpController : MonoBehaviour, IPlayerStateController
+    public class PlayerStateDoubleJumpController : MonoBehaviour, IPlayerState
     {
         private const int DOUBLE_JUMP_PERSIST_ENERGY_MAX = 70;
-        private const float DOUBLE_JUMP_ANIMATION_SPEED_MIN = 0.5f;
-        private const float DOUBLE_JUMP_ANIMATION_SPEED_MAX = 5f;
+        private const float DOUBLE_JUMP_ANIMATION_SPEED_MIN = 0.5F;
+        private const float DOUBLE_JUMP_ANIMATION_SPEED_MAX = 5F;
         private readonly Vector3 DOUBLE_JUMP_FORCE = new Vector3(0, 0.3f, 0);
         private int doubleJumpPersistEnergy = 0;
 
-        private float doubleJumpPersistPercentage = 1.0f;
-        private float doubleJumpAnimationSpeed = 1.0f;
+        private float doubleJumpPersistPercentage = 1.0F;
+        private float doubleJumpAnimationSpeed = 1.0F;
 
-        private float soundTimer = 0.0f;
-        private float soundInterval = 0.2f;
-        
+        private float soundTimer = 0.0F;
+        private float soundInterval = 0.2F;
 
-        public void BeginState(PlayerController mc)
+        public void BeginState(PlayerController mc, params object[] parameters)
         {
             // set animation.
 
@@ -41,19 +41,23 @@ namespace Assets.script
 
             // play double jump sound.
 
-            mc.audioSource.clip = mc.soundDoubleJump;
+            mc.audioSource.clip = mc.doubleJumpSound;
             mc.audioSource.Play();
 
             // set the sound timer.
 
-            soundTimer = 0.0f;
+            soundTimer = 0.0F;
+
+            // apply friction.
+
+            PlayerStaticMethods.ApplyStaticFriction(mc, DRAG_AIR, 0, PhysicMaterialCombine.Minimum);
         }
 
         public void CheckState(PlayerController mc)
         {
             if (doubleJumpPersistEnergy <= 0 || mc.isSpherecastGrounded)
             {
-                mc.ChangePlayerState(PlayerStateType.playerDefault);
+                mc.ChangePlayerState(GameConstants.PLAYER_STATE_DEFAULT);
                 return;
             }
         }
@@ -63,13 +67,15 @@ namespace Assets.script
             
         }
 
-        public PlayerStateType GetStateType()
+        public string GetStateType()
         {
-            return PlayerStateType.PlayerDoubleJump;
+            return GameConstants.PLAYER_STATE_DOUBLE_JUMP;
         }
 
-        public void UpdateState(PlayerController mc)
+        public void FixedUpdateState(PlayerController mc)
         {
+            PlayerStaticMethods.LimitSpeedTwoAxis(mc, MAX_SPEED_GROUNDED);
+
             UpdateStateMovement(mc);
 
             doubleJumpPersistPercentage = Mathf.InverseLerp
@@ -100,7 +106,7 @@ namespace Assets.script
             PlayerStaticMethods.StepMovement(mc, camera_relative_movement, force);
         }
 
-        public void UpdateStateAnimator(PlayerController mc)
+        public void UpdateState(PlayerController mc)
         {
             // update the animation speed.
 
@@ -124,25 +130,15 @@ namespace Assets.script
             soundTimer += Time.deltaTime;
             if (soundTimer >= soundInterval)
             {
-                soundTimer = 0.0f;
-                mc.audioSource.clip = mc.soundDoubleJump;
+                soundTimer = 0.0F;
+                mc.audioSource.clip = mc.doubleJumpSound;
                 mc.audioSource.Play();
             }
         }
 
-        public void UpdateStateDragAndFriction(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerJump].UpdateStateDragAndFriction(mc);
-        }
-
-        public void UpdateStateSlide(PlayerController mc)
+        public void FixedUpdateStateSlide(PlayerController mc)
         {
             return;
-        }
-
-        public void UpdateStateSpeed(PlayerController mc)
-        {
-            mc.stateControllers[PlayerStateType.playerDefault].UpdateStateSpeed(mc);
         }
     }
 }
