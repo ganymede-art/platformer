@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
 
 public class EventSetPlayerAnimator : MonoBehaviour, IEventController
@@ -18,6 +18,8 @@ public class EventSetPlayerAnimator : MonoBehaviour, IEventController
     [FormerlySerializedAs("next_event_source")]
     public GameObject nextEventSource = null;
     public string trigger = string.Empty;
+    public bool doSetSpeed;
+    public float speed;
 
     void Start()
     {
@@ -45,6 +47,9 @@ public class EventSetPlayerAnimator : MonoBehaviour, IEventController
         var animator = player.GetComponentInChildren<Animator>();
         animator.ResetAllAnimatorTriggers();
         animator.SetTrigger(trigger);
+
+        if (doSetSpeed)
+            animator.SetFloat("speed_multiplier", speed);
     }
 
     public void UpdateEvent(GameEvent gameEvent)

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
 
 public class EventSetGameVarBool : MonoBehaviour, IEventController
@@ -13,9 +13,11 @@ public class EventSetGameVarBool : MonoBehaviour, IEventController
         set => parentEvent = value;
     }
 
+    [Header("Event Attributes")]
     [FormerlySerializedAs("next_event_source")]
     public GameObject nextEventSource = null;
 
+    [Header("Var Attributes")]
     public string variableName;
     public bool variableValue;
 

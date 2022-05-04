@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using TMPro;
 using System;
 using UnityEngine.SceneManagement;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class GameEventController : MonoBehaviour
 {
@@ -239,21 +239,20 @@ public class GameEventController : MonoBehaviour
         {
             if (orderedEvents[i].controllerSource == null)
                 orderedIndexesToRemove.Add(i);
+            Debug.Log("[GameEventController] Removed event: " + orderedEvents[i].eventGuid);
         }
 
         for (int i = 0; i < generalEvents.Count; i++)
         {
             if (generalEvents[i].controllerSource == null)
                 generalIndexesToRemove.Add(i);
+            Debug.Log("[GameEventController] Removed event: " + generalEvents[i].eventGuid);
         }
 
         foreach (int i in orderedIndexesToRemove)
             orderedEvents.RemoveAt(i);
 
         foreach (int i in generalIndexesToRemove)
-            generalIndexesToRemove.RemoveAt(i);
-
-        Debug.Log("Removed " + orderedIndexesToRemove.Count + " stale ordered events.");
-        Debug.Log("Removed " + generalIndexesToRemove.Count + " stale general events.");
+            generalEvents.RemoveAt(i);
     }
 }

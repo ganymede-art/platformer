@@ -4,20 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
-namespace Assets.script
+namespace Assets.Script
 {
     [System.Serializable]
-    public struct GameItemData
+    public struct GameItemInfo
     {
         public string type;
         public string group;
         public string code;
 
-        public bool Equals(GameItemData other)
+        public bool Equals(GameItemInfo other)
         {
             return Equals(other, this);
         }
@@ -29,7 +29,7 @@ namespace Assets.script
                 return false;
             }
 
-            var objectToCompareWith = (GameItemData)obj;
+            var objectToCompareWith = (GameItemInfo)obj;
 
             return objectToCompareWith.type == type 
                 && objectToCompareWith.group == group
@@ -37,12 +37,12 @@ namespace Assets.script
 
         }
 
-        public static bool operator ==(GameItemData c1, GameItemData c2)
+        public static bool operator ==(GameItemInfo c1, GameItemInfo c2)
         {
             return c1.Equals(c2);
         }
 
-        public static bool operator !=(GameItemData c1, GameItemData c2)
+        public static bool operator !=(GameItemInfo c1, GameItemInfo c2)
         {
             return !c1.Equals(c2);
         }
@@ -57,14 +57,6 @@ namespace Assets.script
         {
             return type + "_" + group;
         }
-    }
-
-    [System.Serializable]
-    public class GameMusicData
-    {
-        public string code;
-        public AudioClip audioClip;
-        public bool isLoop;
     }
 
     [System.Serializable]
@@ -86,10 +78,9 @@ namespace Assets.script
         public float runningTimer;
         public float processTimer;
 
-        public GameEvent(string gameState, GameObject controllerSource)
+        public GameEvent(string eventGuid, string gameState, GameObject controllerSource)
         {
-            eventGuid = Guid.NewGuid().ToString();
-
+            this.eventGuid = eventGuid;
             this.gameState = gameState;
             this.controllerSource = controllerSource;
             controller = controllerSource.GetComponent<IEventController>();

@@ -58,7 +58,7 @@ public class GameInputController : MonoBehaviour
     [System.NonSerialized] public bool isInputNorth = false;
     [System.NonSerialized] public bool isInputEast = false;
     [System.NonSerialized] public bool isInputSouth = false;
-    [System.NonSerialized] public bool inInputWest = false;
+    [System.NonSerialized] public bool isInputWest = false;
     
     [System.NonSerialized] public bool isInputEastExtra = false;
     [System.NonSerialized] public bool isInputWestExtra = false;
@@ -112,7 +112,7 @@ public class GameInputController : MonoBehaviour
         wasInputNorth = isInputNorth;
         wasInputEast = isInputEast;
         wasInputSouth = isInputSouth;
-        wasInputWest = inInputWest;
+        wasInputWest = isInputWest;
         
         wasInputEastExtra = isInputEastExtra;
         wasInputWestExtra = isInputWestExtra;
@@ -122,7 +122,7 @@ public class GameInputController : MonoBehaviour
         isInputNorth = buttonNorth.ReadValue<float>() >= 0.1F;
         isInputEast = buttonEast.ReadValue<float>() >= 0.1F;
         isInputSouth = buttonSouth.ReadValue<float>() >= 0.1F;
-        inInputWest = buttonWest.ReadValue<float>() >= 0.1F;
+        isInputWest = buttonWest.ReadValue<float>() >= 0.1F;
         
         isInputEastExtra = buttonEastExtra.ReadValue<float>() >= 0.1F;
         isInputWestExtra = buttonWestExtra.ReadValue<float>() >= 0.1F;

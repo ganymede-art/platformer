@@ -1,4 +1,4 @@
-﻿using Assets.script;
+﻿using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,21 +28,21 @@ public class GameAudioController : MonoBehaviour
     // music.
 
     AudioSource musicAudioSource;
-    GameMusicData currentMusicData;
+    MusicData currentMusicData;
 
     private void Awake()
     {
         musicAudioSource = this.gameObject.AddComponent<AudioSource>();
     }
 
-    public void PlayMusic(GameMusicData newMusicData)
+    public void PlayMusic(MusicData newMusicData)
     {
         if (currentMusicData == null)
             currentMusicData = newMusicData;
 
         // stop music if name is empty or invalid.
 
-        if(newMusicData.audioClip == null)
+        if(newMusicData == null || newMusicData.audioClip == null)
         {
             musicAudioSource.clip = null;
             StopMusic();

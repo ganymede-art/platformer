@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 
 public class ActorSplashController : MonoBehaviour
 {
     const float SPAWN_INTERVAL = 0.25F;
     const float TIMER_MULTIPLIER = 1F;
+    static readonly Vector3 SPAWN_OFFSET = new Vector3(0.0F, 0.005F, 0.0F);
 
     public IActorDataManager manager;
     public GameObject splash_prefab;
@@ -62,6 +63,8 @@ public class ActorSplashController : MonoBehaviour
             spawn_vector.x = this.transform.position.x;
             spawn_vector.y = y_level;
             spawn_vector.z = this.transform.position.z;
+
+            spawn_vector += SPAWN_OFFSET;
 
             spawned_splash_prefab = Instantiate(splash_prefab, spawn_vector, Quaternion.identity);
             spawned_splash_prefab.transform.localScale = Vector3.zero;

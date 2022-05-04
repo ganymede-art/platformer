@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 
-namespace Assets.script
+namespace Assets.Script
 {
     [Serializable]
     struct ReplacerData

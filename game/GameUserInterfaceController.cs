@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using TMPro;
 using UnityEngine.UI;
 using System;
@@ -34,18 +34,21 @@ public class GameUserInterfaceController : MonoBehaviour
 
     [NonSerialized] public UserInterfaceMessageBoxController uiControllerMessageBox;
     [NonSerialized] public UserInterfaceGameController uiControllerGame;
-    [NonSerialized] public UserInterfaceMenuController uiControllerMenu;
+    [NonSerialized] public UserInterfaceMenuPauseController uiControllerMenuPause;
     [NonSerialized] public UserInterfaceTransitionController uiControllerTransition;
+    [NonSerialized] public UserInterfaceSceneTitleController uiControllerSceneTitle;
 
     [NonSerialized] public GameObject uiMessageBoxObject;
     [NonSerialized] public GameObject uiGameObject;
-    [NonSerialized] public GameObject uiMenuObject;
+    [NonSerialized] public GameObject uiMenuPauseObject;
     [NonSerialized] public GameObject uiTransitionObject;
+    [NonSerialized] public GameObject uiSceneTitleObject;
 
     public GameObject uiMessageBoxPrefab;
     public GameObject uiGamePrefab;
     public GameObject uiMenuPrefab;
     public GameObject uiTransitionPrefab;
+    public GameObject uiSceneTitlePrefab;
 
     // ui figures.
 
@@ -79,13 +82,18 @@ public class GameUserInterfaceController : MonoBehaviour
 
         // init menu.
 
-        uiMenuObject = Instantiate(uiMenuPrefab,this.transform);
-        uiControllerMenu = uiMenuObject.GetComponent<UserInterfaceMenuController>();
+        uiMenuPauseObject = Instantiate(uiMenuPrefab,this.transform);
+        uiControllerMenuPause = uiMenuPauseObject.GetComponent<UserInterfaceMenuPauseController>();
 
         // init tran.
 
         uiTransitionObject = Instantiate(uiTransitionPrefab, this.transform);
         uiControllerTransition = uiTransitionObject.GetComponent<UserInterfaceTransitionController>();
+
+        // init scene title.
+
+        uiSceneTitleObject = Instantiate(uiSceneTitlePrefab, this.transform);
+        uiControllerSceneTitle = uiSceneTitleObject.GetComponent<UserInterfaceSceneTitleController>();
 
         // initialise UI.
 

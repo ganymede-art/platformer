@@ -74,6 +74,8 @@ Shader "Custom/StandardVertex"
 			fixed4 e = tex2D(_EmissionTex, IN.uv_MainTex);
 			o.Albedo = c.rgb * IN.color.rgb;
 			o.Emission = e.rgb * _Emission;
+			o.Gloss = 0;
+			o.Specular = 0;
 		}
 
 

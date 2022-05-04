@@ -3,22 +3,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
-namespace Assets.script.Event
+namespace Assets.Script.Event
 {
     internal class EventMessageBox : MonoBehaviour, IEventController
     {
-        // audio constants.
-
-        private readonly int[][] VOX_INDICES =
-        {
-            new int[] { 4, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 76, 79, 81, 84, 88, 92, 95, 98, 102, 105, 109, 111, 115, 120, 124, 128},
-            new int[] { 3, 6, 9, 11, 14, 17, 21, 25, 27, 32, 35, 39, 43, 47, 51, 54, 59, 63, 66, 70, 73, 79, 81, 84, 89, 93, 97, 103, 102, 108, 110, 112, 119, 123, 128 },
-            new int[] { 1, 5, 10, 12, 15, 19, 21, 24, 29, 30, 34, 38, 40, 43, 48, 53, 58, 61, 66, 71, 74, 79, 82, 85, 95, 98, 102, 105, 109, 111, 115, 120, 124, 128 },
-            new int[] { 2, 6, 11, 12, 14, 15, 22, 27, 29, 32, 36, 39, 41, 46, 53, 55, 57, 62, 67, 73, 78, 79, 84, 87, 95, 98, 102, 105, 109, 111, 115, 120, 124, 128 }
-        };
-
         // core constants.
 
         private const int GAME_CUTSCENE_DELAY_MULTIPLIER = 4;
@@ -26,17 +16,17 @@ namespace Assets.script.Event
         // update constants.
 
         const float EVENT_STEP_INTERVAL_DEFAULT = 0.04F;
-        const float EVENT_STEP_INTERVAL_FAST = 0.02F;
+        const float EVENT_STEP_INTERVAL_FAST = 0.01F;
 
         // delay constants.
 
-        private const string DELAY_TAG = "<de>";
-        private const int DELAY_SKIP_AMOUNT = 10;
+        private const char DELAY_CHAR = '@';
+        private readonly char[] DELAY_PUNCTUATION = new char[] {',','.','?','!','-','(',')'};
 
         // core variables.
 
         private GameMasterController master;
-        private string inputText = string.Empty; // original message text is not modified, only this.
+        private string inputText = string.Empty;
         private string outputText = string.Empty;
         private char outputTextNextChar = char.MinValue;
         private int outputTextIndex = 0;
@@ -48,7 +38,6 @@ namespace Assets.script.Event
         private AudioSource audioSource;
         private AudioClip voxSound = null;
         private int voxSoundsIndex = 0;
-        private int[] indicesToPlayVoxSound = new int[20];
 
         // delay variables.
 
@@ -71,9 +60,9 @@ namespace Assets.script.Event
         public GameObject conditionalEventSource = null;
 
         [Header("Message Box Attributes")]
-        [FormerlySerializedAs("message_text")]
-        [TextArea]
-        public string messageText = string.Empty;
+        [TextArea(5,100)]
+        [FormerlySerializedAs("messageText")]
+        public string templateText = string.Empty;
         [FormerlySerializedAs("is_question")]
         public bool isQuestion = false;
 
@@ -81,8 +70,8 @@ namespace Assets.script.Event
         public VoxData voxData;
 
         [Header("Replacer Attributes")]
-        [FormerlySerializedAs("message_text_replacer_array")]
-        public ReplacerData[] messageTextReplacers; 
+        [FormerlySerializedAs("messageTextReplacers")]
+        public ReplacerData[] templateTextReplacers; 
 
         private void Start()
         {
@@ -118,20 +107,40 @@ namespace Assets.script.Event
 
         private string GetEventDescriptionMessageText()
         {
-            string formattedMessageText = new string(messageText.Where(char.IsLetter).ToArray());
+            string formattedMessageText = new string(templateText.Where(char.IsLetterOrDigit).ToArray());
             formattedMessageText = formattedMessageText.ToLower();
 
-            if (formattedMessageText.Length > 10)
-                return formattedMessageText.Substring(0, 10);
+            if (formattedMessageText.Length > 20)
+                return formattedMessageText.Substring(0, 20);
             else
                 return formattedMessageText;
         }
 
         public void StartEvent(GameEvent gameEvent)
         {
-            inputText = messageText;
+            // reset the text.
+
+            inputText = templateText;
             outputText = string.Empty;
             outputTextIndex = 0;
+            outputTextNextChar = char.MinValue;
+
+            // get localised text.
+
+            try
+            {
+                inputText = GameLocalisationController.Global.locs[templateText];
+            }
+            catch
+            {
+                Debug.Log($"[EventMessageBox] Couldn't resolve LOC: {templateText}");
+            }
+
+            // process message text.
+
+            InitialiseInputText();
+
+            // set the vox data.
 
             if (voxData != null && voxData.voxSprite != null)
                 voxSprite = voxData.voxSprite;
@@ -142,18 +151,11 @@ namespace Assets.script.Event
                 (voxSprite, isQuestion,gameEvent.gameState == GAME_STATE_CUTSCENE);
 
             gameCutsceneDelayProcessCount = 0;
-
-            indicesToPlayVoxSound
-                = VOX_INDICES[GameMasterController.staticRandom.Next(0, VOX_INDICES.Length-1)];
-
-            // process message text.
-
-            ProcessReplacements();
         }
 
         public void UpdateEvent(GameEvent gameEvent)
         {
-            eventStepInterval = (GameInputController.Global.inInputWest)
+            eventStepInterval = (GameInputController.Global.isInputWest)
                 ? EVENT_STEP_INTERVAL_FAST
                 : EVENT_STEP_INTERVAL_DEFAULT;
 
@@ -185,13 +187,10 @@ namespace Assets.script.Event
                         outputTextNextChar = inputText[outputTextIndex];
                         outputText += outputTextNextChar;
                     }
-
-                    // add a delay if the tag was a delay tag.
-                    if (outputText.EndsWith(DELAY_TAG))
-                    {
-                        outputText = outputText.Remove(outputText.Length - DELAY_TAG.Length);
-                        delayProcessCount += 10;
-                    }
+                }
+                else if(outputTextNextChar == DELAY_CHAR)
+                {
+                    delayProcessCount += 10;
                 }
                 else
                 {
@@ -199,11 +198,19 @@ namespace Assets.script.Event
 
                     outputText += outputTextNextChar;
 
-                    if (indicesToPlayVoxSound.Contains(outputTextIndex))
+                    // add delays for punctuation.
+
+                    if (DELAY_PUNCTUATION.Contains(outputTextNextChar))
+                        delayProcessCount += 10;
+
+                    // play vox for every word.
+
+                    if (outputTextIndex == 0 || outputText.EndsWith(" ") || outputText.EndsWith("<br>"))
                     {
-                        // play vox for every nth letter.
                         PlayVox(inputText, outputTextIndex);
                     }
+
+                    
                 }
 
                 // increment to next character.
@@ -233,10 +240,6 @@ namespace Assets.script.Event
                         && master.inputController.isInputSouth
                         && outputTextIndex == inputText.Length)
                     {
-                        //audioSource.clip = master.audioController.a_message_box_positive;
-                        audioSource.pitch = 1.0F;
-                        audioSource.Play();
-
                         master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
                         isQuestionAnsweredPositive = true;
                         return true;
@@ -246,10 +249,6 @@ namespace Assets.script.Event
                         && master.inputController.isInputEast
                         && outputTextIndex == inputText.Length)
                     {
-                        //audioSource.clip = master.audioController.a_message_box_negative;
-                        audioSource.pitch = 1.0F;
-                        audioSource.Play();
-
                         master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
                         isQuestionAnsweredPositive = false;
                         return true;
@@ -261,10 +260,6 @@ namespace Assets.script.Event
                         && master.inputController.isInputSouth
                         && outputTextIndex == inputText.Length)
                     {
-                        //audioSource.clip = master.audioController.a_message_box_continue;
-                        audioSource.pitch = 1.0F;
-                        audioSource.Play();
-
                         master.userInterfaceController.uiControllerMessageBox.UnsetMessageBox();
                         isQuestionAnsweredPositive = true;
                         return true;
@@ -307,26 +302,27 @@ namespace Assets.script.Event
             // play the clip.
 
             audioSource.clip = voxSound;
-            audioSource.pitch = voxData.voxSoundPitch * UnityEngine.Random.Range(1.0f, 1.25f);
+            audioSource.pitch = UnityEngine.Random.Range
+                (voxData.minVoxSoundPitch, voxData.maxVoxSoundPitch);
             audioSource.Play();
 
             return;
         }
 
-        private void ProcessReplacements()
+        private void InitialiseInputText()
         {
             // get text replacements from the
             // dictionary of replacer objects
             // and apply these replacements
             // to the message text.
 
-            if (messageTextReplacers == null)
+            if (templateTextReplacers == null)
                 return;
 
-            if (messageTextReplacers.Length == 0)
+            if (templateTextReplacers.Length == 0)
                 return;
 
-            foreach(var item in messageTextReplacers)
+            foreach(var item in templateTextReplacers)
             {
                 var replacer = item.replacerObject.GetComponent<IReplacerController>();
                 inputText = inputText.Replace(item.replacementKey, replacer.GetReplacement());

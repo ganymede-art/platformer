@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
 
 public class MapAutoMusic : MonoBehaviour
 {
-    public GameMusicData musicData;
+    public MusicData musicData;
 
     void Start()
     {

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Assets.Script;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.GameExtensionMethods;
+using static Assets.Script.GameExtensionMethods;
 
 public class MobStateDie : MonoBehaviour, IMobState
 {
@@ -17,6 +18,10 @@ public class MobStateDie : MonoBehaviour, IMobState
 
     [Header("Animation Attributes")]
     public string animationTrigger;
+
+    [Header("Random Drop Attributes")]
+    public RandomDropData[] randomDropDatas;
+    public Vector3 randomDropSpawnOffset;
 
     public void BeginState(MobController mc, params object[] parameters)
     {
@@ -44,7 +49,21 @@ public class MobStateDie : MonoBehaviour, IMobState
 
     public void FinishState(MobController mc)
     {
-        GameObject.Destroy(gameObject.transform.root.gameObject);
+        // if there are any random drops, spawn them.
+
+        if (randomDropDatas != null && randomDropDatas.Length > 0)
+        {
+            foreach (var randomDropData in randomDropDatas)
+            {
+                float dropChance = UnityEngine.Random.Range(0.0F, 1.0F);
+                if (dropChance <= randomDropData.randomDropChance)
+                    Instantiate(randomDropData.randomDropPrefab
+                        , this.transform.position + randomDropSpawnOffset
+                        , this.transform.rotation);
+            }
+        }
+
+        GameObject.Destroy(mc.gameObject);
     }
 
     public void FixedUpdateState(MobController mc) { }

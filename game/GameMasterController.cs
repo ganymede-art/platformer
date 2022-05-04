@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class GameMasterController : MonoBehaviour
 {
@@ -43,6 +43,8 @@ public class GameMasterController : MonoBehaviour
     [NonSerialized] public GameUserInterfaceController userInterfaceController;
     [NonSerialized] public GameSceneController sceneController;
     [NonSerialized] public GameSettingsController settingsController;
+    [NonSerialized] public GameDefaultsController defaultsController;
+    [NonSerialized] public GameLocalisationController localisationController;
 
     // public event handler variables.
 
@@ -106,7 +108,7 @@ public class GameMasterController : MonoBehaviour
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
-
+        
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -124,14 +126,23 @@ public class GameMasterController : MonoBehaviour
         userInterfaceController = gameObject.GetComponentInChildren<GameUserInterfaceController>();
         sceneController = gameObject.GetComponent<GameSceneController>();
         settingsController = gameObject.GetComponent<GameSettingsController>();
+        defaultsController = gameObject.GetComponent<GameDefaultsController>();
+        localisationController = gameObject.GetComponent<GameLocalisationController>();
 
         // setup physics.
 
         Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_PLAYER);
         Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_MOB);
-        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_MOB_ONLY); ;
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ITEM);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_NPC);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_MOB_ONLY);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_NPC_ONLY);
+        Physics.IgnoreLayerCollision(LAYER_PLAYER, LAYER_ITEM_ONLY);
 
+        Physics.IgnoreLayerCollision(LAYER_MOB, LAYER_MOB);
         Physics.IgnoreLayerCollision(LAYER_MOB, LAYER_PLAYER_ONLY);
+
+        Physics.IgnoreLayerCollision(LAYER_ITEM, LAYER_ITEM);
     }
 
     private void Start()

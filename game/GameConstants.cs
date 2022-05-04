@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script
+namespace Assets.Script
 {
     public class GameConstants
     {
         public const string TAG_PLAYER_OBJECT = "PlayerObject";
         public const string TAG_MOB_OBJECT = "MobObject";
         public const string TAG_NPC_OBJECT = "NpcObject";
+        public const string TAG_ITEM_OBJECT = "ItemObject";
 
         public const string TAG_PLAYER_DAMAGE_SOURCE = "PlayerDamageSource";
         public const string TAG_PLAYER_INDIRECT_DAMAGE_SOURCE = "PlayerIndirectDamageSource";
@@ -44,6 +45,8 @@ namespace Assets.script
         public const int LAYER_MOB_ONLY = 11;
         public const int LAYER_NPC = 12;
         public const int LAYER_NPC_ONLY = 13;
+        public const int LAYER_ITEM = 14;
+        public const int LAYER_ITEM_ONLY = 15;
 
         public const int LAYER_WORLD_STATIC = 18;
         public const int LAYER_WORLD_DYNAMIC = 19;
@@ -59,33 +62,42 @@ namespace Assets.script
             ~(
                 (1 << LAYER_PLAYER)   |
                 (1 << LAYER_MOB)      |
+                (1 << LAYER_NPC)      |
+                (1 << LAYER_ITEM)     |
                 (1 << LAYER_MOB_ONLY) |
-                (1 << LAYER_NPC_ONLY)
+                (1 << LAYER_NPC_ONLY) |
+                (1 << LAYER_ITEM_ONLY)
             );
         public const int MASK_NPC_IGNORES =
             ~(
                 (1 << LAYER_PLAYER) |
                 (1 << LAYER_MOB) |
+                (1 << LAYER_ITEM) |
                 (1 << LAYER_PLAYER_ONLY) |
-                (1 << LAYER_MOB_ONLY)
+                (1 << LAYER_MOB_ONLY) |
+                (1 << LAYER_ITEM_ONLY)
             );
         public const int MASK_MOB_IGNORES =
             ~(
                 (1 << LAYER_PLAYER) |
                 (1 << LAYER_NPC) |
+                (1 << LAYER_ITEM) |
                 (1 << LAYER_PLAYER_ONLY) |
-                (1 << LAYER_NPC_ONLY)
+                (1 << LAYER_NPC_ONLY) |
+                (1 << LAYER_ITEM_ONLY)
             );
         public const int MASK_CAMERA_IGNORES =
             ~(
                 (1 << LAYER_PLAYER) |
                 (1 << LAYER_MOB) |
                 (1 << LAYER_NPC) |
+                (1 << LAYER_ITEM) |
                 (1 << LAYER_WORLD_STATIC_IGNORE_CAMERA) |
                 (1 << LAYER_WORLD_DYNAMIC_IGNORE_CAMERA) |
                 (1 << LAYER_PLAYER_ONLY) |
                 (1 << LAYER_MOB_ONLY) |
-                (1 << LAYER_NPC_ONLY)
+                (1 << LAYER_NPC_ONLY) |
+                (1 << LAYER_ITEM_ONLY)
             );
 
         // event type.
@@ -109,12 +121,15 @@ namespace Assets.script
         public const string EVENT_TYPE_SET_PLAYER_FACE_DIRECTION = "set_player_face_direction";
         public const string EVENT_TYPE_UNSET_PLAYER_FACE_DIRECTION = "unset_player_face_direction";
         public const string EVENT_TYPE_SET_GAME_VAR_BOOL = "set_game_var_bool";
-        public const string EVENT_TYPE_MOVE_OBJECT = "move_object";
+        public const string EVENT_TYPE_MOVE_OBJECT_POSITION = "move_object_position";
         public const string EVENT_TYPE_CONDITIONAL_BOOL = "conditional_bool";
         public const string EVENT_TYPE_SET_GAME_VAR_INT = "set_game_var_int";
         public const string EVENT_TYPE_RANDOM_NEXT_EVENT = "random_next_event";
         public const string EVENT_TYPE_LOAD_SCENE = "load_scene";
         public const string EVENT_TYPE_STOP_SOUND = "stop_sound";
+        public const string EVENT_TYPE_TRIGGER_GAME_EVENT = "trigger_game_event";
+        public const string EVENT_TYPE_MOVE_PLAYER_POSITION = "move_player_position";
+        public const string EVENT_TYPE_SET_GAME_VAR_STRING = "set_game_var_string";
 
         // ground type.
 
@@ -133,28 +148,31 @@ namespace Assets.script
         public const string PLAYER_STATE_ATTACK = "attack";
         public const string PLAYER_STATE_CROUCH = "crouch";
         public const string PLAYER_STATE_HIGH_JUMP = "high_jump";
-        public const string PLAYER_STATE_DAMAGE = "damage";
+        public const string PLAYER_STATE_HURT = "hurt";
         public const string PLAYER_STATE_DEFAULT = "default";
         public const string PLAYER_STATE_DIVE = "dive";
-        public const string PLAYER_STATE_DOUBLE_JUMP = "double_jump";
+        public const string PLAYER_STATE_FLUTTER = "flutter";
         public const string PLAYER_STATE_JUMP = "jump";
         public const string PLAYER_STATE_REPEL = "repel";
         public const string PLAYER_STATE_SHOOT = "shoot";
-        public const string PLAYER_STATE_SLIDE = "slide";
         public const string PLAYER_STATE_WATER_DEFAULT = "water_default";
-        public const string PLAYER_STATE_WATER_DIVE = "water_dive";
+        public const string PLAYER_STATE_SWIM = "swim";
         public const string PLAYER_STATE_WATER_JUMP = "water_jump";
+        public const string PLAYER_STATE_DIE = "die";
+        public const string PLAYER_STATE_SLAM = "slam";
 
         public const string PLAYER_BEHAVIOUR_MOVING_OBJECT = "moving_object";
         public const string PLAYER_BEHAVIOUR_DAMAGE = "damage";
         public const string PLAYER_BEHAVIOUR_REPEL = "repel";
         public const string PLAYER_BEHAVIOUR_WATER = "water";
         public const string PLAYER_BEHAVIOUR_INTERACT = "interact";
+        public const string PLAYER_BEHAVIOUR_OXYGEN = "oxygen";
 
         public const string MOB_BEHAVIOUR_RAYCAST_ALERT = "raycast_alert";
         public const string MOB_BEHAVIOUR_GROUND_CHECK = "ground_check";
         public const string MOB_BEHAVIOUR_WALL_CHECK = "wall_check";
         public const string MOB_BEHAVIOUR_DAMAGE = "damage";
+        public const string MOB_BEHAVIOUR_WATER = "water";
 
         // game state.
 
@@ -170,6 +188,11 @@ namespace Assets.script
 
         public const string LOAD_SETUP_MODE_MENU = "load_scene_mode_default";
         public const string LOAD_SETUP_MODE_GAME = "load_scene_mode_game";
+
+        // item type.
+
+        public const string ITEM_TYPE_PRIMARY = "primary";
+        public const string ITEM_TYPE_SECONDARY = "secondary";
         
 
         public enum CameraMode

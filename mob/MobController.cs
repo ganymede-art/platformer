@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using System;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class MobController : MonoBehaviour
 {
+    private float cachedRigidBodyDrag;
+
+    private PhysicMaterialCombine cachedColliderBounceCombine;
+    private float cachedColliderBounciness;
+    private PhysicMaterialCombine cachedColliderFrictionCombine;
+    private float cachedColliderDynamicFriction;
+    private float cachedColliderStaticFriction;
+
     // states vars.
     [NonSerialized] public string currentState;
     [NonSerialized] public string previousState;
@@ -48,13 +56,19 @@ public class MobController : MonoBehaviour
         var statesToAdd = statesContainerObject.GetComponents<IMobState>();
 
         foreach (var stateToAdd in statesToAdd)
+        {
+            Debug.Log("[MobController] adding state " + stateToAdd.GetStateId());
             states.Add(stateToAdd.GetStateId(), stateToAdd);
+        }
 
         // get all the behaviours.
         var behavioursToAdd = behavioursContainerObject.GetComponents<IMobBehaviour>();
 
         foreach (var behaviourToAdd in behavioursToAdd)
+        {
+            Debug.Log("[MobController] adding behaviour " + behaviourToAdd.GetBehaviourType());
             behaviours.Add(behaviourToAdd.GetBehaviourType(), behaviourToAdd);
+        }
 
         //set the state.
         currentState = defaultState;
@@ -66,6 +80,15 @@ public class MobController : MonoBehaviour
         mobCollider = colliderObject.GetComponent<Collider>();
         mobRenderer = rendererObject.GetComponent<Renderer>();
         mobAnimator = animatorObject.GetComponent<Animator>();
+
+        // cache the default physics material, from the collider.
+        cachedColliderBounceCombine = mobCollider.material.bounceCombine;
+        cachedColliderBounciness = mobCollider.material.bounciness;
+        cachedColliderFrictionCombine = mobCollider.material.frictionCombine;
+        cachedColliderDynamicFriction = mobCollider.material.dynamicFriction;
+        cachedColliderStaticFriction = mobCollider.material.staticFriction;
+
+        cachedRigidBodyDrag = mobRigidBody.drag;
 
         //begin the state.
         states[currentState].BeginState(this);
@@ -88,6 +111,8 @@ public class MobController : MonoBehaviour
 
     public void ChangeState(string newState, params object[] parameters)
     {
+        Debug.Log("[MobController] moving to state " + newState);
+
         states[currentState].FinishState(this);
 
         previousState = currentState;
@@ -96,5 +121,19 @@ public class MobController : MonoBehaviour
         stateTimer = 0.0F;
 
         states[currentState].BeginState(this, parameters);
+    }
+
+    public void RestoreOriginalColliderMaterial()
+    {
+        mobCollider.material.bounceCombine = cachedColliderBounceCombine;
+        mobCollider.material.bounciness = cachedColliderBounciness;
+        mobCollider.material.frictionCombine = cachedColliderFrictionCombine;
+        mobCollider.material.dynamicFriction = cachedColliderDynamicFriction;
+        mobCollider.material.staticFriction = cachedColliderStaticFriction;
+    }
+
+    public void RestoreOriginalRigidBodyProperties()
+    {
+        mobRigidBody.drag = cachedRigidBodyDrag;
     }
 }

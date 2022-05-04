@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class GamePlayerController : MonoBehaviour
 {
@@ -46,13 +46,17 @@ public class GamePlayerController : MonoBehaviour
     [NonSerialized] public int money = 0;
     [NonSerialized] public int maxMoney = 99;
 
+    [NonSerialized] public int oxygen = 10;
+    [NonSerialized] public int maxOxygen = 10;
+
     [NonSerialized] public bool canAttack = false;
-    [NonSerialized] public bool canCrouchJump = false;
+    [NonSerialized] public bool canHighJump = false;
     [NonSerialized] public bool canDive = false;
-    [NonSerialized] public bool canWaterDive = false;
+    [NonSerialized] public bool canSwim = false;
     [NonSerialized] public bool canWaterJump = false;
-    [NonSerialized] public bool canDoubleJump = false;
+    [NonSerialized] public bool canFlutter = false;
     [NonSerialized] public bool canFireProjectile = false;
+    [NonSerialized] public bool canSlam = false;
 
     void Start()
     {
@@ -71,7 +75,7 @@ public class GamePlayerController : MonoBehaviour
                 // TODO USE LOAD LEVEL CONTROLLER.
                 foreach (GameObject o in GameObject.FindObjectsOfType<GameObject>())
                     Destroy(o);
-                SceneManager.LoadScene("scene_startup");
+                SceneManager.LoadScene("menu_startup");
             }
         }
     }
@@ -85,13 +89,11 @@ public class GamePlayerController : MonoBehaviour
 
         if(health <= 0)
         {
-            health = 0;
-            master.ChangeState(GAME_STATE_GAME_OVER);
-            game_over_timer = 0F;
+            SetGameOver();
         }
     }
 
-    public void modifyPlayerAmmo(int playerAmmoChange)
+    public void ModifyPlayerAmmo(int playerAmmoChange)
     {
         ammo += playerAmmoChange;
 
@@ -102,7 +104,7 @@ public class GamePlayerController : MonoBehaviour
             ammo = 0;
     }
 
-    public void modifyPlayerMoney(int playerMoneyChange)
+    public void ModifyPlayerMoney(int playerMoneyChange)
     {
         money += playerMoneyChange;
 
@@ -111,6 +113,28 @@ public class GamePlayerController : MonoBehaviour
 
         if (money <= 0)
             money = 0;
+    }
+
+    public void ModifyPlayerOxygen(int playerOxygenChange)
+    {
+        oxygen += playerOxygenChange;
+
+        if (oxygen > maxOxygen)
+            oxygen = maxOxygen;
+
+        if (oxygen <= 0)
+        {
+            oxygen = 0;
+            GameMasterController.GlobalPlayerController.behaviourDamage.SimpleDamage(1);
+        }
+    }
+
+    public void SetGameOver()
+    {
+        health = 0;
+        GameMasterController.GlobalPlayerController.ChangePlayerState(PLAYER_STATE_DIE);
+        GameMasterController.Global.ChangeState(GAME_STATE_GAME_OVER);
+        game_over_timer = 0F;
     }
     
 }

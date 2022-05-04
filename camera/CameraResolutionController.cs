@@ -8,7 +8,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.Rendering;
 
-namespace Assets.script.camera
+namespace Assets.Script.camera
 {
     [ExecuteInEditMode]
     public class CameraResolutionController : MonoBehaviour
@@ -31,7 +31,7 @@ namespace Assets.script.camera
         {
             source.filterMode = FilterMode.Bilinear;
             RenderTexture buffer = RenderTexture.GetTemporary(w, h, -1);
-            buffer.filterMode = FilterMode.Point;
+            buffer.filterMode = FilterMode.Bilinear;
             Graphics.Blit(source, buffer);
             Graphics.Blit(buffer, destination);
             RenderTexture.ReleaseTemporary(buffer);

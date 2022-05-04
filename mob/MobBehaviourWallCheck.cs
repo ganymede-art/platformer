@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 
 
 public class MobBehaviourWallCheck : MonoBehaviour, IMobBehaviour
@@ -41,7 +41,7 @@ public class MobBehaviourWallCheck : MonoBehaviour, IMobBehaviour
             isRaycastHit = Physics.Raycast
                 (directionTransform.position, directionTransform.forward, out raycastHitInfo, raycastDistance, raycastMask);
             if (isRaycastHit)
-                Debug.Log(gameObject.transform.root.name + " hit a wall...");
+                Debug.Log(" hit a wall...");
             yield return new WaitForSeconds(.1f);
         }
     }

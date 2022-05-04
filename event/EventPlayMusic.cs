@@ -5,14 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script
+namespace Assets.Script
 { 
     public class EventPlayMusic : MonoBehaviour, IEventController
     {
 
         public GameObject nextEventSource;
 
-        public GameMusicData musicData;
+        public MusicData musicData;
 
         public void FinishEvent(GameEvent gameEvent) { }
 

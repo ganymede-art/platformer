@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.GameExtensionMethods;
+using static Assets.Script.GameExtensionMethods;
 
 public class MobStateAlert : MonoBehaviour, IMobState
 {

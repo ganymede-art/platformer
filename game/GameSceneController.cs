@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.SceneManagement;
 using System;
-using Assets.script;
+using Assets.Script;
 
 public class GameSceneController : MonoBehaviour
 {
@@ -15,7 +15,8 @@ public class GameSceneController : MonoBehaviour
         {
             if (global == null)
             {
-                global = GameMasterController.Global.sceneController;
+                if(GameMasterController.Global != null)
+                    global = GameMasterController.Global.sceneController;
             }
             return global;
         }
@@ -27,11 +28,13 @@ public class GameSceneController : MonoBehaviour
     [NonSerialized] public string sceneTitle;
     [NonSerialized] public string sceneSubtitle;
 
-    [NonSerialized] public List<IInteractable> interactables;
+    [NonSerialized] public Dictionary<GameObject, GroundData> groundDataObjects;
+    [NonSerialized] public List<IInteractable> interactableObjects;
 
     void Start()
     {
-        interactables = new List<IInteractable>();
+        groundDataObjects = new Dictionary<GameObject, GroundData>();
+        interactableObjects = new List<IInteractable>();
 
         SceneManager.sceneLoaded += SceneLoaded;
     }
@@ -49,7 +52,8 @@ public class GameSceneController : MonoBehaviour
         sceneTitle = string.Empty;
         sceneSubtitle = string.Empty;
 
-        interactables.Clear();
+        groundDataObjects.Clear();
+        interactableObjects.Clear();
 
         // get scene info, if it exists.
 
@@ -72,6 +76,6 @@ public class GameSceneController : MonoBehaviour
         sceneTitle = sceneInfo.sceneTitle;
         sceneSubtitle = sceneInfo.sceneSubtitle;
 
-        GameUserInterfaceController.Global.uiControllerGame.SetSceneTitleDisplay(sceneTitle, sceneSubtitle);
+        GameUserInterfaceController.Global.uiControllerSceneTitle.SetSceneTitleDisplay(sceneTitle, sceneSubtitle);
     }
 }

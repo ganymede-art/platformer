@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Assets.script;
+using Assets.Script;
 using System;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class GameLoadSceneController : MonoBehaviour
 {
@@ -24,6 +24,7 @@ public class GameLoadSceneController : MonoBehaviour
     // load constants.
 
     const float LOAD_TIMER_MULTIPLIER = 1;
+    static readonly Vector3 PLAYER_SPAWN_OFFSET = new Vector3(0.0F, 0.1875F, 0.0F);
 
     // load variables.
 
@@ -175,7 +176,7 @@ public class GameLoadSceneController : MonoBehaviour
         var camera_prefab = GameMasterController.Global.cameraPrefab;
 
         var player = Instantiate(player_prefab, 
-            player_start_transform.position, 
+            player_start_transform.position + PLAYER_SPAWN_OFFSET, 
             player_start_transform.rotation);
         var camera = Instantiate(camera_prefab, 
             camera_start_transform.position, 

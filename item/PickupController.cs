@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
+using static Assets.Script.GameConstants;
 
 public class PickupController : MonoBehaviour
 {
@@ -12,7 +13,6 @@ public class PickupController : MonoBehaviour
     private Vector3 originalPosition;
     private Quaternion originalRotation;
 
-    private GameMasterController master;
     private GameObject playerObject;
     private float distanceToPlayer = 0.0F;
     private AudioSource pickupAudioSource;
@@ -20,6 +20,8 @@ public class PickupController : MonoBehaviour
     private float pickupAudioPitch;
     private float pickupAudioVolume;
     private GameObject itemPickupEventSource;
+
+    private Rigidbody propRigidBody;
 
     [Header("Pickup Attributes")]
     public GameObject pickupFxPrefab;
@@ -34,9 +36,18 @@ public class PickupController : MonoBehaviour
     public bool doAffectPlayerMoney;
     public int playerMoneyChange;
 
+    [Header("Physics Attributes")]
+    public bool hasPhysics;
+    public GameObject rigidBodyObject;
+    public float xForceMin;
+    public float xForceMax;
+    public float yForceMin;
+    public float yForceMax;
+    public float zForceMin;
+    public float zForceMax;
+
     void Start()
     {
-        master = GameMasterController.Global;
         playerObject = GameMasterController.GlobalPlayerObject;
 
         // setup item pickup.
@@ -45,17 +56,35 @@ public class PickupController : MonoBehaviour
             pickupFxOrigin = this.transform;
 
         pickupAudioPitch = UnityEngine.Random.Range(0.95f, 1.05f);
-        pickupAudioVolume = BASE_VOLUME * master.audioController.volumeItem;
+        pickupAudioVolume = BASE_VOLUME * GameSettingsController.Global.volumeProp;
 
         // start coroutine.
 
         StartCoroutine(UpdateStatus());
+
+        // physics.
+
+        if (hasPhysics)
+            StartPhysiscs();
+    }
+
+    private void StartPhysiscs()
+    {
+        propRigidBody = rigidBodyObject.GetComponent<Rigidbody>();
+        float xForce = UnityEngine.Random.Range(xForceMin, xForceMax);
+        float yForce = UnityEngine.Random.Range(yForceMin, yForceMax);
+        float zForce = UnityEngine.Random.Range(zForceMin, zForceMax);
+        Vector3 force = new Vector3(xForce, yForce, zForce);
+        propRigidBody.AddForce(force, ForceMode.VelocityChange);
     }
 
     IEnumerator UpdateStatus()
     {
         while(true)
         {
+            if(GameMasterController.Global.gameState != GAME_STATE_GAME)
+                yield return new WaitForSeconds(0.1F);
+
             distanceToPlayer = Vector3.Distance(this.transform.position, playerObject.transform.position);
 
             if (distanceToPlayer < ITEM_PICKUP_RANGE)
@@ -84,10 +113,10 @@ public class PickupController : MonoBehaviour
                     GamePlayerController.Global.ModifyPlayerHealth(playerHealthChange);
 
                 if (doAffectPlayerAmmo)
-                    GamePlayerController.Global.modifyPlayerAmmo(playerAmmoChange);
+                    GamePlayerController.Global.ModifyPlayerAmmo(playerAmmoChange);
 
                 if (doAffectPlayerMoney)
-                    GamePlayerController.Global.modifyPlayerMoney(playerMoneyChange);
+                    GamePlayerController.Global.ModifyPlayerMoney(playerMoneyChange);
 
                 // destroy the item.
 

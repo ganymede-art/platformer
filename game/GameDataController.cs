@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Assets.script;
+using Assets.Script;
 using System.Linq;
-using Newtonsoft.Json;
+using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Serialization;
+using YamlDotNet;
+
 
 public class GameDataController : MonoBehaviour
 {
@@ -37,8 +40,8 @@ public class GameDataController : MonoBehaviour
     public event EventHandler GameItemChange;
     private GameItemChangeEventArgs gameItemChangeEventArgs;
 
-    private string jsonSaveDirectory;
-    private string jsonSavePath;
+    private string yamlSaveDirectory;
+    private string yamlSavePath;
 
     void Start()
     {
@@ -61,8 +64,8 @@ public class GameDataController : MonoBehaviour
 
         // save directory.
 
-        jsonSaveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
-        jsonSavePath = jsonSaveDirectory + @"\save_data.json";
+        yamlSaveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
+        yamlSavePath = yamlSaveDirectory + @"\save_data.yaml";
     }
 
     public void UpdateGameVar(string key, bool value)
@@ -89,7 +92,15 @@ public class GameDataController : MonoBehaviour
             gameVarInt.Add(key, value);
     }
 
-    public void UpdateItem(GameItemData item)
+    public void AppendGameVar(string key, string value)
+    {
+        if (gameVarString.ContainsKey(key))
+            gameVarString[key] = gameVarString[key] + value;
+        else
+            gameVarString.Add(key, value);
+    }
+
+    public void UpdateItem(GameItemInfo item)
     {
         if(GetIsItemCollected(item))
             return;
@@ -161,7 +172,7 @@ public class GameDataController : MonoBehaviour
             return 0;
     }
 
-    public bool GetIsItemCollected(GameItemData item)
+    public bool GetIsItemCollected(GameItemInfo item)
     {
         return collectedGameItemFlags.Contains(item.GetHashCode());
     }
@@ -190,24 +201,30 @@ public class GameDataController : MonoBehaviour
         saveInfo.ammo = master.playerController.maxAmmo;
 
         saveInfo.canAttack = master.playerController.canAttack;
-        saveInfo.canCrouchJump = master.playerController.canCrouchJump;
+        saveInfo.canHighJump = master.playerController.canHighJump;
         saveInfo.canDive = master.playerController.canDive;
-        saveInfo.canWaterDive = master.playerController.canWaterDive;
+        saveInfo.canSwim = master.playerController.canSwim;
         saveInfo.canWaterJump = master.playerController.canWaterJump;
-        saveInfo.canDoubleJump = master.playerController.canDoubleJump;
+        saveInfo.canFlutter = master.playerController.canFlutter;
         saveInfo.canFireProjectile = master.playerController.canFireProjectile;
+        saveInfo.canSlam = master.playerController.canSlam;
 
-        Debug.Log("Saving data to: " + jsonSavePath);
+        Debug.Log("Saving data to: " + yamlSavePath);
         //string json_data = JsonUtility.ToJson(save_data, true);
-        string saveInfoJson = JsonConvert.SerializeObject(saveInfo,Formatting.Indented);
+        //string saveInfoJson = JsonConvert.SerializeObject(saveInfo,Formatting.Indented);
 
-        if (!Directory.Exists(jsonSaveDirectory))
-            Directory.CreateDirectory(jsonSaveDirectory);
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+        var yaml = serializer.Serialize(saveInfo);
 
-        if (!File.Exists(jsonSavePath))
-            File.Create(jsonSavePath).Close();
+        if (!Directory.Exists(yamlSaveDirectory))
+            Directory.CreateDirectory(yamlSaveDirectory);
 
-        File.WriteAllText(jsonSavePath, saveInfoJson);
+        if (!File.Exists(yamlSavePath))
+            File.Create(yamlSavePath).Close();
+
+        File.WriteAllText(yamlSavePath, yaml);
     }
 
     public void LoadData()
@@ -215,8 +232,14 @@ public class GameDataController : MonoBehaviour
         //var save_data = JsonUtility.FromJson<SaveData>
         //    (File.ReadAllText(json_save_path));
 
-        var saveInfo = JsonConvert.DeserializeObject<SaveInfo>
-            (File.ReadAllText(jsonSavePath));
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var saveInfo = deserializer.Deserialize<SaveInfo>(File.ReadAllText(yamlSavePath));
+
+        //var saveInfo = JsonConvert.DeserializeObject<SaveInfo>
+        //    (File.ReadAllText(jsonSavePath));
 
         this.gameVarBool = saveInfo.gameVarBool;
         this.gameVarString = saveInfo.gameVarString;
@@ -234,16 +257,17 @@ public class GameDataController : MonoBehaviour
         master.playerController.maxAmmo = saveInfo.ammo;
 
         master.playerController.canAttack = saveInfo.canAttack;
-        master.playerController.canCrouchJump = saveInfo.canCrouchJump;
+        master.playerController.canHighJump = saveInfo.canHighJump;
         master.playerController.canDive = saveInfo.canDive;
-        master.playerController.canWaterDive = saveInfo.canWaterDive;
+        master.playerController.canSwim = saveInfo.canSwim;
         master.playerController.canWaterJump = saveInfo.canWaterJump;
-        master.playerController.canDoubleJump = saveInfo.canDoubleJump;
+        master.playerController.canFlutter = saveInfo.canFlutter;
         master.playerController.canFireProjectile = saveInfo.canFireProjectile;
+        master.playerController.canSlam = saveInfo.canSlam;
 
         master.loadSceneController.StartLoadGameScene(
-            saveInfo.loadSceneName, 
-            saveInfo.loadPlayerStartTransformName, 
+            saveInfo.loadSceneName,
+            saveInfo.loadPlayerStartTransformName,
             saveInfo.loadCameraStartTransformName);
 
     }
@@ -271,15 +295,16 @@ public struct SaveInfo
     public int maxAmmo;
 
     public bool canAttack;
-    public bool canCrouchJump;
+    public bool canHighJump;
     public bool canDive;
-    public bool canWaterDive;
+    public bool canSwim;
     public bool canWaterJump;
-    public bool canDoubleJump;
+    public bool canFlutter;
     public bool canFireProjectile;
+    public bool canSlam;
 }
 
 public class GameItemChangeEventArgs : EventArgs
 {
-    public GameItemData item;
+    public GameItemInfo item;
 }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script
+namespace Assets.Script
 {
     public class PlayerConstants
     {
@@ -50,30 +50,28 @@ namespace Assets.script
         public const float MAX_SPEED_WATER = 2.0F;
         public const float MAX_SPEED_WATER_DIVE = 5.0F;
         public const float MAX_SPEED_WATER_SINK = 1.25F;
-        public const float MAX_SPEED_SLIDE = 6.0F;
         public const float MAX_SPEED_DIVE = 7.0F;
 
         // grounded constants.
 
-        public const float GROUNDED_RAYCAST_ADDITIONAL_DISTANCE = 0.1F;
-        public const float GROUNDED_SPHERECAST_ADDITIONAL_DISTANCE = 0.025F;
+        public const float GROUNDED_SPHERECAST_RADIUS = 0.1625F;
 
         public const float GROUNDED_RAYCAST_DISTANCE = 100F;
         public const float GROUNDED_SPHERECAST_DISTANCE = 100F;
 
         public const float MAX_GROUNDED_RAYCAST_DISTANCE = 0.2875F;
-        public const float MAX_GROUNDED_SPHERECAST_DISTANC = 0.025F;
+        public const float MAX_GROUNDED_SPHERECAST_DISTANCE = 0.05F;
 
-        public const float MAX_NEAR_GROUNDED_RAYCAST_DISTANCE = 0.4875F;
-        public const float MAX_NEAR_GROUNDED_SPHERECAST_DISTANCE = 0.225F;
+        public static float GROUNDED_CHECKSPHERE_RADIUS = 0.1625F;      // 
+        public static readonly Vector3 GROUNDED_CHECKSPHERE_OFFSET      // 
+            = new Vector3(0.0F, -0.1F, 0.0F);                           //
+        public static readonly Vector3 NEAR_GROUNDED_CHECKSPHERE_OFFSET // 
+            = new Vector3(0.0F, -0.2F, 0.0F);                           //
 
-        public const float GROUNDED_SPHERECAST_RADIUS = 0.187F;
-
-        public static readonly AttributeGroundData DEFAULT_GROUND_DATA = AttributeGroundData.GetDefault();
+        public const float MAX_GROUNDED_ANGLE = 49.9F;
 
         // movement constants.
 
-        public static readonly Vector3 STEP_MOVEMENT_OFFSET = new Vector3(0, 0.15f, 0);
         public const float STEP_MAX_VELOCITY = 1F;
 
         public const float MOVEMENT_SPHERECAST_DISTANCE = 0.1F;
@@ -91,24 +89,32 @@ namespace Assets.script
         public const float WATER_JUMP_FORCE_MULTIPLIER = 2.5F;
         public const float MINIMUM_WATER_JUMP_Y_SPEED = -1F;
 
-        // slide constants.
-
-        public const float SLIDE_FORCE_ANGLE_MIN = 3F;                         // minimum angle to adjust slide direction to slope.
-        public const float SLIDE_ANGLE_RECOVERY_MAX = 30F;                     // maximum angle to recover from slide.
-        public const float SLIDE_SPEED_RECOVERY_MAX = 0.25F;                   // maximum speed to recover from slide.
-        public const float SLIDE_ANGLE_MIN = 50F;                              // minimum angle to start sliding
-        public const float SLIDE_ANGLE_MAX = 65F;                              // maximum angle to start sliding.
-        public const float SLIDE_RESISTANCE_GROUND_ANGLE_MULTIPLIER = 0.001F;  // multiplier for ground angle to subtract from resistance.
-        public const float SLIDE_RESISTANCE_MAX = 1.0F;                        // maximum slide resistance.
-        public const float SLIDE_RESISTANCE_RECOVERY = 0.05F;                  // slide resistance recovery amount
-        public const float SLIDE_FORCE_MULIPLIER = 1F;                         // multiplier to slide vector.
-        public const float SLIDE_DIRECTION_ROTATION_MULTIPLIER = 0.5F;         // how fast the slide direction matches current slope.
-
         // dive constants.
 
-        public const float DIVE_MIN_INPUT_DIRECTIONAL_MAGNITUDE = 1.0F;    
+        public const float DIVE_MIN_INPUT_DIRECTIONAL_MAGNITUDE = 1.0F;
 
         // animation constants.
+
+        public const string TRIGGER_SPEED_MULTIPLIER = "speed_multiplier";
+        public const string TRIGGER_ATTACK = "attack";
+        public const string TRIGGER_HIGH_JUMP_UP = "high_jump_up";
+        public const string TRIGGER_HURT_UP = "hurt_up";
+        public const string TRIGGER_HURT_DOWN = "hurt_down";
+        public const string TRIGGER_CROUCH = "crouch";
+        public const string TRIGGER_MOVE = "move";
+        public const string TRIGGER_IDLE = "idle";
+        public const string TRIGGER_JUMP_UP = "jump_up";
+        public const string TRIGGER_JUMP_DOWN = "jump_down";
+        public const string TRIGGER_EMOTE_DIE = "emote_die";
+        public const string TRIGGER_DIVE_BEGIN = "dive_begin";
+        public const string TRIGGER_FLUTTER_UP = "flutter_up";
+        public const string TRIGGER_SWIM_BEGIN = "swim_begin";
+        public const string TRIGGER_SWIM = "swim";
+        public const string TRIGGER_WATER_JUMP_UP = "water_jump_up";
+        public const string TRIGGER_WATER_JUMP_DOWN = "water_jump_down";
+        public const string TRIGGER_SLAM_UP = "slam_up";
+        public const string TRIGGER_SLAM_DOWN = "slam_down";
+
 
         public const float ANIMATION_TURNING_SPEED_MULTIPLIER = 0.3F;
         public const float ANIMATION_TURNING_SPEED_WATER_DIVE_MULTIPLIER = 0.1F;

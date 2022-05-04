@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Assets.script
+namespace Assets.Script
 {
     [CreateAssetMenu(fileName = "data", menuName = "ScriptableObjects/UserInterfaceTransitionData")]
     public class UserInterfaceTransitionData : ScriptableObject

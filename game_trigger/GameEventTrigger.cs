@@ -1,4 +1,4 @@
-using Assets.script;
+using Assets.Script;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,10 +6,9 @@ using UnityEngine;
 
 public class GameEventTrigger : MonoBehaviour
 {
-    private string eventGuid;
-
     [Header("Event Attributes")]
     public GameObject eventSource;
+    public string eventGuid;
     public string gameState;
     public bool isOrdered;
     public bool isPriority;
@@ -20,7 +19,8 @@ public class GameEventTrigger : MonoBehaviour
 
     private void Start()
     {
-        eventGuid = Guid.NewGuid().ToString();
+        if (eventGuid == null || eventGuid == string.Empty)
+            eventGuid = Guid.NewGuid().ToString();
 
         if (gameState == string.Empty)
             gameState = GameConstants.GAME_STATE_CUTSCENE;
@@ -40,10 +40,8 @@ public class GameEventTrigger : MonoBehaviour
         }
 
         // create the event.
-        var gameEvent = new GameEvent(gameState, eventSource);
+        var gameEvent = new GameEvent(eventGuid, gameState, eventSource);
 
-        // override its default guid with the guid of this trigger.
-        gameEvent.eventGuid = eventGuid;
 
         // add the event.
         if (isOrdered)

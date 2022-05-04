@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using Assets.script;
-using static Assets.script.GameConstants;
+using Assets.Script;
+using static Assets.Script.GameConstants;
 using Assets.Script;
 
-namespace Assets.script
+namespace Assets.Script
 {
     [System.Serializable]
     public class ActorData
@@ -16,7 +16,7 @@ namespace Assets.script
         public bool isInWater;
         public bool isSubmerged;
         public float waterYLevel;
-        public AttributeGroundData groundData;
+        public GroundData groundData;
 
         public static ActorData GetDefault()
         {

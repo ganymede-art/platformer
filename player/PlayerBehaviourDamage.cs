@@ -1,11 +1,11 @@
-using Assets.script;
+using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 using System;
-using Assets.script.attribute;
+using Assets.Script;
 
 public class PlayerBehaviourDamage : MonoBehaviour, IPlayerBehaviour
 {
@@ -24,7 +24,7 @@ public class PlayerBehaviourDamage : MonoBehaviour, IPlayerBehaviour
     // public damage variables.
 
     [NonSerialized] public GameObject damageSourceObject = null;
-    [NonSerialized] public AttributeDamageData damageData = null;
+    [NonSerialized] public DamageData damageData = null;
 
     [NonSerialized] public bool isDamaged = false;
     [NonSerialized] public float damageTimer = 0.0F;
@@ -88,9 +88,9 @@ public class PlayerBehaviourDamage : MonoBehaviour, IPlayerBehaviour
         // the handle moving into the damage state.
 
         damageSourceObject = damageObject;
-        damageData = damageObject.GetComponent<AttributeDamageController>()?.data;
+        damageData = damageObject.GetComponent<DamageDataController>()?.damageData;
         if (damageData == null)
-            damageData = AttributeDamageData.GetDefault();
+            damageData = GameDefaultsController.Global.defaultDamageData;
 
         // move to damage mode if not already in damage mode, or instant damage.
         // instant damage applied only if entering the trigger (not on stay).
@@ -101,18 +101,19 @@ public class PlayerBehaviourDamage : MonoBehaviour, IPlayerBehaviour
         }
     }
 
-    public void SetDamaged(AttributeDamageData damageData)
+    public void SetDamaged(DamageData damageData)
     {
         isDamaged = true;
 
         damageTimer = 0.0F;
-        GamePlayerController.Global.ModifyPlayerHealth(damageData.damageAmount * -1);
-        GameMasterController.GlobalPlayerController.ChangePlayerState(GameConstants.PLAYER_STATE_DAMAGE, damageSourceObject, damageData);
+        GameMasterController.GlobalPlayerController.ChangePlayerState(GameConstants.PLAYER_STATE_HURT, damageSourceObject, damageData);
 
-        audioSource.clip = damageData.damageSound ?? defaultHurtSound;
+        audioSource.clip = defaultHurtSound;
         audioSource.Play();
 
         damageEffectController.SetDamageEffect();
+
+        GamePlayerController.Global.ModifyPlayerHealth(damageData.damageAmount * -1);
     }
 
     public void UnsetDamaged()
@@ -126,5 +127,30 @@ public class PlayerBehaviourDamage : MonoBehaviour, IPlayerBehaviour
     public string GetBehaviourType()
     {
         return PLAYER_BEHAVIOUR_DAMAGE;
+    }
+
+    public void SimpleDamage(int damageAmount, GameObject damageSource = null, float damageForceMultiplier = 0.0F)
+    {
+        isDamaged = true;
+        damageTimer = 0F;
+
+        audioSource.clip = defaultHurtSound;
+        audioSource.Play();
+
+        damageEffectController.SetDamageEffect();
+
+        GamePlayerController.Global.ModifyPlayerHealth(-damageAmount);
+
+        if (damageSource != null && damageForceMultiplier > 0)
+        {
+            GameMasterController.GlobalPlayerController.rigidBody.velocity 
+                = Vector3.zero;
+
+            var damageVector 
+                = (this.transform.position - damageSource.transform.position).normalized;
+
+            GameMasterController.GlobalPlayerController.rigidBody.AddForce
+                (damageVector * damageForceMultiplier, ForceMode.VelocityChange);
+        }
     }
 }

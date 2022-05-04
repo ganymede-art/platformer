@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.GameExtensionMethods;
+using static Assets.Script.GameExtensionMethods;
 
 public class MobStateHurt : MonoBehaviour, IMobState
 {
@@ -41,9 +41,7 @@ public class MobStateHurt : MonoBehaviour, IMobState
         Vector3 damageVector = (transform.position - damageSourceObject.transform.position).normalized;
         damageVector.y = 0.0F;
 
-        mc.mobCollider.material.dynamicFriction = 0.0F;
-        mc.mobCollider.material.frictionCombine = PhysicMaterialCombine.Minimum;
-        mc.mobRigidBody.AddForce(damageVector.normalized * 4, ForceMode.VelocityChange);
+        mc.mobRigidBody.AddForce(damageVector.normalized, ForceMode.VelocityChange);
         mc.mobRigidBody.AddForce(Vector3.up * 4, ForceMode.VelocityChange);
     }
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script.utility
+namespace Assets.Script.utility
 {
     public static class UtilityStaticMethods
     {

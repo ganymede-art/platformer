@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class GameStateRigidBodyController : MonoBehaviour
 {
@@ -31,7 +31,8 @@ public class GameStateRigidBodyController : MonoBehaviour
 
     private void OnDestroy()
     {
-        GameMasterController.Global.GameStateChange -= OnGameStateChange;
+        if(GameMasterController.Global != null)
+            GameMasterController.Global.GameStateChange -= OnGameStateChange;
     }
 
     private void OnGameStateChange(object sender, EventArgs e)

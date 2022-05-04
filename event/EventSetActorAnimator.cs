@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Assets.script;
+using Assets.Script;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Assets.script
+namespace Assets.Script
 {
     class EventSetActorAnimator : MonoBehaviour, IEventController
     {

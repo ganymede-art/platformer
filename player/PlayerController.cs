@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using System;
-using static Assets.script.GameConstants;
-using static Assets.script.PlayerConstants;
+using static Assets.Script.GameConstants;
+using static Assets.Script.PlayerConstants;
 using UnityEngine.Serialization;
 using Assets.Script;
 
@@ -24,6 +24,9 @@ public class PlayerController : MonoBehaviour
     // behaviour variables.
 
     [NonSerialized] public Dictionary<string, IPlayerBehaviour> behaviours;
+    [NonSerialized] public PlayerBehaviourWater behaviourWater;
+    [NonSerialized] public PlayerBehaviourDamage behaviourDamage;
+    [NonSerialized] public PlayerBehaviourRepel behaviourRepel;
 
     // input variables.
 
@@ -33,6 +36,7 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized] public bool isRaisedSouth = false;
     [NonSerialized] public bool isRaisedWest = false;
+    [NonSerialized] public bool isRaisedEast = false;
     [NonSerialized] public bool isRaisedEastExtra = false;
 
     // component variables.
@@ -66,32 +70,30 @@ public class PlayerController : MonoBehaviour
 
     // grounded variables.
 
-    float groundedRaycastMaxDistance = 0F;
-    float groundedSpherecastMaxDistance = 0F;
-
     [NonSerialized] public RaycastHit raycastHitInfo;
     [NonSerialized] public bool isRaycastHit = false;
     [NonSerialized] public bool wasRaycastGrounded = false;
     [NonSerialized] public bool isRaycastGrounded = false;
-    [NonSerialized] public bool isNearRaycastGrounded = false;
 
     [NonSerialized] public RaycastHit spherecastHitInfo;
     [NonSerialized] public bool isSpherecastHit = false;
     [NonSerialized] public bool wasSpherecastGrounded = false;
     [NonSerialized] public bool isSpherecastGrounded = false;
-    [NonSerialized] public bool isNearSpherecaseGrounded = false;
     [NonSerialized] public bool isSpherecastGroundedSinceStateBegin = false;
 
+    [NonSerialized] public bool isChecksphereCollision = false;
+    [NonSerialized] public bool isNearCheckSphereCollision = false;
+    [NonSerialized] public bool isChecksphereGrounded = false;
+    [NonSerialized] public bool isNearChecksphereGrounded = false;
 
-
-    [NonSerialized] public float raycastGroundedSlopeAngle = 0.0F;
-    [NonSerialized] public Vector3 raycastGroundedSlopeNormal = Vector3.up;
+    [NonSerialized] public float raycastGroundAngle = 0.0F;
+    [NonSerialized] public Vector3 raycastGroundNormal = Vector3.up;
     [NonSerialized] public Vector3 raycastGroundedSlopeDirection = Vector3.up;
 
-    [NonSerialized] public float spherecastGroundedSlopeAngle = 0.0F;
-    [NonSerialized] public Vector3 spherecastGroundedSlopeNormal = Vector3.up;
+    [NonSerialized] public float spherecastGroundAngle = 0.0F;
+    [NonSerialized] public Vector3 spherecastGroundNormal = Vector3.up;
 
-    [NonSerialized] public AttributeGroundData groundData;
+    [NonSerialized] public GroundData groundData;
 
     // movement variables.
 
@@ -105,14 +107,6 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized] public int jumpPersistEnergy = 0;
 
-    // slide variables.
-
-    [NonSerialized] public float slideResistance = 1.0F;
-    [NonSerialized] public float slideForce = 1.0F;
-    [NonSerialized] public Vector3 slideDirection = Vector3.zero;
-
-    [NonSerialized] public bool isSlideHit = false;
-
     // dive variables.
 
     [NonSerialized] public Vector3 diveDirection = Vector3.zero;
@@ -121,14 +115,6 @@ public class PlayerController : MonoBehaviour
 
     [NonSerialized] public List<GameObject> collidingMovingObjects = new List<GameObject>();
     [NonSerialized] public bool isCollidingMovingObject = false;
-
-    // water variables.
-
-    [NonSerialized] public List<GameObject> collidingWaterObjects = new List<GameObject>();
-    [NonSerialized] public bool isCollidingWaterObject = false;
-    [NonSerialized] public bool isPartialSubmerged = false;
-    [NonSerialized] public bool isFullSubmerged = false;
-    [NonSerialized] public float waterYLevel = 0;
 
     // animator variables.
 
@@ -143,6 +129,11 @@ public class PlayerController : MonoBehaviour
     // audio variables.
 
     [NonSerialized] public AudioSource audioSource;
+    [NonSerialized] public ActorStepEffectController stepEffectController;
+
+    // fx systems.
+
+    [NonSerialized] public ParticleSystem impactDownFx;
 
     // interface variables.
 
@@ -154,6 +145,9 @@ public class PlayerController : MonoBehaviour
     public GameObject statesObject;
     public GameObject behavioursObject;
 
+    [Header("Actor Effect Objects")]
+    public GameObject stepEffectControllerObject;
+
     [Header("Sounds")]
     public AudioClip attackSound;
     public AudioClip diveSound;
@@ -162,8 +156,17 @@ public class PlayerController : MonoBehaviour
     public AudioClip highJumpSound;
     public AudioClip slideSound;
     public AudioClip waterJumpSound;
-    public AudioClip doubleJumpSound;
+    [FormerlySerializedAs("doubleJumpSound")]
+    public AudioClip flutterSound;
     public AudioClip shootSound;
+    [FormerlySerializedAs("slamSound")]
+    public AudioClip slamUpSound;
+    public AudioClip slamDownSound;
+    public AudioClip slamImpactSound;
+
+    [Header("FX")]
+    [FormerlySerializedAs("slamImpactFxObject")]
+    public GameObject impactDownFxObject;
 
     private void Start()
     {
@@ -186,10 +189,17 @@ public class PlayerController : MonoBehaviour
         {
             behaviours.Add(behaviourToAdd.GetBehaviourType(), behaviourToAdd);
         }
+        behaviourWater = behaviours[PLAYER_BEHAVIOUR_WATER] as PlayerBehaviourWater;
+        behaviourDamage = behaviours[PLAYER_BEHAVIOUR_DAMAGE] as PlayerBehaviourDamage;
+        behaviourRepel = behaviours[PLAYER_BEHAVIOUR_REPEL] as PlayerBehaviourRepel;
+
+        // initialise actor effect controllers.
+
+        stepEffectController = stepEffectControllerObject.GetComponent<ActorStepEffectController>();
 
         // initialise componenets.
 
-        rigidBody = this.GetComponent<Rigidbody>();
+        rigidBody = GetComponent<Rigidbody>();
 
         directionObject = transform.Find(DIRECTION_OBJECT).gameObject;
         rbColliderObject = transform.Find(COLLIDER_OBJECT).gameObject;
@@ -197,10 +207,10 @@ public class PlayerController : MonoBehaviour
         eyesObject = transform.Find(EYES_OBJECT).gameObject;
 
         rbCollider = GameObject.Find(COLLIDER_OBJECT).GetComponent<SphereCollider>();
-        playerRenderer = this.GetComponentInChildren<SkinnedMeshRenderer>();
+        playerRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
         eyeController = eyesObject.GetComponent<ActorEyeController>();
 
-        playerAnimator = this.GetComponent<Animator>();
+        playerAnimator = GetComponent<Animator>();
         cameraObject = GameMasterController.GlobalCameraObject;
 
         attackForward1Object = GameObject.Find(ATTACK_FORWARD_1_OBJECT);
@@ -214,6 +224,10 @@ public class PlayerController : MonoBehaviour
         attackDown1Object = GameObject.Find(ATTACK_DOWN_1_OBJECT);
         attackDown1Collider = attackDown1Object.GetComponent<Collider>();
         attackDown1Collider.enabled = false;
+
+        // initialise fx.
+
+        impactDownFx = impactDownFxObject.GetComponent<ParticleSystem>();
 
         damageEffectController = this.gameObject.GetComponentInChildren<ActorDamageEffectController>();
 
@@ -232,11 +246,11 @@ public class PlayerController : MonoBehaviour
 
         // setup.
 
-        InitialisePhysicalParameters();
+        InitialiseRigidBody();
 
         // defaultGroundData
 
-        groundData = DEFAULT_GROUND_DATA;
+        groundData = GameDefaultsController.Global.defaultGroundData;
     }
 
     void OnDestroy()
@@ -246,7 +260,7 @@ public class PlayerController : MonoBehaviour
         master.GameStateChange -= OnGameStateChange;
     }
 
-    private void InitialisePhysicalParameters()
+    private void InitialiseRigidBody()
     {
         // rigid body inits.
 
@@ -260,9 +274,6 @@ public class PlayerController : MonoBehaviour
 
         rbCollider.material.bounciness = 0.0F;
         rbCollider.material.bounceCombine = PhysicMaterialCombine.Minimum;
-
-        groundedRaycastMaxDistance = rbCollider.radius + GROUNDED_RAYCAST_ADDITIONAL_DISTANCE;
-        groundedSpherecastMaxDistance = GROUNDED_SPHERECAST_ADDITIONAL_DISTANCE;
     }
 
     private void Update()
@@ -278,8 +289,9 @@ public class PlayerController : MonoBehaviour
     {
         if (master.gameState == GAME_STATE_GAME)
         {
-            UpdateGroundedRay();
-            UpdateGroundedSphere();
+            UpdateGroundedRaycast();
+            UpdateGroundedSpherecast();
+            UpdateGroundedCheckSphere();
             UpdateGravity();
 
             // update the player state.
@@ -291,18 +303,26 @@ public class PlayerController : MonoBehaviour
 
             // update animator.
             states[currentStateType].UpdateState(this);
-
-            // clear any raised inputs.
-            UpdateClearRaisedInputs();
         }
         else if (master.gameState == GAME_STATE_CUTSCENE)
         {
             UpdateAnimatorCutscene();
         }
+        else if(master.gameState == GAME_STATE_GAME_OVER)
+        {
+            // limited version of the normal game update.
+
+            UpdateGroundedRaycast();
+            UpdateGroundedSpherecast();
+            UpdateGravity();
+        }
         else
         {
             playerAnimator.enabled = false;
         }
+
+        // clear any raised inputs.
+        UpdateClearRaisedInputs();
     }
 
     private void UpdatePlayerInput()
@@ -339,15 +359,18 @@ public class PlayerController : MonoBehaviour
         if (!master.inputController.wasInputSouth && master.inputController.isInputSouth)
             isRaisedSouth = true;
 
-        if (!master.inputController.wasInputWest && master.inputController.inInputWest)
+        if (!master.inputController.wasInputWest && master.inputController.isInputWest)
             isRaisedWest = true;
+
+        if (!master.inputController.wasInputEast && master.inputController.isInputEast)
+            isRaisedEast = true;
 
         if (!master.inputController.wasInputEastExtra 
             && master.inputController.isInputEastExtra)
             isRaisedEastExtra = true;
     }
 
-    private void UpdateGroundedRay()
+    private void UpdateGroundedRaycast()
     {
         // check grounding by ray.
 
@@ -356,10 +379,10 @@ public class PlayerController : MonoBehaviour
         if (isRaycastHit)
         {
             // set the angle of the surface.
-            raycastGroundedSlopeAngle = Vector3.Angle(raycastHitInfo.normal, Vector3.up);
+            raycastGroundAngle = Vector3.Angle(raycastHitInfo.normal, Vector3.up);
 
             // set the slope normal.
-            raycastGroundedSlopeNormal = raycastHitInfo.normal;
+            raycastGroundNormal = raycastHitInfo.normal;
 
             // set the ground slope direction.
             var temp = Vector3.Cross(raycastHitInfo.normal, Vector3.down);
@@ -367,10 +390,8 @@ public class PlayerController : MonoBehaviour
 
             // set grounded, if under max distance.
             wasRaycastGrounded = isRaycastGrounded;
-            isRaycastGrounded = raycastHitInfo.distance <= groundedRaycastMaxDistance 
-                && raycastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
-            isNearRaycastGrounded = raycastHitInfo.distance <= MAX_NEAR_GROUNDED_RAYCAST_DISTANCE
-                && raycastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
+            isRaycastGrounded = raycastHitInfo.distance <= MAX_GROUNDED_RAYCAST_DISTANCE
+                && raycastGroundAngle <= MAX_GROUNDED_ANGLE;
 
             // if grounded, and in the regular state, set the position above the floor.
 
@@ -386,11 +407,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void UpdateGroundedSphere()
+    private void UpdateGroundedSpherecast()
     {
         // check grounding by sphere.
 
-        isSpherecastHit = Physics.SphereCast(transform.position, GROUNDED_SPHERECAST_RADIUS, Vector3.down, out spherecastHitInfo, GROUNDED_RAYCAST_DISTANCE);
+        isSpherecastHit = Physics.SphereCast(transform.position, GROUNDED_SPHERECAST_RADIUS, Vector3.down, out spherecastHitInfo, GROUNDED_SPHERECAST_DISTANCE, MASK_PLAYER_IGNORES);
 
         if (isSpherecastHit)
         {
@@ -399,34 +420,48 @@ public class PlayerController : MonoBehaviour
 
             // if also ray grounded
             // set the slope normal.
-            spherecastGroundedSlopeNormal = (isRaycastGrounded)
-                ? spherecastHitInfo.normal
-                : raycastHitInfo.normal;
+
+            spherecastGroundNormal = spherecastHitInfo.normal;
 
             // if also ray grounded
             // set the angle of the surface.
-            spherecastGroundedSlopeAngle = (isRaycastGrounded)
-                ? Vector3.Angle(raycastHitInfo.normal, Vector3.up)
-                : raycastGroundedSlopeAngle;
+            spherecastGroundAngle = Vector3.Angle(spherecastHitInfo.normal, Vector3.up);
 
             wasSpherecastGrounded = isSpherecastGrounded;
-            isSpherecastGrounded = spherecastHitInfo.distance <= groundedSpherecastMaxDistance
-                && spherecastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
-            isNearSpherecaseGrounded = spherecastHitInfo.distance <= MAX_NEAR_GROUNDED_SPHERECAST_DISTANCE
-                && spherecastGroundedSlopeAngle <= SLIDE_ANGLE_MAX;
+            isSpherecastGrounded = spherecastHitInfo.distance <= MAX_GROUNDED_SPHERECAST_DISTANCE
+                && spherecastGroundAngle <= MAX_GROUNDED_ANGLE;
 
             if (isSpherecastGrounded)
             {
                 // set the ground data.
 
-                if (spherecastHitInfo.collider.gameObject
-                    .GetComponent<AttributeGround>() == null)
-                    groundData = DEFAULT_GROUND_DATA;
+                if (GameSceneController.Global.groundDataObjects.ContainsKey(spherecastHitInfo.collider.gameObject))
+                    groundData = GameSceneController.Global.groundDataObjects[spherecastHitInfo.collider.gameObject];
                 else
-                    groundData = spherecastHitInfo.collider.gameObject
-                        .GetComponent<AttributeGround>().groundData ?? DEFAULT_GROUND_DATA;
+                    groundData = GameDefaultsController.Global.defaultGroundData;
             }
         }
+    }
+
+    private void UpdateGroundedCheckSphere()
+    {
+        isChecksphereCollision = Physics.CheckSphere
+            (this.transform.position + GROUNDED_CHECKSPHERE_OFFSET
+            , GROUNDED_CHECKSPHERE_RADIUS
+            , MASK_PLAYER_IGNORES);
+
+        isChecksphereGrounded 
+            = isChecksphereCollision 
+            && spherecastGroundAngle <= MAX_GROUNDED_ANGLE;
+
+        isNearCheckSphereCollision = Physics.CheckSphere
+            (this.transform.position + NEAR_GROUNDED_CHECKSPHERE_OFFSET
+            , GROUNDED_CHECKSPHERE_RADIUS
+            , MASK_PLAYER_IGNORES);
+
+        isNearChecksphereGrounded
+            = isNearCheckSphereCollision
+            && spherecastGroundAngle <= MAX_GROUNDED_ANGLE;
     }
 
     private void UpdateGravity()
@@ -485,6 +520,7 @@ public class PlayerController : MonoBehaviour
     {
         isRaisedSouth = false;
         isRaisedWest = false;
+        isRaisedEast = false;
         isRaisedEastExtra = false;
     }
 
@@ -496,7 +532,7 @@ public class PlayerController : MonoBehaviour
 
         // store, or restore, velocity when changing state.
 
-        if (master.gameState == GAME_STATE_GAME)
+        if (master.gameState == GAME_STATE_GAME || master.gameState == GAME_STATE_GAME_OVER)
         {
             if(master.gameStatePrevious != GAME_STATE_GAME)
                 ResumeController(e);
@@ -507,11 +543,6 @@ public class PlayerController : MonoBehaviour
             {
                 playerAnimator.ResetAllAnimatorTriggers();
                 playerAnimator.SetTrigger("idle");
-            }
-            else if(master.gameState == GAME_STATE_GAME_OVER)
-            {
-                playerAnimator.ResetAllAnimatorTriggers();
-                playerAnimator.SetTrigger("emote_die");
             }
 
             if (master.gameStatePrevious == GAME_STATE_GAME)
@@ -581,9 +612,9 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateActorDataManager()
     {
-        adm.isInWater = isCollidingWaterObject;
-        adm.isSubmerged = isFullSubmerged;
-        adm.waterYLevel = waterYLevel;
+        adm.isInWater = behaviourWater.isCollidingWaterObject;
+        adm.isSubmerged = behaviourWater.isFullSubmerged;
+        adm.waterYLevel = behaviourWater.waterYLevel;
         adm.groundData = groundData;
     }
 
@@ -598,8 +629,11 @@ public class PlayerController : MonoBehaviour
             + "\nplayerState: " + currentStateType
             + "\nisRaycastGrounded: " + isRaycastGrounded
             + "\nisSpherecastGrounded: " + isSpherecastGrounded
-            + "\nisNearRaycastGrounded: " + isNearRaycastGrounded
-            + "\nisNearSpherecastGrounded: " + isNearSpherecaseGrounded;
+            + "\nSpherecastAngle: " + spherecastGroundAngle
+            + "\nisSphereCheckGrounded: " + isChecksphereGrounded
+            + "\nisNearSphereCheckGrounded: " + isNearChecksphereGrounded
+            ;
+            
 
         GUI.color = Color.black;
         GUI.Label(DEBUG_RECTANGLE_2, output);

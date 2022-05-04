@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
 
 public class ItemController : MonoBehaviour
@@ -22,8 +22,8 @@ public class ItemController : MonoBehaviour
     private GameObject itemPickupEventSource;
 
     [Header("Item Attributes")]
-    [FormerlySerializedAs("item_data")]
-    public GameItemData itemData;
+    [FormerlySerializedAs("itemData")]
+    public GameItemInfo itemInfo;
     [FormerlySerializedAs("item_pickup_fx_prefab")]
     public GameObject pickupFxPrefab;
     [FormerlySerializedAs("item_pickup_fx_origin")]
@@ -42,16 +42,16 @@ public class ItemController : MonoBehaviour
 
         // give item data default values if not set.
 
-        if (itemData.group == string.Empty)
-            itemData.group = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (itemInfo.group == string.Empty)
+            itemInfo.group = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
-        if (itemData.code == string.Empty)
-            itemData.code = this.gameObject.transform.position.ToString();
+        if (itemInfo.code == string.Empty)
+            itemInfo.code = this.gameObject.transform.position.ToString();
 
         // check if item is already collected,
         // destroy self if this is the case.
 
-        if (master.dataController.GetIsItemCollected(itemData))
+        if (master.dataController.GetIsItemCollected(itemInfo))
             Destroy(this.gameObject);
 
         // store original orientation
@@ -96,7 +96,7 @@ public class ItemController : MonoBehaviour
                 pickupAudioSource.volume = pickupAudioVolume;
                 pickupAudioSource.Play();
 
-                master.dataController.UpdateItem(itemData);
+                master.dataController.UpdateItem(itemInfo);
 
                 // if a game event is present, start the cutscene.
 

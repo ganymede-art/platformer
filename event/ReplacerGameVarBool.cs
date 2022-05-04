@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script
+namespace Assets.Script
 {
     class ReplacerGameVarBool : MonoBehaviour, IReplacerController
     {
@@ -18,6 +18,7 @@ namespace Assets.script
 
         public object GetReplacementValue()
         {
+            Debug.Log("[ReplacerGameVarBool] getting bool value " + gameVarBoolName);
             return GameDataController.Global.GetGameVarBool(gameVarBoolName);
         }
     }

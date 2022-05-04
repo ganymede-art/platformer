@@ -1,9 +1,9 @@
 
-using Assets.script;
+using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class PlayerBehaviourInteract : MonoBehaviour, IPlayerBehaviour
 {
@@ -25,14 +25,24 @@ public class PlayerBehaviourInteract : MonoBehaviour, IPlayerBehaviour
     void Update()
     {
         if (GameMasterController.Global.gameState != GAME_STATE_GAME)
+        {
+            interactPromptObject.SetActive(false);
             return;
+        }
 
         // position interaction prompt.
 
         if (isInteractableInRange)
+        {
+            interactPromptObject.SetActive(true);
             interactPromptObject.transform.position
-                = interactableInRange.GetInteractableTransform().position
-                + interactableInRange.GetInteractablePromptOffset();
+                = interactableInRange.GetInteractableTransform()
+                .TransformPoint(interactableInRange.GetInteractablePromptOffset());
+        }
+        else
+        {
+            interactPromptObject.SetActive(false);
+        }
 
         // handle interaction on key press.
 
@@ -63,7 +73,7 @@ public class PlayerBehaviourInteract : MonoBehaviour, IPlayerBehaviour
             if(GameMasterController.Global.gameState != GAME_STATE_GAME)
                 yield return new WaitForSeconds(0.1F);
 
-            foreach (var interactable in GameSceneController.Global.interactables)
+            foreach (var interactable in GameSceneController.Global.interactableObjects)
             {
                 float distance = Vector3.Distance
                     (this.transform.position, interactable.GetInteractableTransform().position);
@@ -75,8 +85,6 @@ public class PlayerBehaviourInteract : MonoBehaviour, IPlayerBehaviour
                     yield return new WaitForSeconds(0.1F);
                 }
             }
-
-            interactPromptObject.SetActive(isInteractableInRange);
 
             yield return new WaitForSeconds(0.1F);
         }

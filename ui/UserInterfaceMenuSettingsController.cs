@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class UserInterfaceMenuSettingsController : MonoBehaviour
 {
+    private GameObject uiObject;
+    private RectTransform uiRectTransform;
+
+    private GameObject settingsContainerObject;
+
     private GameObject uiApplyButtonObject;
     private Button uiApplyButton;
     private GameObject uiCancelButtonObject;
@@ -31,6 +36,15 @@ public class UserInterfaceMenuSettingsController : MonoBehaviour
 
     void Start()
     {
+        // get the ui.
+
+        uiObject = gameObject;
+        uiRectTransform = uiObject.GetComponent<RectTransform>();
+
+        // get the container.
+
+        settingsContainerObject = GameObject.Find("settings_container");
+
         // get buttons.
 
         uiApplyButtonObject = GameObject.Find("ui_button_apply");
@@ -76,6 +90,21 @@ public class UserInterfaceMenuSettingsController : MonoBehaviour
         var ev = EventSystem.current;
         ev.SetSelectedGameObject(uiApplyButtonObject);
         uiApplyButton.Select();
+    }
+
+    private void Update()
+    {
+        if (EventSystem.current.currentSelectedGameObject == null)
+            return;
+
+        if (EventSystem.current.currentSelectedGameObject.transform.position.y > uiRectTransform.rect.height - 10)
+        {
+            settingsContainerObject.transform.position += new Vector3(0,-0.5F,0);
+        }
+        else if (EventSystem.current.currentSelectedGameObject.transform.position.y < 10)
+        {
+            settingsContainerObject.transform.position += new Vector3(0, 0.5F, 0);
+        }
     }
 
     public void OnApplyButtonClick()

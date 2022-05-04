@@ -1,8 +1,8 @@
-using Assets.script;
+using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class MobStateWander : MonoBehaviour, IMobState
 {
@@ -90,7 +90,6 @@ public class MobStateWander : MonoBehaviour, IMobState
 
         if (isWallCheckAvailable && behaviourWallCheck.isRaycastHit && !isTurningAround)
         {
-            Debug.Log("Hit a wall." + Time.time);
             isTurningAround = true;
             wanderDirection = -wanderDirection;
         }

@@ -2,12 +2,53 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using Assets.script;
+using Assets.Script;
 using System.Linq;
 using System;
+using UnityEngine.SceneManagement;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 public class EditorMenu 
 {
+    [MenuItem("Tools/Create Scene Root Objects")]
+    public static void CreateSceneRootObjects()
+    {
+        var rootObjectNames = new string[]
+            {"scene_data"
+            ,"ambient_events"
+            ,"ambient_objects"
+            ,"ambient_positions"
+            ,"cutscene_events"
+            ,"cutscene_objects"
+            ,"cutscene_positions"
+            ,"cutscene_triggers"
+            ,"interactable_events"
+            ,"interactable_objects"
+            ,"interactable_positions"
+            ,"map_lights"
+            ,"map_load_objects"
+            ,"map_triggers"
+            ,"game_mobs"
+            ,"game_npcs"
+            ,"game_items"
+            ,"map_objects"
+            ,"map_common_props"
+            ,"map_foliage_props"
+            ,"map_dummy_objects"};
+    
+        foreach(string rootObjectName in rootObjectNames)
+        {
+            var rootObject = GameObject.Find(rootObjectName);
+            if(rootObject == null)
+            {
+                var newObject = new GameObject(rootObjectName);
+            }
+        }
+    }
+
+
+
     [MenuItem("Tools/Event Set All Source Names")]
     public static void SetAllEventSourceNames()
     {
@@ -89,9 +130,9 @@ public class EditorMenu
             if (itemController == null)
                 continue;
 
-            string type = itemController.itemData.type;
-            string group = itemController.itemData.group;
-            string code = itemController.itemData.code;
+            string type = itemController.itemInfo.type;
+            string group = itemController.itemInfo.group;
+            string code = itemController.itemInfo.code;
             string itemName = $"item_{type}_{group}_{code}";
             itemObject.name = itemName;
         }
@@ -127,12 +168,13 @@ public class EditorMenu
             if (itemController == null)
                 continue;
 
-            itemController.itemData.group = sceneInfoController.sceneGroup;
-            itemController.itemData.code = codeCount.ToString();
+            itemController.itemInfo.group = sceneInfoController.sceneGroup;
+            itemController.itemInfo.code =  
+                SceneManager.GetActiveScene().name + "_" + codeCount.ToString();
 
             codeCount++;
         }
     }
 
-
 }
+

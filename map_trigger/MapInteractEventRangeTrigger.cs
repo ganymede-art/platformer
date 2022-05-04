@@ -1,4 +1,4 @@
-﻿using Assets.script;
+﻿using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -23,12 +23,12 @@ public class MapInteractEventRangeTrigger : MonoBehaviour, IInteractable
         if (interactablePromptOffset == Vector3.zero)
             interactablePromptOffset = INTERACTABLE_PROMPT_OFFSET_DEFAULT;
 
-        GameSceneController.Global.interactables.Add(this);
+        GameSceneController.Global.interactableObjects.Add(this);
     }
 
     private void OnDestroy()
     {
-        GameSceneController.Global.interactables.Remove(this);
+        GameSceneController.Global.interactableObjects.Remove(this);
     }
 
     void Update()
@@ -68,6 +68,9 @@ public class MapInteractEventRangeTrigger : MonoBehaviour, IInteractable
         }
 
         triggerComponent.StartGameEvent();
+
+        if (triggerComponent.isOneShot)
+            gameObject.SetActive(false);
     }
 
     public Vector3 GetInteractablePromptOffset()

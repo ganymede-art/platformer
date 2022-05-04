@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
-using Assets.script.utility;
+using Assets.Script;
+using Assets.Script.utility;
 
 public class ActorWaterEffectController : MonoBehaviour
 {

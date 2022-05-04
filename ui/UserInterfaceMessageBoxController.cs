@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using TMPro;
 using UnityEngine.UI;
 using System;
-using static Assets.script.UserInterfaceConstants;
+using static Assets.Script.UserInterfaceConstants;
 using UnityEngine.SceneManagement;
 
 public class UserInterfaceMessageBoxController : MonoBehaviour

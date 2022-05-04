@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script
+namespace Assets.Script
 {
     class EventSetPlayerAbility : MonoBehaviour, IEventController
     {
@@ -18,6 +18,7 @@ namespace Assets.script
         public bool canNowWaterJump;
         public bool canNowDoubleJump;
         public bool canNowFireProjectile;
+        public bool canNowSlam;
 
         public void FinishEvent(GameEvent gameEvent) { }
 
@@ -59,22 +60,25 @@ namespace Assets.script
                 GamePlayerController.Global.canAttack = true;
 
             if (canNowCrouchJump)
-                GamePlayerController.Global.canCrouchJump = true;
+                GamePlayerController.Global.canHighJump = true;
 
             if (canNowDive)
                 GamePlayerController.Global.canDive = true;
 
             if(canNowWaterDive)
-                GamePlayerController.Global.canWaterDive = true;
+                GamePlayerController.Global.canSwim = true;
 
             if (canNowWaterJump)
                 GamePlayerController.Global.canWaterJump = true;
 
             if (canNowDoubleJump)
-                GamePlayerController.Global.canDoubleJump = true;
+                GamePlayerController.Global.canFlutter = true;
 
             if (canNowFireProjectile)
                 GamePlayerController.Global.canFireProjectile = true;
+
+            if (canNowSlam)
+                GamePlayerController.Global.canSlam = true;
         }
 
         public void ResetEvent(GameEvent gameEvent) { }

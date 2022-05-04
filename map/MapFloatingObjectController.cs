@@ -1,89 +1,83 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
-using static Assets.script.GameConstants;
+using Assets.Script;
+using static Assets.Script.GameConstants;
 
 public class MapFloatingObjectController : MonoBehaviour
 {
-    const float SINKING_DURATION_MIN = 0.1F;
+    const float WOBBLE_JITTER_MIN = 0.7F;
+    const float WOBBLE_JITTER_MAX = 1.3F;
 
-    List<GameObject> weightObjects = new List<GameObject>();
-    bool wasWeighedDown = false;
-    bool isWeighedDown = false;
-    private float sinkingTimer = 0.0F;
-    private Vector3 startPosition;
-    private Vector3 endPosition;
-    private Rigidbody objectRigidBody;
+    const float BOB_JITTER_MIN = 0.7F;
+    const float BOB_JITTER_MAX = 1.3F;
 
-    public Vector3 sinkingOffset;
-    public float sinkingDuration;
-    public AudioClip sinkingSound;
+    private Rigidbody rb;
+    private Vector3 originalPosition;
+    private Vector3 originalRotation;
 
-    // Start is called before the first frame update
+    private Vector3 wobbleVector;
+    private float wobbleXTimer;
+    private float wobbleZTimer;
+
+    private Vector3 bobOffset;
+    private float bobTimer;
+
+    public GameObject rigidBodyObject;
+
+    public float wobbleSpeed;
+    public float wobbleDegrees;
+
+    public float bobSpeed;
+    public float bobDistance;
+
     void Start()
     {
-        startPosition = gameObject.transform.position;
-        endPosition = startPosition + sinkingOffset;
-        objectRigidBody = this.gameObject.GetComponent<Rigidbody>();
+        if (rigidBodyObject == null)
+            rigidBodyObject = gameObject;
 
-        if (sinkingDuration < SINKING_DURATION_MIN)
-            sinkingDuration = SINKING_DURATION_MIN;
+        rb = rigidBodyObject.GetComponent<Rigidbody>();
+
+        originalPosition = transform.position;
+        originalRotation = transform.rotation.eulerAngles;
+
+        wobbleVector = new Vector3(0, 0, 0);
+        wobbleXTimer = Random.Range(0.0F, 1.0F);
+        wobbleZTimer = Random.Range(0.0F, 1.0F);
+
+        bobOffset = new Vector3(0, 0, 0);
+        bobTimer = Random.Range(0.0F, 1.0F);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (GameMasterController.Global.gameState != GAME_STATE_GAME)
-            return;
+        // wobble.
 
-        if (isWeighedDown && sinkingTimer < 1)
-        {
-            sinkingTimer += 1f * Time.deltaTime;
-            if (sinkingTimer > sinkingDuration)
-                sinkingTimer = sinkingDuration;
-        }
+        wobbleXTimer += (Time.deltaTime * wobbleSpeed)
+            * Random.Range(WOBBLE_JITTER_MIN,WOBBLE_JITTER_MAX);
+        wobbleZTimer += (Time.deltaTime * wobbleSpeed)
+            * Random.Range(WOBBLE_JITTER_MIN, WOBBLE_JITTER_MAX);
 
-        if (!isWeighedDown && sinkingTimer > 0)
-        {
-            sinkingTimer -= 1f * Time.deltaTime;
-            if (sinkingTimer < 0)
-                sinkingTimer = 0.0F;
-        }
+        wobbleVector.x = (Mathf.Sin(wobbleXTimer) * wobbleDegrees);
+        wobbleVector.z = Mathf.Sin(wobbleZTimer) * wobbleDegrees;
 
-        float t = sinkingTimer / sinkingDuration;
-        t = t * t * (3f - 2f * t);
+        rb.MoveRotation(Quaternion.Euler(wobbleVector + originalRotation));
 
-        objectRigidBody.MovePosition(Vector3.Lerp(startPosition,endPosition,t));
+        // bob.
+
+        bobTimer += (Time.deltaTime * bobSpeed) 
+            * Random.Range(BOB_JITTER_MIN, BOB_JITTER_MAX);
+
+        bobOffset.y = (Mathf.Sin(bobTimer) * bobDistance);
+
+        rb.MovePosition(originalPosition + bobOffset);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        wasWeighedDown = isWeighedDown;
-        if (other.transform.name == NAME_PLAYER_COLLIDER)
-        {
-            weightObjects.Add(other.gameObject);
-        }
-
-        if (weightObjects.Count > 0)
-            isWeighedDown = true;
-
-        if(!wasWeighedDown && isWeighedDown)
-        {
-            AudioSource.PlayClipAtPoint(sinkingSound, this.transform.position);
-        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        wasWeighedDown = isWeighedDown;
-
-        if (other.transform.name == NAME_PLAYER_COLLIDER)
-        {
-            weightObjects.Remove(other.gameObject);
-        }
-
-        if (weightObjects.Count == 0)
-            isWeighedDown = false;
     }
 }

@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
-namespace Assets.script.actor 
+namespace Assets.Script.actor 
 {
     class ActorNpcController : MonoBehaviour
     {

@@ -1,4 +1,4 @@
-﻿using Assets.script;
+﻿using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,7 +27,7 @@ public class CameraAudioController : MonoBehaviour
 
         audioLowPassFilter = gameObject.AddComponent<AudioLowPassFilter>();
         audioLowPassFilter.enabled = false;
-        audioLowPassFilter.cutoffFrequency = 500F;
+        audioLowPassFilter.cutoffFrequency = 700F;
 
         audioReverbZoneObjects = GameObject.FindObjectsOfType<AudioReverbZone>();
     }

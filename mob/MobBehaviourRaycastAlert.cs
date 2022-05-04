@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using static Assets.script.GameConstants;
-using Assets.script;
+using static Assets.Script.GameConstants;
+using Assets.Script;
 
 public class MobBehaviourRaycastAlert : MonoBehaviour, IMobBehaviour
 {
@@ -21,6 +21,9 @@ public class MobBehaviourRaycastAlert : MonoBehaviour, IMobBehaviour
     [NonSerialized] public bool isRaycastHit;
     [NonSerialized] public bool isRaycastHitPlayer;
     [NonSerialized] public int raycastHitPlayerTicks;
+
+    [Header("MobController Attributes")]
+    public GameObject mobControllerObject;
 
     [Header("Behaviour Attributes")]
     public float raycastDistance;
@@ -38,8 +41,7 @@ public class MobBehaviourRaycastAlert : MonoBehaviour, IMobBehaviour
 
     private void Start()
     {
-        mobController = gameObject.transform.root
-            .gameObject.GetComponentInChildren<MobController>();
+        mobController = mobControllerObject.GetComponent<MobController>();
         playerObject = GameMasterController.GlobalPlayerObject;
         StartCoroutine(PerformAlertCheck());
 

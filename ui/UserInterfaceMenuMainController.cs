@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class UserInterfaceMenuMainController : MonoBehaviour
 {

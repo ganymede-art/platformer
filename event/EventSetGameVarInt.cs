@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.Serialization;
 
 public class EventSetGameVarInt : MonoBehaviour, IEventController
 {
+    [Header("Event Attributes")]
     public GameObject nextEventSource = null;
 
+    [Header("Var Attributes")]
     public string variableName;
     public int variableValue;
     public bool isRelative;

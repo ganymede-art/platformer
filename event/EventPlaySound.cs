@@ -5,16 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Assets.script
+namespace Assets.Script
 {
     class EventPlaySound : MonoBehaviour, IEventController
     {
         private AudioSource source;
-
         public GameObject nextEventSource;
-
         public GameObject audioSourceObject;
-        public AudioClip sound;
 
         private void Start()
         {
@@ -25,9 +22,8 @@ namespace Assets.script
 
             if (source == null)
             {
-                source = this.gameObject.AddComponent<AudioSource>();
-                source.clip = sound;
-                source.spatialBlend = 1.0F;
+                Debug.Log("[EventPlaySound] Missing audio source!");
+                return;
             }
 
             source.volume = source.volume * GameSettingsController.Global.volumeProp;
@@ -42,7 +38,7 @@ namespace Assets.script
 
         public string GetEventDescription()
         {
-            return GameConstants.EVENT_TYPE_PLAY_SOUND + ((audioSourceObject == null) ? "_null" : "_" + audioSourceObject.name);
+            return GameConstants.EVENT_TYPE_PLAY_SOUND;
         }
 
         public bool GetIsEventComplete(GameEvent gameEvent)
@@ -69,7 +65,8 @@ namespace Assets.script
 
         public void StartEvent(GameEvent gameEvent)
         {
-            source.Play();
+            if(source != null)
+                source.Play();
         }
 
         public void ResetEvent(GameEvent gameEvent) { }

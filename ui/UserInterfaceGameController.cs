@@ -1,31 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 using UnityEngine.SceneManagement;
 using System;
 using TMPro;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class UserInterfaceGameController : MonoBehaviour
 {
-    // constants.
-
-    const float DESC_APPEAR_TIME = 1F;
-    const float DESC_DISAPPEAR_TIME = 5F;
-    const float DESC_FINISH_TIME = 6F;
-
     GameMasterController master;
 
     // root.
 
     GameObject uiObject;
     private GameObject uiHealthContainerObject;
-
-    private GameObject uiSceneTitleObject;
-    private TextMeshProUGUI uiSceneTitleText;
-    private GameObject uiSceneSubtitleObject;
-    private TextMeshProUGUI uiSceneSubtitleText;
 
     private GameObject[] uiHealthObjects;
 
@@ -35,11 +24,8 @@ public class UserInterfaceGameController : MonoBehaviour
     private GameObject uiCountAmmoObject;
     private TextMeshProUGUI uiCountAmmoText;
 
-    // scene description variables.
+    private GameObject uiOxygenObject;
 
-    private bool isDisplayingTitle;
-    private float titleDisplayTimer;
-    private Color titleDisplayColour;
 
     void Start()
     {
@@ -49,12 +35,6 @@ public class UserInterfaceGameController : MonoBehaviour
 
         master.GameStateChange += ChangeGameState;
         master.dataController.GameItemChange += GameItemChange;
-
-        // scene description variables.
-
-        isDisplayingTitle = false;
-        titleDisplayTimer = 0.0F;
-        titleDisplayColour = new Color(1, 1, 1, 0);
 
         // initialise ui.
 
@@ -74,6 +54,10 @@ public class UserInterfaceGameController : MonoBehaviour
                 = uiHealthContainerObject.transform.Find("ui_health_" + i).gameObject;
         }
 
+        // oxgen objects.
+
+        uiOxygenObject = uiObject.transform.Find("ui_oxygen").gameObject;
+
         // item objects.
 
         uiCountBObject = GameObject.Find("ui_count_b");
@@ -82,15 +66,7 @@ public class UserInterfaceGameController : MonoBehaviour
         uiCountAmmoObject = GameObject.Find("ui_count_ammo");
         uiCountAmmoText = uiCountAmmoObject.GetComponent<TextMeshProUGUI>();
 
-        // scene description.
-
-        uiSceneTitleObject = uiObject.transform.Find("ui_scene_title").gameObject;
-        uiSceneTitleText = uiSceneTitleObject.GetComponent<TextMeshProUGUI>();
-
-        uiSceneSubtitleObject = uiObject.transform.Find("ui_scene_subtitle").gameObject;
-        uiSceneSubtitleText = uiSceneSubtitleObject.GetComponent<TextMeshProUGUI>();
-
-        uiObject.SetActive(false);
+        uiObject.SetActive(false);  
     }
 
     private void OnDestroy()
@@ -110,36 +86,15 @@ public class UserInterfaceGameController : MonoBehaviour
             uiHealthObjects[i].SetActive(master.playerController.health > i);
         }
 
-        if (isDisplayingTitle)
+        if (GameMasterController.GlobalPlayerController.behaviourWater.isFullSubmerged)
         {
-            titleDisplayTimer += Time.deltaTime;
-
-            if (titleDisplayTimer >= DESC_FINISH_TIME)
-            {
-                uiSceneTitleObject.SetActive(false);
-                uiSceneSubtitleObject.SetActive(false);
-                isDisplayingTitle = false;
-            }
-
-            if(titleDisplayColour.a <= 1 
-                && titleDisplayTimer <= DESC_APPEAR_TIME)
-            {
-                titleDisplayColour.a = Mathf.InverseLerp(0.0f, DESC_APPEAR_TIME, titleDisplayTimer);
-            }
-
-            if(titleDisplayColour.a >= 0 
-                && titleDisplayTimer >= DESC_DISAPPEAR_TIME)
-            {
-                titleDisplayColour.a -= 0.01F;
-            }
-
-            uiSceneTitleText.color = titleDisplayColour;
-            uiSceneSubtitleText.color = titleDisplayColour;
+            uiOxygenObject.SetActive(true);
+            uiOxygenObject.transform.localScale = Vector3.one *
+                ((float)GamePlayerController.Global.oxygen / (float)GamePlayerController.Global.maxOxygen);
         }
         else
         {
-            uiSceneTitleObject.SetActive(false);
-            uiSceneSubtitleObject.SetActive(false);
+            uiOxygenObject.SetActive(false);
         }
     }
 
@@ -147,7 +102,7 @@ public class UserInterfaceGameController : MonoBehaviour
     {
         uiObject.SetActive(true);
 
-        uiCountBText.text = master.dataController.GetItemCountByType("b").ToString();
+        uiCountBText.text = master.dataController.GetItemCountByType(ITEM_TYPE_SECONDARY).ToString();
     }
 
     private void UnsetMenu()
@@ -167,19 +122,6 @@ public class UserInterfaceGameController : MonoBehaviour
 
     private void GameItemChange(object sender, EventArgs e)
     {
-        uiCountBText.text = master.dataController.GetItemCountByType("b").ToString();
-    }
-
-    public void SetSceneTitleDisplay(string sceneTitle, string sceneSubtitle)
-    {
-        uiSceneTitleObject.SetActive(true);
-        uiSceneSubtitleObject.SetActive(true);
-        uiSceneTitleText.text = sceneTitle;
-        uiSceneSubtitleText.text = sceneSubtitle;
-
-        isDisplayingTitle = true;
-
-        titleDisplayColour.a = 0.0F;
-        titleDisplayTimer = 0.0F;
+        uiCountBText.text = master.dataController.GetItemCountByType(ITEM_TYPE_SECONDARY).ToString();
     }
 }

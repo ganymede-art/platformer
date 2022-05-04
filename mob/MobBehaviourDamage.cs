@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 using UnityEngine;
-using Assets.script;
+using Assets.Script;
 
 
 public class MobBehaviourDamage : MonoBehaviour, IMobBehaviour
@@ -21,6 +21,9 @@ public class MobBehaviourDamage : MonoBehaviour, IMobBehaviour
     [NonSerialized] public bool isDamaged;
     [NonSerialized] public float damageTimer;
     [NonSerialized] public float damageInterval;
+
+    [Header("MobController Attributes")]
+    public GameObject mobControllerObject;
 
     [Header("State Attributes")]
     public bool canAlwaysBeDamaged;
@@ -48,8 +51,7 @@ public class MobBehaviourDamage : MonoBehaviour, IMobBehaviour
     private void Start()
     {
         // get the mob controller.
-        mobController = gameObject.transform.root
-           .gameObject.GetComponentInChildren<MobController>();
+        mobController = mobControllerObject.GetComponent<MobController>();
 
         // get the damage effect controller.
         damageEffectController = damageEffectControllerObject.GetComponent<ActorDamageEffectController>();
@@ -93,10 +95,10 @@ public class MobBehaviourDamage : MonoBehaviour, IMobBehaviour
         if (isDamaged)
             return; 
 
-        var damageData = sourceObject.GetComponent<AttributeDamageController>()?.data;
+        var damageData = sourceObject.GetComponent<DamageDataController>()?.damageData;
 
         if (damageData == null)
-            damageData = AttributeDamageData.GetDefault();
+            damageData = GameDefaultsController.Global.defaultDamageData;
 
         health -= damageData.damageAmount;
 
@@ -109,6 +111,10 @@ public class MobBehaviourDamage : MonoBehaviour, IMobBehaviour
             mobController.ChangeState(damagedState, sourceObject);
         else
             mobController.ChangeState(deathState);
+
+        // if the damage came from the player, add a repel force.
+        if (sourceObject.tag == TAG_PLAYER_DAMAGE_SOURCE)
+            GameMasterController.GlobalPlayerController.SimpleRepel(gameObject, 5.0F);
     }
 }
 

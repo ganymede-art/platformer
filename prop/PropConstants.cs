@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Assets.script.prop
+namespace Assets.Script.prop
 {
     public static class PropConstants
     {

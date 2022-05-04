@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
+using YamlDotNet;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 public class GameSettingsController : MonoBehaviour
 {
@@ -21,8 +24,8 @@ public class GameSettingsController : MonoBehaviour
 
     const float VOLUME_DEFAULT = 1.0F;
 
-    private string jsonSaveDirectory;
-    private string jsonSavePath;
+    private string yamlSaveDirectory;
+    private string yamlSavePath;
 
     [NonSerialized] public float volumeMaster;
     [NonSerialized] public float volumePlayer;
@@ -37,8 +40,8 @@ public class GameSettingsController : MonoBehaviour
     {
         // save directory.
 
-        jsonSaveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
-        jsonSavePath = jsonSaveDirectory + @"\settings_data.json";
+        yamlSaveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\kiwi";
+        yamlSavePath = yamlSaveDirectory + @"\settings_data.yaml";
 
         // initialise the default settings.
 
@@ -54,7 +57,7 @@ public class GameSettingsController : MonoBehaviour
         // check if settings file exists,
         // create it if it does not.
 
-        bool doesFileExist = System.IO.File.Exists(jsonSavePath);
+        bool doesFileExist = System.IO.File.Exists(yamlSavePath);
 
         if(!doesFileExist)
         {
@@ -69,10 +72,17 @@ public class GameSettingsController : MonoBehaviour
 
     public void LoadSettings()
     {
-        string settingsInfoJson = null;
+        //string settingsInfoJson = null;
 
-        settingsInfoJson = File.ReadAllText(jsonSavePath);
-        var settingsInfo = JsonUtility.FromJson<SettingsInfo>(settingsInfoJson);
+        //settingsInfoJson = File.ReadAllText(jsonSavePath);
+        //var settingsInfo = JsonUtility.FromJson<SettingsInfo>(settingsInfoJson);
+
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var settingsInfo = deserializer.Deserialize<SettingsInfo>
+            (File.ReadAllText(yamlSavePath));
 
         volumeMaster = settingsInfo.volumeMaster;
         volumePlayer = settingsInfo.volumePlayer;
@@ -97,15 +107,20 @@ public class GameSettingsController : MonoBehaviour
         settingsInfo.volumeMusic = volumeMusic;
         settingsInfo.volumeAmbience = volumeAmbience;
 
-        string settingsInfoJson = JsonUtility.ToJson(settingsInfo);
+        //string settingsInfoJson = JsonUtility.ToJson(settingsInfo);
 
-        if (!Directory.Exists(jsonSaveDirectory))
-            Directory.CreateDirectory(jsonSaveDirectory);
+        var serializer = new SerializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+        var yaml = serializer.Serialize(settingsInfo);
 
-        if (!File.Exists(jsonSavePath))
-            File.Create(jsonSavePath).Close();
+        if (!Directory.Exists(yamlSaveDirectory))
+            Directory.CreateDirectory(yamlSaveDirectory);
 
-        File.WriteAllText(jsonSavePath, settingsInfoJson);
+        if (!File.Exists(yamlSavePath))
+            File.Create(yamlSavePath).Close();
+
+        File.WriteAllText(yamlSavePath, yaml);
     }
 }
 

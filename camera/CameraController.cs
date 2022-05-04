@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.script;
-using static Assets.script.GameConstants;
+using Assets.Script;
+using static Assets.Script.GameConstants;
 using UnityEngine.Serialization;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class CameraController : MonoBehaviour
 {
@@ -99,7 +99,8 @@ public class CameraController : MonoBehaviour
     void Update()
     {
         if (master.gameState == GAME_STATE_GAME
-            || master.gameState == GAME_STATE_CUTSCENE)
+            || master.gameState == GAME_STATE_CUTSCENE
+            || master.gameState == GAME_STATE_GAME_OVER)
         {
             if (cameraMode == GameConstants.CameraMode.camera_default)
             {
@@ -182,7 +183,7 @@ public class CameraController : MonoBehaviour
             autoRotationDifference = Quaternion.Angle(autoRotationStart, autoRotationEnd);
 
             autoXSpeed = (autoRotationDifference > AUTO_ROTATION_DIFFERENCE_MIN) 
-                ? AUTO_X_SPEED 
+                ? AUTO_X_SPEED
                 : Mathf.InverseLerp(0, AUTO_ROTATION_DIFFERENCE_MIN, autoRotationDifference) * AUTO_X_SPEED;
 
             autoRotationEnd = Quaternion.RotateTowards(autoRotationEnd, autoRotationStart, autoXSpeed * Time.deltaTime);

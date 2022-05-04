@@ -1,8 +1,8 @@
-using Assets.script;
+using Assets.Script;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Assets.script.GameConstants;
+using static Assets.Script.GameConstants;
 
 public class MobStateFacePlayer : MonoBehaviour, IMobState
 {

@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Assets.script;
-using static Assets.script.GameConstants;
+using Assets.Script;
+using static Assets.Script.GameConstants;
 
 public class PlayerBehaviourRepel : MonoBehaviour, IPlayerBehaviour
 {
     // repel variables.
 
     [NonSerialized] public GameObject repelSourceObject = null;
-    [NonSerialized] public AttributeDamageData repelData = null;
+    [NonSerialized] public DamageData repelData = null;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -36,9 +36,9 @@ public class PlayerBehaviourRepel : MonoBehaviour, IPlayerBehaviour
         // the handle moving into the repel state.
 
         repelSourceObject = repelObject.gameObject;
-        repelData = repelObject.gameObject.GetComponent<AttributeRepelController>()?.data;
+        repelData = repelObject.gameObject.GetComponent<DamageDataController>()?.damageData;
         if (repelData == null)
-            repelData = AttributeDamageData.GetDefault();
+            repelData = GameDefaultsController.Global.defaultDamageData;
 
         if (GameMasterController.GlobalPlayerController.currentStateType != GameConstants.PLAYER_STATE_REPEL)
             GameMasterController.GlobalPlayerController.ChangePlayerState(GameConstants.PLAYER_STATE_REPEL, repelObject, repelData);

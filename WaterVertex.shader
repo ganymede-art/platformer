@@ -1,58 +1,122 @@
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "Custom/WaterVertex"
 {
 	Properties
 	{
-		_BaseColor("Base Color", Color) = (1,1,1,1)
-		_HighlightColor("Color", Color) = (1,1,1,1)
+		_BaseColor("Base Color",Color)=(1,1,1,1)
+		_EffectColor("Effect Color", Color) = (1,1,1,1)
+		_Emission("Emission", Color) = (0,0,0,0)
+
 		_1Tex("Layer 1", 2D) = "white" {}
 		_2Tex("Layer 2", 2D) = "white" {}
-		_Emission("Emission", Color) = (0,0,0,0)
+
+		_EffectCutoffBegin("Alpha Cutoff Begin", Range(0,1)) = 0.1
+		_EffectCutoffEnd("Alpha Cutoff End", Range(0,1)) = 1.0
+
+		_BaseOpacityModifier("Effect Opacity Modifier",Range(0,1)) = 1.0
+		_EdgeOpacityModifier("Edge Opacity Modifier",Range(0,1)) = 1.0
+
+		_DepthMultiplier("Depth Multiplier", Range(0,10)) = 7.5
 	}
-		SubShader
+
+	SubShader
+	{
+		Tags { "RenderType" = "Transparent" "IgnoreProjector" = "True"  "Queue" = "Transparent"}
+
+		Blend SrcAlpha OneMinusSrcAlpha
+
+		CGPROGRAM
+		#pragma surface surf BlinnPhong keepalpha 
+
+		struct Input
 		{
-			Tags { "RenderType" = "Transparent"  "Queue" = "Transparent"}
-			LOD 200
+			half4 color : COLOR;
+		};
 
-			CGPROGRAM
-			// Physically based Standard lighting model, and enable shadows on all light types
-			#pragma surface surf Standard alpha:blend
+		fixed4 _BaseColor;
 
-			// Use shader model 3.0 target, to get nicer looking lighting
-			#pragma target 3.0
+		void surf(Input IN, inout SurfaceOutput o)
+		{
+			o.Albedo = _BaseColor.rgb;
+			o.Alpha = _BaseColor.a * IN.color.a;
 
-			sampler2D _1Tex;
-			sampler2D _2Tex;
-
-			struct Input
-			{
-				float2 uv_1Tex;
-				float2 uv_2Tex;
-				half4 color : COLOR;
-			};
-
-			fixed4 _BaseColor;
-			fixed4 _HighlightColor;
-			fixed4 _Emission;
-
-			// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
-			// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
-			// #pragma instancing_options assumeuniformscaling
-			UNITY_INSTANCING_BUFFER_START(Props)
-				// put more per-instance properties here
-			UNITY_INSTANCING_BUFFER_END(Props)
-
-			void surf(Input IN, inout SurfaceOutputStandard o)
-			{
-				// Albedo comes from a texture tinted by color
-				fixed4 c = tex2D(_1Tex, IN.uv_1Tex);
-				fixed4 b = tex2D(_2Tex, IN.uv_2Tex);
-				fixed4 d = (c * b);
-		
-				o.Albedo = (_BaseColor.rgb + (d.rgb * _HighlightColor.rgb * _HighlightColor.a)) * IN.color.rgb;
-				o.Alpha = (_BaseColor.a + (d.rgb * _HighlightColor.a)) * IN.color.a;
-				o.Emission = _Emission;
-			}
-			ENDCG
 		}
-			FallBack "Diffuse"
+
+		ENDCG
+
+		CGPROGRAM
+		#pragma surface surf BlinnPhong  keepalpha
+
+		struct Input
+		{
+			float2 uv_1Tex;
+			float2 uv_2Tex;
+			half4 color : COLOR;
+			float4 screenPos;
+		};
+
+		sampler2D _CameraDepthTexture;
+		sampler2D _1Tex;
+		sampler2D _2Tex;
+		fixed4 _EffectColor;
+		fixed4 _Emission;
+
+		half _EffectCutoffBegin;
+		half _EffectCutoffEnd;
+
+		half _BaseOpacityModifier;
+		half _EdgeOpacityModifier;
+
+		float _DepthMultiplier;
+
+		void surf(Input IN, inout SurfaceOutput o)
+		{
+			// get uvs.
+
+			fixed4 c1 = tex2D(_1Tex, IN.uv_1Tex);
+			fixed4 c2 = tex2D(_2Tex, IN.uv_2Tex);
+			
+			// get the depth sample.
+
+			float4 depthSample = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, IN.screenPos);
+			float depth = LinearEyeDepth(depthSample).r;
+
+			// get the 0 to 1 depth alpha value from the depth 
+			// (taking the depth multiplier into account).
+
+			float depthAlpha = 1 - saturate(_DepthMultiplier * (depth - IN.screenPos.w));
+
+			// get and clip both the base alpha and edge alpha.
+
+			float baseAlpha = (c1.a + c2.a) * _EffectColor.a ;
+			float edgeAlpha = (c1.a + c2.a) * 2 * depthAlpha;
+
+			if (baseAlpha > _EffectCutoffBegin && baseAlpha < _EffectCutoffEnd)
+				baseAlpha = 0;
+
+			baseAlpha *= _BaseOpacityModifier;
+
+			if (edgeAlpha > _EffectCutoffBegin && edgeAlpha < _EffectCutoffEnd)
+				edgeAlpha = 0;
+
+			edgeAlpha *= _EdgeOpacityModifier;
+
+			// set base colour and alpha.
+
+			o.Albedo = _EffectColor.rgb;
+			o.Alpha = baseAlpha + edgeAlpha;
+
+			// fade alpha by vertex alpha.
+
+			o.Alpha = o.Alpha * IN.color.a;
+			
+			// add emission.
+
+			o.Emission = _Emission;
+		}
+
+		ENDCG
+	}
+	Fallback "Diffuse"
 }

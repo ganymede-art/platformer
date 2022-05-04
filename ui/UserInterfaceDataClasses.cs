@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Assets.script.ui
+namespace Assets.Script.ui
 {
 
 }
